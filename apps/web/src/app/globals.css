@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@import "../styles/tokens.css";
+@import "../styles/typography.css";
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
