@@ -2,13 +2,16 @@
 
 import { Container, Section } from "@repo/ui";
 import { ScenarioBuilder } from "../../features/prediction-studio/ScenarioBuilder";
-import { PredictionResultPreview } from "../../features/prediction-studio/PredictionResultPreview";
+import { PredictionResultExperience } from "../../features/prediction-studio/PredictionResultExperience";
 import { usePrediction } from "../../hooks/usePrediction";
 import { mockTeams } from "../../lib/mock/teams";
 import { mockMaps } from "../../lib/mock/maps";
 
 export default function PredictionStudioPage() {
   const { status, result, error, requestPrediction } = usePrediction();
+
+  const teamA = result ? mockTeams.find((team) => team.id === result.scenario.teamAId) : undefined;
+  const teamB = result ? mockTeams.find((team) => team.id === result.scenario.teamBId) : undefined;
 
   return (
     <Section>
@@ -29,7 +32,9 @@ export default function PredictionStudioPage() {
 
         {error ? <p className="text-sm text-danger">{error}</p> : null}
 
-        {result ? <PredictionResultPreview result={result} teams={mockTeams} /> : null}
+        {result && teamA && teamB ? (
+          <PredictionResultExperience result={result} teamA={teamA} teamB={teamB} />
+        ) : null}
       </Container>
     </Section>
   );

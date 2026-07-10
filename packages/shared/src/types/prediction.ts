@@ -1,3 +1,6 @@
+import type { MatchDna, TeamDna } from "./team-dna";
+import type { Insight, KeyFactor, PipelineStage } from "./insight";
+
 export type SeriesFormat = "BO3" | "BO5";
 
 export interface Scenario {
@@ -26,6 +29,11 @@ export interface PredictionResult {
   confidence: number;
   trustScore: number;
   explanation: string;
+  teamDna: [TeamDna, TeamDna];
+  matchDna: MatchDna;
+  keyFactors: KeyFactor[];
+  insights: Insight[];
+  pipeline: PipelineStage[];
   warnings: string[];
   generatedAt: string;
   predictionVersion: string;

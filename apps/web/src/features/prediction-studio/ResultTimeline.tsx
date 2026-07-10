@@ -1,0 +1,38 @@
+import type { PipelineStage } from "@repo/shared";
+import { Card } from "@repo/ui";
+
+export interface ResultTimelineProps {
+  stages: PipelineStage[];
+}
+
+export function ResultTimeline({ stages }: ResultTimelineProps) {
+  const totalMs = stages.reduce((sum, stage) => sum + stage.durationMs, 0);
+
+  return (
+    <Card className="flex flex-col gap-md">
+      <div className="flex items-baseline justify-between">
+        <h3>How This Prediction Was Made</h3>
+        <span className="text-sm text-muted-foreground">{totalMs}ms total</span>
+      </div>
+      <ol className="flex flex-col">
+        {stages.map((stage, index) => (
+          <li key={stage.id} className="flex gap-md">
+            <div className="flex flex-col items-center">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/15 text-xs font-semibold text-success">
+                ✓
+              </span>
+              {index < stages.length - 1 ? <span className="w-px flex-1 bg-surface-border" /> : null}
+            </div>
+            <div className="flex flex-1 items-baseline justify-between gap-sm pb-md">
+              <div>
+                <p className="text-sm font-medium text-foreground">{stage.label}</p>
+                <p className="text-sm text-muted-foreground">{stage.description}</p>
+              </div>
+              <span className="whitespace-nowrap text-sm text-muted-foreground">{stage.durationMs}ms</span>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}

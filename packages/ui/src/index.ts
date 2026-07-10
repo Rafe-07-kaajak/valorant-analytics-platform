@@ -5,4 +5,8 @@ export * from "./components/Card";
 export * from "./components/Container";
 export * from "./components/Section";
 export * from "./components/Navbar";
+export * from "./components/Meter";
+export * from "./components/SplitBar";
+export * from "./components/Badge";
+export * from "./charts/RadarChart";
 export { cn } from "./lib/cn";
