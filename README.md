@@ -31,7 +31,7 @@ The objective is not only to predict outcomes, but to help users understand the 
 
 Current Phase:
 
-> Specification Freeze ✅
+> Core Development ⏳
 
 Current Progress:
 
@@ -39,9 +39,16 @@ Current Progress:
 - ✅ Architecture Specification
 - ✅ Engineering Specification
 - ✅ Experience Specification
-- ⏳ Repository Initialization
+- ✅ Repository Initialization
 - ⏳ Development
 - ⏳ Deployment
+
+Implemented so far: the Sprint 01 design/theme/UI foundation, the Landing
+Experience, Prediction Studio (scenario builder through explainable
+results and Match DNA), and a Prediction Engine backend
+(`services/prediction-engine`) generating deterministic predictions over
+synthetic data. Live data integration and production deployment have not
+started yet — see [Project Roadmap](#project-roadmap) below.
 
 ---
 
@@ -742,6 +749,7 @@ valorant-analytics-platform/
 ├── apps/
 ├── packages/
 ├── services/
+├── e2e/
 ├── configs/
 ├── scripts/
 ├── docs/
@@ -799,6 +807,13 @@ Examples include:
 - API service
 
 Services should not depend on frontend implementation details.
+
+---
+
+## e2e/
+
+Contains end-to-end tests that exercise complete user flows through a
+real browser (Playwright), including accessibility assertions.
 
 ---
 
@@ -950,6 +965,89 @@ Documentation guides implementation.
 Code follows documentation.
 
 Not the other way around.
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+- Node.js >= 20
+- pnpm 11 (see `packageManager` in `package.json`)
+
+## Install
+
+```bash
+pnpm install
+```
+
+## Run the app
+
+```bash
+pnpm dev
+```
+
+Starts the Next.js dev server (`apps/web`) at `http://localhost:3000`.
+
+## Verify
+
+```bash
+pnpm lint          # ESLint across every package
+pnpm check-types   # tsc --noEmit across every package
+pnpm test          # unit tests (vitest, currently @repo/prediction-engine)
+pnpm test:e2e      # Playwright + axe-core end-to-end and accessibility tests
+pnpm build         # production build
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | No | `http://localhost:3000` | Absolute base URL used to generate `robots.txt` and `sitemap.xml`. Set this to the production domain when deploying. |
+
+See `.env.example`. No other environment variables are required — the
+Prediction Engine currently runs in-process against synthetic data (see
+[Prediction Engine](#prediction-engine) above), so no database or
+external API credentials are needed yet.
+
+---
+
+# API Reference
+
+`apps/web` exposes the Prediction Engine through three Next.js route
+handlers under `/api`. All responses are JSON.
+
+## `POST /api/prediction`
+
+Generates an explainable prediction for a scenario.
+
+Request body:
+
+```json
+{
+  "requestId": "string (uuid)",
+  "scenario": {
+    "teamAId": "string",
+    "teamBId": "string",
+    "seriesFormat": "BO3 | BO5",
+    "mapIds": ["string", "..."]
+  }
+}
+```
+
+Responses:
+
+- `200` — a `PredictionResult` (see `packages/shared/src/types/prediction.ts`): win probabilities, confidence, Team DNA, Match DNA, key factors, insights, and reasoning pipeline.
+- `400` — `{ "error": "string" }` when the request body isn't valid JSON or the scenario fails validation (unknown team, duplicate/unsupported maps, too many maps for the series format, etc.).
+- `500` — `{ "error": "string" }` on an unexpected internal failure.
+
+## `GET /api/teams`
+
+Returns the full list of known teams (`Team[]`, see `packages/shared/src/types/team.ts`).
+
+## `GET /api/maps`
+
+Returns the full list of supported maps (`GameMap[]`, see `packages/shared/src/types/map.ts`).
 
 ---
 
@@ -1148,9 +1246,7 @@ No production code is written during this phase.
 
 ---
 
-## Phase 2 — Repository Foundation
-
-Current Phase
+## Phase 2 — Repository Foundation ✅
 
 Objectives:
 
@@ -1169,29 +1265,31 @@ Deliverables:
 
 ---
 
-## Phase 3 — Core Development
+## Phase 3 — Core Development ⏳
+
+Current Phase
 
 Objectives:
 
-- build Landing Experience
-- build Prediction Studio
-- implement reusable UI components
-- establish design system
-- implement frontend architecture
+- build Landing Experience ✅
+- build Prediction Studio ✅
+- implement reusable UI components ✅
+- establish design system ✅
+- implement frontend architecture ✅
 
 The emphasis is on user experience and interface quality.
 
 ---
 
-## Phase 4 — Backend & Analytics
+## Phase 4 — Backend & Analytics ⏳
 
 Objectives:
 
-- backend API
-- data pipeline
-- feature engineering
-- prediction engine
-- analytical services
+- backend API ✅ (in-process; not yet a networked service)
+- data pipeline ⏳ (synthetic data only — no live source connected)
+- feature engineering ✅ (Team DNA / Match DNA)
+- prediction engine ✅ (deterministic heuristic, not yet ML-backed)
+- analytical services ⏳
 
 This phase transforms the platform from an interface into an analytical system.
 
