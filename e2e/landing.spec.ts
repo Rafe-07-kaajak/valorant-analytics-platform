@@ -11,6 +11,16 @@ test("landing page loads with no accessibility violations", async ({ page }) => 
   expect(results.violations).toEqual([]);
 });
 
+test("prediction studio preview section renders", async ({ page }) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "Every prediction comes with its reasoning attached." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Try Prediction Studio" }),
+  ).toHaveAttribute("href", "/prediction-studio");
+});
+
 test("theme toggle switches and persists across navigation", async ({ page }) => {
   await page.goto("/");
   const toggle = page.getByRole("button", { name: "Toggle color theme" });
