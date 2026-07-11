@@ -1,6 +1,6 @@
 import type { GameMap } from "@repo/shared";
 
-export const mockMaps: GameMap[] = [
+export const maps: GameMap[] = [
   { id: "ascent", name: "Ascent" },
   { id: "haven", name: "Haven" },
   { id: "bind", name: "Bind" },

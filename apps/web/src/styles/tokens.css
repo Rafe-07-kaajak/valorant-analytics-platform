@@ -61,7 +61,12 @@
   --foreground: #0f172a;
   --surface: #f8fafc;
   --surface-border: #e2e8f0;
-  --muted-foreground: #64748b;
+  /* Darkened from the more common #64748b (slate-500): that value only
+     clears 4.5:1 against pure white by a hair (4.76) and drops below the
+     threshold against any locally tinted background (e.g. text sitting
+     over the hero's animated gradient blobs) — this shade keeps ≥5.7:1
+     even against a tinted surface. */
+  --muted-foreground: #55627a;
 
   /* Semantic status colors (confidence / warnings / trust signals) —
      theme-aware because a shade dark enough to read on white/light surfaces

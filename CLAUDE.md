@@ -1706,3 +1706,172 @@ When faced with a choice between writing more code and writing better code,
 
 always choose better code.
 
+## Dependencies
+
+Do not install any new dependency unless absolutely necessary.
+
+Before installing:
+
+- explain why
+- explain why existing packages cannot solve it
+
+Prefer writing components manually.
+
+Avoid adding libraries for small problems.
+Never replace existing architecture.
+
+Always extend existing architecture.
+
+Never rewrite working components unless explicitly requested.
+
+Never create duplicate components.
+
+Search the project before creating a new one.
+
+Only fix issues that are:
+
+- reproducible
+- user-visible
+- accessibility violations
+- runtime errors
+
+Ignore harmless dev warnings.
+
+If a task exceeds 30 minutes,
+stop and summarize:
+
+- what was completed
+- what remains
+- current blockers
+
+before continuing.
+
+Never continue fixing the same bug more than 3 attempts.
+
+After 3 attempts:
+
+stop
+
+explain
+
+ask whether to continue.
+
+## Dependencies
+
+Do not install new dependencies unless absolutely necessary.
+
+Before installing:
+
+- explain why
+- explain alternatives
+- explain why existing packages cannot solve the problem
+
+Prefer writing reusable components manually.
+
+## Architecture
+
+Never rewrite existing architecture.
+
+Always extend existing architecture.
+
+Reuse existing components whenever possible.
+## Reuse
+
+Search the project before creating:
+
+- components
+- hooks
+- utils
+- helpers
+- types
+
+Never create duplicates.
+## Verification
+
+Every completed feature must pass:
+
+- pnpm lint
+- pnpm typecheck
+- pnpm build
+- Playwright verification
+- Browser console check
+- Network check
+## Bug fixing
+
+Only fix:
+
+- reproducible bugs
+- runtime errors
+- accessibility violations
+- user-visible issues
+
+Ignore harmless development warnings.
+
+## Progress
+
+If a task exceeds 30 minutes:
+
+stop
+
+summarize:
+
+- completed
+- remaining
+- blockers
+
+then wait for confirmation.
+
+## Retry limit
+
+Never retry the same fix more than 3 times.
+
+After 3 failed attempts:
+
+stop
+
+explain the problem
+
+propose options
+
+wait for approval.
+
+## Git
+
+Never commit automatically.
+
+Only commit when explicitly requested.
+
+## Workflow
+
+Always build:
+
+1. UI
+2. Mock data
+3. API contracts
+4. Backend
+5. Real AI
+
+Never start with AI before the UI and API contracts are complete.
+
+## Code Quality
+
+Prefer readability over clever code.
+
+Prefer reusable components.
+
+Avoid files larger than 300 lines whenever practical.
+
+Split large features into smaller modules.
+
+## Documentation Priority
+
+Only re-read documents that are relevant to the current task.
+
+Do not re-read the entire documentation for every implementation.
+
+Use previously loaded documentation unless:
+- a task explicitly references another document
+- architecture decisions may be affected
+- there is a scope conflict
+
+Avoid unnecessary context usage.

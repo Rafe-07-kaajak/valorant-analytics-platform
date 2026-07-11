@@ -36,18 +36,15 @@ export function generateKeyFactors({ winner, loser, winnerDna, loserDna }: Gener
   return factors;
 }
 
-export function generateInsights({
-  winner,
-  loser,
-  winnerDna,
-  loserDna,
-  matchDna,
-  confidence,
-  trustScore,
-}: GenerateInsightsInput): Insight[] {
-  const factors = generateKeyFactors({ winner, loser, winnerDna, loserDna, matchDna, confidence, trustScore });
-  const strongestAdvantage = factors.find((f) => f.impact === "positive");
-  const biggestWeakness = factors.find((f) => f.impact === "negative");
+export function generateInsights(
+  { winnerDna, matchDna, confidence, trustScore }: Pick<
+    GenerateInsightsInput,
+    "winnerDna" | "matchDna" | "confidence" | "trustScore"
+  >,
+  keyFactors: KeyFactor[],
+): Insight[] {
+  const strongestAdvantage = keyFactors.find((f) => f.impact === "positive");
+  const biggestWeakness = keyFactors.find((f) => f.impact === "negative");
   const decisiveDimension = winnerDna.dimensions.find((d) => d.key === matchDna.decisiveTrait)!;
 
   const insights: Insight[] = [];

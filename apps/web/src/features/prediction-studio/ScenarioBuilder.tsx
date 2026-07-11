@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { GameMap, Scenario, SeriesFormat, Team } from "@repo/shared";
-import { Button, Card, Select } from "@repo/ui";
+import { SERIES_MAP_LIMITS, type GameMap, type Scenario, type SeriesFormat, type Team } from "@repo/shared";
+import { Button, Card, Label, Select, Spinner, Stack } from "@repo/ui";
 import { TeamSelector } from "./TeamSelector";
 import { MapSelector } from "./MapSelector";
-
-const SERIES_MAP_LIMITS: Record<SeriesFormat, number> = { BO3: 3, BO5: 5 };
 
 export interface ScenarioBuilderProps {
   teams: Team[];
@@ -71,16 +69,17 @@ export function ScenarioBuilder({ teams, maps, isSubmitting, onSubmit }: Scenari
         />
       </div>
 
-      <label className="flex flex-col gap-2xs">
-        <span className="text-sm font-medium text-foreground">Series Format</span>
+      <Stack gap="2xs">
+        <Label htmlFor="series-format">Series Format</Label>
         <Select
+          id="series-format"
           value={seriesFormat}
           onChange={(event) => handleSeriesFormatChange(event.target.value as SeriesFormat)}
         >
           <option value="BO3">Best of 3</option>
           <option value="BO5">Best of 5</option>
         </Select>
-      </label>
+      </Stack>
 
       <MapSelector
         maps={maps}
@@ -97,7 +96,14 @@ export function ScenarioBuilder({ teams, maps, isSubmitting, onSubmit }: Scenari
         disabled={Boolean(validationError) || isSubmitting}
         onClick={handleSubmit}
       >
-        {isSubmitting ? "Generating Prediction…" : "Generate Prediction"}
+        {isSubmitting ? (
+          <>
+            <Spinner size={16} className="text-white" />
+            Generating Prediction…
+          </>
+        ) : (
+          "Generate Prediction"
+        )}
       </Button>
     </Card>
   );

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
-import { Navbar } from "@repo/ui";
-import { ThemeToggle } from "../components/ThemeToggle";
+import { Footer } from "@repo/ui";
+import { SiteNavbar } from "../components/SiteNavbar";
+import { MotionProvider } from "../components/MotionProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,8 +17,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Valorant Analytics Platform",
+  title: {
+    default: "Valorant Analytics Platform",
+    template: "%s",
+  },
   description: "Explainable predictions for professional VALORANT matches.",
+  openGraph: {
+    title: "Valorant Analytics Platform",
+    description: "Explainable predictions for professional VALORANT matches.",
+    type: "website",
+  },
 };
 
 const navLinks = [{ label: "Prediction Studio", href: "/prediction-studio" }];
@@ -30,16 +39,19 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
-        <Navbar
-          logo={
-            <Link href="/" className="text-sm font-semibold text-foreground">
-              Valorant Analytics
-            </Link>
-          }
-          links={navLinks}
-          actions={<ThemeToggle />}
-        />
-        <main>{children}</main>
+        <MotionProvider>
+          <SiteNavbar links={navLinks} />
+          <main>{children}</main>
+          <Footer
+            logo={
+              <Link href="/" className="text-sm font-semibold text-foreground">
+                Valorant Analytics
+              </Link>
+            }
+            tagline="Explainable predictions for professional VALORANT matches."
+            links={navLinks}
+          />
+        </MotionProvider>
       </body>
     </html>
   );

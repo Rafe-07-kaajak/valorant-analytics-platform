@@ -1,6 +1,6 @@
 import type { Team } from "@repo/shared";
 
-export const mockTeams: Team[] = [
+export const teams: Team[] = [
   { id: "sen", name: "Sentinels", region: "Americas", logoUrl: "/teams/sen.svg" },
   { id: "loud", name: "LOUD", region: "Americas", logoUrl: "/teams/loud.svg" },
   { id: "fnc", name: "Fnatic", region: "EMEA", logoUrl: "/teams/fnc.svg" },

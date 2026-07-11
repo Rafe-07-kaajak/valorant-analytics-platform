@@ -3,6 +3,8 @@ import type { Insight, KeyFactor, PipelineStage } from "./insight";
 
 export type SeriesFormat = "BO3" | "BO5";
 
+export const SERIES_MAP_LIMITS: Record<SeriesFormat, number> = { BO3: 3, BO5: 5 };
+
 export interface Scenario {
   teamAId: string;
   teamBId: string;

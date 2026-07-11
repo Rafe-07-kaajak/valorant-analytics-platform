@@ -1,15 +1,17 @@
+import { randomUUID } from "node:crypto";
 import type { PredictionRequest, PredictionResult } from "@repo/shared";
-import { mockTeams } from "./teams";
-import { seededRatio } from "./seededRatio";
-import { generateTeamDna } from "./teamDna";
-import { generateMatchDna } from "./matchDna";
-import { generateKeyFactors, generateInsights } from "./insights";
-import { generatePipeline } from "./pipeline";
+import { teams } from "./data/teams";
+import { seededRatio } from "./lib/seededRatio";
+import { generateTeamDna } from "./lib/teamDna";
+import { generateMatchDna } from "./lib/matchDna";
+import { generateKeyFactors, generateInsights } from "./lib/insights";
+import { generatePipeline } from "./lib/pipeline";
+import { getCached, scenarioCacheKey, setCached } from "./cache";
 
-export function generateMockPrediction(request: PredictionRequest): PredictionResult {
+function computePrediction(request: PredictionRequest): PredictionResult {
   const { scenario } = request;
-  const teamA = mockTeams.find((team) => team.id === scenario.teamAId);
-  const teamB = mockTeams.find((team) => team.id === scenario.teamBId);
+  const teamA = teams.find((team) => team.id === scenario.teamAId);
+  const teamB = teams.find((team) => team.id === scenario.teamBId);
 
   if (!teamA || !teamB) {
     throw new Error("Unknown team in scenario");
@@ -33,7 +35,7 @@ export function generateMockPrediction(request: PredictionRequest): PredictionRe
 
   const insightInput = { winner, loser, winnerDna, loserDna, matchDna, confidence, trustScore };
   const keyFactors = generateKeyFactors(insightInput);
-  const insights = generateInsights(insightInput);
+  const insights = generateInsights(insightInput, keyFactors);
   const pipeline = generatePipeline(request.requestId);
 
   const topFactor = keyFactors[0];
@@ -42,7 +44,7 @@ export function generateMockPrediction(request: PredictionRequest): PredictionRe
     : `${winner.name} and ${loser.name} are closely matched across every measured dimension, so this prediction leans on aggregate win probability alone.`;
 
   return {
-    predictionId: crypto.randomUUID(),
+    predictionId: randomUUID(),
     requestId: request.requestId,
     scenario,
     outcomes: [
@@ -58,8 +60,37 @@ export function generateMockPrediction(request: PredictionRequest): PredictionRe
     keyFactors,
     insights,
     pipeline,
-    warnings: ["This prediction was generated from mock data, not the real Prediction Engine."],
+    warnings: [
+      "This prediction was generated from a deterministic heuristic over synthetic data — no live match data source is connected yet.",
+    ],
     generatedAt: new Date().toISOString(),
-    predictionVersion: "mock-0.1",
+    predictionVersion: "engine-0.2",
   };
+}
+
+/**
+ * Scenario content is what determines the analytical result, so cache hits
+ * reuse the computed DNA/probabilities/insights. Everything specific to this
+ * request — predictionId, requestId, the submitted scenario (mapIds order
+ * isn't part of the cache key), and the requestId-seeded pipeline — is always
+ * stamped fresh, even when the underlying analysis is reused.
+ */
+export function generatePrediction(request: PredictionRequest): PredictionResult {
+  const key = scenarioCacheKey(request.scenario);
+  const cached = getCached(key);
+
+  if (cached) {
+    return {
+      ...cached,
+      predictionId: randomUUID(),
+      requestId: request.requestId,
+      scenario: request.scenario,
+      pipeline: generatePipeline(request.requestId),
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  const result = computePrediction(request);
+  setCached(key, result);
+  return result;
 }

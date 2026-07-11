@@ -1,41 +1,19 @@
-"use client";
+import type { Metadata } from "next";
+import { teams, maps } from "@repo/prediction-engine";
+import { PredictionStudioClient } from "../../features/prediction-studio/PredictionStudioClient";
 
-import { Container, Section } from "@repo/ui";
-import { ScenarioBuilder } from "../../features/prediction-studio/ScenarioBuilder";
-import { PredictionResultExperience } from "../../features/prediction-studio/PredictionResultExperience";
-import { usePrediction } from "../../hooks/usePrediction";
-import { mockTeams } from "../../lib/mock/teams";
-import { mockMaps } from "../../lib/mock/maps";
+export const metadata: Metadata = {
+  title: "Prediction Studio | Valorant Analytics Platform",
+  description:
+    "Select two professional VALORANT teams and generate an explainable win prediction backed by Team DNA and Match DNA.",
+  openGraph: {
+    title: "Prediction Studio | Valorant Analytics Platform",
+    description:
+      "Select two professional VALORANT teams and generate an explainable win prediction backed by Team DNA and Match DNA.",
+    type: "website",
+  },
+};
 
 export default function PredictionStudioPage() {
-  const { status, result, error, requestPrediction } = usePrediction();
-
-  const teamA = result ? mockTeams.find((team) => team.id === result.scenario.teamAId) : undefined;
-  const teamB = result ? mockTeams.find((team) => team.id === result.scenario.teamBId) : undefined;
-
-  return (
-    <Section>
-      <Container className="flex flex-col gap-lg">
-        <div>
-          <h1>Prediction Studio</h1>
-          <p className="text-muted-foreground">
-            Select two teams and a scenario to generate an explainable prediction.
-          </p>
-        </div>
-
-        <ScenarioBuilder
-          teams={mockTeams}
-          maps={mockMaps}
-          isSubmitting={status === "loading"}
-          onSubmit={requestPrediction}
-        />
-
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
-
-        {result && teamA && teamB ? (
-          <PredictionResultExperience result={result} teamA={teamA} teamB={teamB} />
-        ) : null}
-      </Container>
-    </Section>
-  );
+  return <PredictionStudioClient teams={teams} maps={maps} />;
 }

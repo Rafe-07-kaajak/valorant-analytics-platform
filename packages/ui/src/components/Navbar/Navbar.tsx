@@ -1,6 +1,10 @@
-import { type HTMLAttributes, type ReactNode, forwardRef } from "react";
+"use client";
+
+import { type HTMLAttributes, type ReactNode, forwardRef, useState } from "react";
+import { Menu } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { Container } from "../Container/Container";
+import { Drawer } from "../Drawer/Drawer";
 
 export interface NavLink {
   label: string;
@@ -11,10 +15,14 @@ export interface NavbarProps extends HTMLAttributes<HTMLElement> {
   logo: ReactNode;
   links: NavLink[];
   actions?: ReactNode;
+  /** Current route, used to mark the matching link as active. */
+  activeHref?: string;
 }
 
 export const Navbar = forwardRef<HTMLElement, NavbarProps>(
-  ({ className, logo, links, actions, ...props }, ref) => {
+  ({ className, logo, links, actions, activeHref, ...props }, ref) => {
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
     return (
       <header
         ref={ref}
@@ -27,20 +35,62 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
         <Container className="flex h-16 items-center justify-between gap-md">
           <div className="flex items-center gap-2xl">
             {logo}
-            <nav className="flex items-center gap-lg">
-              {links.map((link) => (
+            <nav className="hidden items-center gap-lg sm:flex">
+              {links.map((link) => {
+                const isActive = link.href === activeHref;
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    aria-current={isActive ? "page" : undefined}
+                    className={cn(
+                      "text-sm font-medium transition-colors duration-(--duration-fast) hover:text-foreground",
+                      isActive ? "text-foreground" : "text-muted-foreground",
+                    )}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-sm">
+            {actions}
+            <button
+              type="button"
+              className="flex size-9 items-center justify-center rounded-md text-foreground transition-colors duration-(--duration-fast) hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 sm:hidden"
+              aria-label="Open navigation menu"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <Menu size={20} aria-hidden="true" />
+            </button>
+          </div>
+        </Container>
+
+        <Drawer open={mobileNavOpen} onOpenChange={setMobileNavOpen} ariaLabel="Navigation menu">
+          <nav className="flex flex-col gap-2xs">
+            {links.map((link) => {
+              const isActive = link.href === activeHref;
+              return (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground"
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={cn(
+                    "rounded-md px-xs py-2xs text-sm font-medium transition-colors duration-(--duration-fast)",
+                    isActive
+                      ? "bg-surface-border text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
                 >
                   {link.label}
                 </a>
-              ))}
-            </nav>
-          </div>
-          {actions ? <div className="flex items-center gap-sm">{actions}</div> : null}
-        </Container>
+              );
+            })}
+          </nav>
+        </Drawer>
       </header>
     );
   },

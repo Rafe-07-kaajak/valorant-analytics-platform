@@ -14,6 +14,7 @@ export function usePrediction() {
   const requestPrediction = useCallback(async (scenario: Scenario) => {
     setStatus("loading");
     setError(null);
+    setResult(null);
 
     try {
       const prediction = await predictMatch({ requestId: crypto.randomUUID(), scenario });
