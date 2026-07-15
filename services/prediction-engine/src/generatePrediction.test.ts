@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { PredictionRequest } from "@repo/shared";
 import { generatePrediction } from "./generatePrediction";
+import { generateTeamDna } from "./lib/teamDna";
+import { computeWeightedAdvantage } from "./lib/matchDna";
 
 function request(overrides: Partial<PredictionRequest["scenario"]> = {}): PredictionRequest {
   return {
@@ -64,5 +66,36 @@ describe("generatePrediction", () => {
 
   it("throws for an unknown team", () => {
     expect(() => generatePrediction(request({ teamAId: "not-a-real-team" }))).toThrow();
+  });
+
+  it("assigns win probability above 50% to the team with the greater weighted DNA advantage", () => {
+    const teamAId = "sen";
+    const teamBId = "loud";
+
+    const teamADna = generateTeamDna(teamAId);
+    const teamBDna = generateTeamDna(teamBId);
+    const weightedAdvantage = computeWeightedAdvantage(teamADna, teamBDna);
+
+    const result = generatePrediction(request({ teamAId, teamBId }));
+    const teamAOutcome = result.outcomes.find((outcome) => outcome.teamId === teamAId)!;
+
+    if (weightedAdvantage > 0) {
+      expect(teamAOutcome.winProbability).toBeGreaterThan(0.5);
+      expect(result.predictedWinnerId).toBe(teamAId);
+    } else if (weightedAdvantage < 0) {
+      expect(teamAOutcome.winProbability).toBeLessThan(0.5);
+      expect(result.predictedWinnerId).toBe(teamBId);
+    } else {
+      expect(teamAOutcome.winProbability).toBe(0.5);
+    }
+  });
+
+  it("keeps trust score bounded and reproducible for identical scenarios", () => {
+    const first = generatePrediction(request());
+    const second = generatePrediction(request());
+
+    expect(first.trustScore).toBeGreaterThanOrEqual(0);
+    expect(first.trustScore).toBeLessThanOrEqual(100);
+    expect(second.trustScore).toBe(first.trustScore);
   });
 });
