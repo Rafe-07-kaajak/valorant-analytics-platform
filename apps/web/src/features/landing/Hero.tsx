@@ -4,6 +4,8 @@ import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { buttonVariants, Container, Section } from "@repo/ui";
 import { AnimatedBackground } from "./AnimatedBackground";
+import { MediaBackground } from "../../components/media/MediaBackground";
+import { MEDIA_ASSETS } from "../../constants/media";
 
 const container: Variants = {
   hidden: {},
@@ -17,7 +19,13 @@ const item: Variants = {
 
 export function Hero() {
   return (
-    <Section className="relative overflow-hidden">
+    <Section className="relative overflow-hidden" data-theme="dark">
+      <MediaBackground
+        asset={MEDIA_ASSETS.heroVideoLoop}
+        poster={MEDIA_ASSETS.heroFallbackImage}
+        priority
+        scrim="full"
+      />
       <AnimatedBackground />
       <Container className="relative">
         <motion.div
@@ -26,7 +34,7 @@ export function Hero() {
           animate="visible"
           variants={container}
         >
-          <motion.h1 variants={item}>
+          <motion.h1 variants={item} className="text-foreground">
             Understand professional VALORANT matches before they happen.
           </motion.h1>
           <motion.p variants={item} className="max-w-(--breakpoint-sm) text-lg text-muted-foreground">

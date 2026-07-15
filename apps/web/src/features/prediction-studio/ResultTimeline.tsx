@@ -1,5 +1,7 @@
 import type { PipelineStage } from "@repo/shared";
 import { Card } from "@repo/ui";
+import { MediaBackground } from "../../components/media/MediaBackground";
+import { MEDIA_ASSETS } from "../../constants/media";
 
 export interface ResultTimelineProps {
   stages: PipelineStage[];
@@ -9,12 +11,13 @@ export function ResultTimeline({ stages }: ResultTimelineProps) {
   const totalMs = stages.reduce((sum, stage) => sum + stage.durationMs, 0);
 
   return (
-    <Card className="flex flex-col gap-md">
-      <div className="flex items-baseline justify-between">
+    <Card className="relative flex flex-col gap-md overflow-hidden">
+      <MediaBackground asset={MEDIA_ASSETS.predictionTimelineLoop} className="opacity-[0.08]" />
+      <div className="relative flex items-baseline justify-between">
         <h3>How This Prediction Was Made</h3>
         <span className="text-sm text-muted-foreground">{totalMs}ms total</span>
       </div>
-      <ol className="flex flex-col">
+      <ol className="relative flex flex-col">
         {stages.map((stage, index) => (
           <li key={stage.id} className="flex gap-md">
             <div className="flex flex-col items-center">

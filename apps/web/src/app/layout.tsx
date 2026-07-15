@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Footer } from "@repo/ui";
 import { SiteNavbar } from "../components/SiteNavbar";
 import { MotionProvider } from "../components/MotionProvider";
+import { MediaBackground } from "../components/media/MediaBackground";
+import { MEDIA_ASSETS } from "../constants/media";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,15 +44,20 @@ export default function RootLayout({
         <MotionProvider>
           <SiteNavbar links={navLinks} />
           <main>{children}</main>
-          <Footer
-            logo={
-              <Link href="/" className="text-sm font-semibold text-foreground">
-                Valorant Analytics
-              </Link>
-            }
-            tagline="Explainable predictions for professional VALORANT matches."
-            links={navLinks}
-          />
+          <div className="relative overflow-hidden">
+            <MediaBackground asset={MEDIA_ASSETS.footerBackground} className="opacity-[0.1]" scrim="bottom" />
+            <div className="relative">
+              <Footer
+                logo={
+                  <Link href="/" className="text-sm font-semibold text-foreground">
+                    Valorant Analytics
+                  </Link>
+                }
+                tagline="Explainable predictions for professional VALORANT matches."
+                links={navLinks}
+              />
+            </div>
+          </div>
         </MotionProvider>
       </body>
     </html>

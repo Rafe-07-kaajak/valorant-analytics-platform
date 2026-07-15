@@ -3,6 +3,8 @@
 import { BarChart3, Dna, MessageSquareText, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, Container, ScrollReveal, Section } from "@repo/ui";
+import { MediaBackground } from "../../components/media/MediaBackground";
+import { MEDIA_ASSETS } from "../../constants/media";
 
 const FEATURES = [
   {
@@ -33,8 +35,9 @@ const FEATURES = [
 
 export function CoreFeatures() {
   return (
-    <Section>
-      <Container className="flex flex-col gap-xl">
+    <Section className="relative overflow-hidden">
+      <MediaBackground asset={MEDIA_ASSETS.analyticsDashboard} className="opacity-[0.08]" scrim="bottom" />
+      <Container className="relative flex flex-col gap-xl">
         <ScrollReveal className="max-w-(--breakpoint-md)">
           <h2>Built around a small set of carefully designed features.</h2>
         </ScrollReveal>

@@ -1,0 +1,72 @@
+/* Decorative effect keyframes (effects 26-30) — kept to transform/opacity/
+   background-position where possible (GPU-cheap) and disabled entirely under
+   prefers-reduced-motion, matching the convention in motion.css. */
+
+@theme {
+  --animate-noise-flicker: noise-flicker 6s steps(8) infinite;
+  --animate-scanline-drift: scanline-drift 10s linear infinite;
+  --animate-energy-pulse: energy-pulse 2.4s var(--ease-standard) infinite;
+  --animate-glass-float-a: glass-float-a 22s ease-in-out infinite;
+  --animate-glass-float-b: glass-float-b 28s ease-in-out infinite reverse;
+}
+
+@keyframes noise-flicker {
+  0%, 100% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes scanline-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 160px;
+  }
+}
+
+@keyframes energy-pulse {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 0.1;
+  }
+  100% {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes glass-float-a {
+  0%, 100% {
+    transform: translate(0, 0) rotate(-6deg);
+  }
+  50% {
+    transform: translate(3%, -5%) rotate(-2deg);
+  }
+}
+
+@keyframes glass-float-b {
+  0%, 100% {
+    transform: translate(0, 0) rotate(8deg);
+  }
+  50% {
+    transform: translate(-4%, 4%) rotate(4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-noise-flicker,
+  .animate-scanline-drift,
+  .animate-energy-pulse,
+  .animate-glass-float-a,
+  .animate-glass-float-b {
+    animation: none;
+  }
+}

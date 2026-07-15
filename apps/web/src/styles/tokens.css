@@ -7,12 +7,20 @@
    resolves to nothing. */
 
 @theme {
-  /* Color System — brand accent. 500/600 are chosen to clear WCAG AA
-     4.5:1 contrast against white button text (#6366f1 only reaches 4.46:1
-     and fails). */
-  --color-brand-400: #818cf8;
-  --color-brand-500: #4f46e5;
-  --color-brand-600: #4338ca;
+  /* Color System — brand accent. Cyan/blue family, matching the asset
+     library's "primary intelligence" HUD color. 500/600 are chosen to clear
+     WCAG AA 4.5:1 contrast against white button text (validated: 5.93:1 /
+     7.56:1). Not theme-swapped, consistent with the previous indigo values. */
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0369a1;
+  --color-brand-600: #075985;
+
+  /* Restrained secondary accent — violet, carried forward from the old
+     brand-400 hue. Deliberately a single flat value (not a 400/500/600
+     ramp): used only by decorative effects (FloatingGlassObjects,
+     EnergyPulse), never by interactive UI, per the design direction's
+     "violet only as a restrained secondary accent". */
+  --color-accent-violet: #8b7cf6;
 
   /* Spacing scale */
   --spacing-3xs: 0.25rem;
@@ -58,9 +66,9 @@
 /* Semantic surface tokens — light theme (default) */
 :root {
   --background: #ffffff;
-  --foreground: #0f172a;
-  --surface: #f8fafc;
-  --surface-border: #e2e8f0;
+  --foreground: #10151c;
+  --surface: #f7f9fb;
+  --surface-border: #e2e6ec;
   /* Darkened from the more common #64748b (slate-500): that value only
      clears 4.5:1 against pure white by a hair (4.76) and drops below the
      threshold against any locally tinted background (e.g. text sitting
@@ -76,11 +84,14 @@
   --warning: #b45309;
   --danger: #b91c1c;
 
-  /* Team identity (comparison charts) — blue/red categorical pair,
-     validated with the dataviz skill's palette validator against both
-     surface colors (all-pairs CVD, contrast, lightness band all pass). */
-  --team-a: #2a78d6;
-  --team-b: #e34948;
+  /* Team identity (comparison charts) — cyan/coral categorical pair,
+     validated with the dataviz skill's palette validator against the surface
+     color (lightness band, chroma floor, CVD separation, contrast all pass;
+     protan ΔE 53.6 / tritan 116.9 / normal 101.5). Cyan doubles as "primary
+     intelligence" per the design direction; coral-red reads as the opposing
+     team. */
+  --team-a: #0891b2;
+  --team-b: #dc4a3a;
 
   /* Badge background/text pairs — explicit solid colors, not opacity-blended
      semantic hues. An alpha-blended background's effective color depends on
@@ -91,49 +102,53 @@
   --badge-success-text: #15803d;
   --badge-danger-bg: #fee2e2;
   --badge-danger-text: #b91c1c;
-  --badge-brand-bg: #e0e7ff;
-  --badge-brand-text: #4338ca;
+  --badge-brand-bg: #e0f2fe;
+  --badge-brand-text: #075985;
 }
 
-/* Semantic surface tokens — dark theme (explicit toggle) */
+/* Semantic surface tokens — dark theme (explicit toggle). Graphite/near-black
+   surfaces and off-white text, matching the asset library. */
 [data-theme="dark"] {
-  --background: #020617;
-  --foreground: #f8fafc;
-  --surface: #0f172a;
-  --surface-border: #1e293b;
-  --muted-foreground: #94a3b8;
+  --background: #05070a;
+  --foreground: #f2f4f8;
+  --surface: #10141b;
+  --surface-border: #2a3140;
+  --muted-foreground: #9aa4b8;
   --success: #4ade80;
   --warning: #fbbf24;
   --danger: #f87171;
-  --team-a: #3987e5;
-  --team-b: #e66767;
+  /* Team identity — validated against this theme's surface (lightness band,
+     chroma floor, CVD separation, contrast all pass; protan ΔE 49.9 / tritan
+     115.2 / normal 99.8). */
+  --team-a: #1a9bb0;
+  --team-b: #e0553d;
   --badge-success-bg: #0f2e1c;
   --badge-success-text: #4ade80;
   --badge-danger-bg: #3a1414;
   --badge-danger-text: #f87171;
-  --badge-brand-bg: #211f4d;
-  --badge-brand-text: #a5b4fc;
+  --badge-brand-bg: #0c313f;
+  --badge-brand-text: #67e8f9;
 }
 
 /* Semantic surface tokens — dark theme (system preference, unless overridden) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --background: #020617;
-    --foreground: #f8fafc;
-    --surface: #0f172a;
-    --surface-border: #1e293b;
-    --muted-foreground: #94a3b8;
+    --background: #05070a;
+    --foreground: #f2f4f8;
+    --surface: #10141b;
+    --surface-border: #2a3140;
+    --muted-foreground: #9aa4b8;
     --success: #4ade80;
     --warning: #fbbf24;
     --danger: #f87171;
-    --team-a: #3987e5;
-    --team-b: #e66767;
+    --team-a: #1a9bb0;
+    --team-b: #e0553d;
     --badge-success-bg: #0f2e1c;
     --badge-success-text: #4ade80;
     --badge-danger-bg: #3a1414;
     --badge-danger-text: #f87171;
-    --badge-brand-bg: #211f4d;
-    --badge-brand-text: #a5b4fc;
+    --badge-brand-bg: #0c313f;
+    --badge-brand-text: #67e8f9;
   }
 }
 
@@ -155,3 +170,7 @@
   --color-badge-brand-bg: var(--badge-brand-bg);
   --color-badge-brand-text: var(--badge-brand-text);
 }
+
+/* --color-accent-violet is declared directly in the static @theme block
+   above (like --color-brand-*) since it is not theme-swapped — no entry
+   needed here, Tailwind already resolves it as `bg-accent-violet` etc. */
