@@ -3,6 +3,13 @@ import { teams } from "./data/teams";
 import { maps } from "./data/maps";
 
 export function validateScenario(request: PredictionRequest): string | null {
+  if (!request?.clientVersion) {
+    return "A client version is required.";
+  }
+  if (!request?.timestamp) {
+    return "A request timestamp is required.";
+  }
+
   const scenario = request?.scenario;
 
   if (!scenario) {

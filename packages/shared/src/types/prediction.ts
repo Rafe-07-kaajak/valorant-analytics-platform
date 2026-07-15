@@ -14,6 +14,8 @@ export interface Scenario {
 
 export interface PredictionRequest {
   requestId: string;
+  clientVersion: string;
+  timestamp: string;
   scenario: Scenario;
 }
 

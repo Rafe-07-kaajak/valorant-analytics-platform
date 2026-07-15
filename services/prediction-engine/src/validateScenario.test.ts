@@ -5,6 +5,8 @@ import { validateScenario } from "./validateScenario";
 function request(overrides: Partial<PredictionRequest["scenario"]> = {}): PredictionRequest {
   return {
     requestId: "r1",
+    clientVersion: "web-0.1.0",
+    timestamp: "2025-01-01T00:00:00.000Z",
     scenario: {
       teamAId: "sen",
       teamBId: "loud",
@@ -56,5 +58,19 @@ describe("validateScenario", () => {
 
   it("rejects a request with no scenario instead of throwing", () => {
     expect(validateScenario({ requestId: "r1" } as unknown as PredictionRequest)).not.toBeNull();
+  });
+
+  it("rejects a request missing clientVersion", () => {
+    const { scenario, timestamp } = request();
+    expect(
+      validateScenario({ requestId: "r1", timestamp, scenario } as unknown as PredictionRequest),
+    ).not.toBeNull();
+  });
+
+  it("rejects a request missing timestamp", () => {
+    const { scenario, clientVersion } = request();
+    expect(
+      validateScenario({ requestId: "r1", clientVersion, scenario } as unknown as PredictionRequest),
+    ).not.toBeNull();
   });
 });

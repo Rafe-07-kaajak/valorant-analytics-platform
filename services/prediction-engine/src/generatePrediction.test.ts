@@ -5,6 +5,8 @@ import { generatePrediction } from "./generatePrediction";
 function request(overrides: Partial<PredictionRequest["scenario"]> = {}): PredictionRequest {
   return {
     requestId: crypto.randomUUID(),
+    clientVersion: "web-0.1.0",
+    timestamp: new Date().toISOString(),
     scenario: {
       teamAId: "sen",
       teamBId: "loud",
