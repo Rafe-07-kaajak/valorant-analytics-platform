@@ -27,3 +27,8 @@ export { previewVctMatchup } from "./lib/vctMatchupPreview";
 export type { VctMatchupPreview } from "./lib/vctMatchupPreview";
 export { validateVctTeamProfiles } from "./lib/validateVctTeamProfiles";
 export type { VctTeamProfileValidationIssue } from "./lib/validateVctTeamProfiles";
+
+// TASK-032 — wires the 32-team profile layer into a request/response path
+// compatible with the existing PredictionRequest/PredictionResult contracts.
+export { generateVctPrediction } from "./generateVctPrediction";
+export { validateVctScenario } from "./validateVctScenario";

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { teams, maps } from "@repo/prediction-engine";
+import { maps, VCT_PROFILE_DISCLOSURE } from "@repo/prediction-engine";
+import { VCT_REGIONS, VCT_TEAMS } from "../../constants/vct";
 import { PredictionStudioClient } from "../../features/prediction-studio/PredictionStudioClient";
 import { MEDIA_ASSETS } from "../../constants/media";
 
@@ -24,5 +25,12 @@ export const metadata: Metadata = {
 };
 
 export default function PredictionStudioPage() {
-  return <PredictionStudioClient teams={teams} maps={maps} />;
+  return (
+    <PredictionStudioClient
+      regions={VCT_REGIONS}
+      teams={VCT_TEAMS}
+      maps={maps}
+      disclosure={VCT_PROFILE_DISCLOSURE}
+    />
+  );
 }

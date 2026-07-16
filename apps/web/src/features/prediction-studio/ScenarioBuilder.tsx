@@ -1,32 +1,43 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SERIES_MAP_LIMITS, type GameMap, type Scenario, type SeriesFormat, type Team } from "@repo/shared";
+import { SERIES_MAP_LIMITS, type GameMap, type Scenario, type SeriesFormat } from "@repo/shared";
 import { Button, Card, Label, Select, Spinner, Stack } from "@repo/ui";
-import { TeamSelector } from "./TeamSelector";
+import type { VctRegion, VctRegionId, VctTeam, VctTeamId } from "../../constants/vct";
+import { VctTeamSideSelector } from "./VctTeamSideSelector";
 import { MapSelector } from "./MapSelector";
 
 export interface ScenarioBuilderProps {
-  teams: Team[];
+  regions: readonly VctRegion[];
+  teams: readonly VctTeam[];
   maps: GameMap[];
+  /** Simulated-data disclosure text (TASK-031's `VCT_PROFILE_DISCLOSURE`), passed down from the server component rather than imported here — importing `@repo/prediction-engine` from a client component would pull its Node-only modules (e.g. `node:crypto`) into the browser bundle. */
+  disclosure: string;
   isSubmitting: boolean;
   onSubmit: (scenario: Scenario) => void;
 }
 
-export function ScenarioBuilder({ teams, maps, isSubmitting, onSubmit }: ScenarioBuilderProps) {
-  const [teamAId, setTeamAId] = useState("");
-  const [teamBId, setTeamBId] = useState("");
+interface SideSelection {
+  regionId: VctRegionId | null;
+  teamId: VctTeamId | null;
+}
+
+const EMPTY_SELECTION: SideSelection = { regionId: null, teamId: null };
+
+export function ScenarioBuilder({ regions, teams, maps, disclosure, isSubmitting, onSubmit }: ScenarioBuilderProps) {
+  const [teamASelection, setTeamASelection] = useState<SideSelection>(EMPTY_SELECTION);
+  const [teamBSelection, setTeamBSelection] = useState<SideSelection>(EMPTY_SELECTION);
   const [seriesFormat, setSeriesFormat] = useState<SeriesFormat>("BO3");
   const [mapIds, setMapIds] = useState<string[]>([]);
 
   const maxSelectable = SERIES_MAP_LIMITS[seriesFormat];
 
   const validationError = useMemo(() => {
-    if (!teamAId || !teamBId) return "Select both teams to continue.";
-    if (teamAId === teamBId) return "Team A and Team B must be different.";
+    if (!teamASelection.teamId || !teamBSelection.teamId) return "Select both teams to continue.";
+    if (teamASelection.teamId === teamBSelection.teamId) return "Team A and Team B must be different.";
     if (mapIds.length === 0) return "Select at least one map.";
     return null;
-  }, [teamAId, teamBId, mapIds]);
+  }, [teamASelection.teamId, teamBSelection.teamId, mapIds]);
 
   function handleSeriesFormatChange(next: SeriesFormat) {
     setSeriesFormat(next);
@@ -46,26 +57,40 @@ export function ScenarioBuilder({ teams, maps, isSubmitting, onSubmit }: Scenari
   }
 
   function handleSubmit() {
-    if (validationError) return;
-    onSubmit({ teamAId, teamBId, seriesFormat, mapIds });
+    if (validationError || !teamASelection.teamId || !teamBSelection.teamId) return;
+    onSubmit({ teamAId: teamASelection.teamId, teamBId: teamBSelection.teamId, seriesFormat, mapIds });
   }
 
   return (
     <Card className="flex flex-col gap-lg">
-      <div className="grid grid-cols-1 gap-md sm:grid-cols-2">
-        <TeamSelector
-          label="Team A"
+      <div className="flex flex-col gap-lg lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:gap-md">
+        <VctTeamSideSelector
+          side="A"
+          regions={regions}
           teams={teams}
-          value={teamAId}
-          excludeTeamId={teamBId}
-          onChange={setTeamAId}
+          regionId={teamASelection.regionId}
+          teamId={teamASelection.teamId}
+          opposingTeamId={teamBSelection.teamId}
+          onRegionChange={(regionId) => setTeamASelection({ regionId, teamId: null })}
+          onTeamChange={(teamId) => setTeamASelection((current) => ({ ...current, teamId }))}
         />
-        <TeamSelector
-          label="Team B"
+
+        <div
+          aria-hidden="true"
+          className="flex items-center justify-center text-sm font-semibold uppercase tracking-wide text-muted-foreground lg:h-full"
+        >
+          VS
+        </div>
+
+        <VctTeamSideSelector
+          side="B"
+          regions={regions}
           teams={teams}
-          value={teamBId}
-          excludeTeamId={teamAId}
-          onChange={setTeamBId}
+          regionId={teamBSelection.regionId}
+          teamId={teamBSelection.teamId}
+          opposingTeamId={teamASelection.teamId}
+          onRegionChange={(regionId) => setTeamBSelection({ regionId, teamId: null })}
+          onTeamChange={(teamId) => setTeamBSelection((current) => ({ ...current, teamId }))}
         />
       </div>
 
@@ -87,6 +112,8 @@ export function ScenarioBuilder({ teams, maps, isSubmitting, onSubmit }: Scenari
         maxSelectable={maxSelectable}
         onToggle={toggleMap}
       />
+
+      <p className="text-xs text-muted-foreground">{disclosure}</p>
 
       {validationError ? (
         <p role="alert" className="text-sm text-danger">
