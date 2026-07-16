@@ -49,7 +49,10 @@ export default function RootLayout({
             <div className="relative">
               <Footer
                 logo={
-                  <Link href="/" className="text-sm font-semibold text-foreground">
+                  <Link
+                    href="/"
+                    className="rounded-sm text-sm font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                  >
                     Valorant Analytics
                   </Link>
                 }

@@ -19,7 +19,10 @@ const item: Variants = {
 
 export function Hero() {
   return (
-    <Section className="relative overflow-hidden" data-theme="dark">
+    <Section
+      className="relative flex min-h-[calc(100dvh-4rem)] flex-col justify-center overflow-hidden"
+      data-theme="dark"
+    >
       <MediaBackground
         asset={MEDIA_ASSETS.heroVideoLoop}
         poster={MEDIA_ASSETS.heroFallbackImage}

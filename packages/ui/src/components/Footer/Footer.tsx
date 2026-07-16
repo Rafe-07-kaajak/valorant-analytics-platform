@@ -27,7 +27,7 @@ export function Footer({ logo, tagline, links }: FooterProps) {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground"
+              className="rounded-sm text-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
             >
               {link.label}
             </a>

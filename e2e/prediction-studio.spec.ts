@@ -60,6 +60,12 @@ test("confidence and trust score explanations are reachable by keyboard and dism
 
   await expect(page.getByText("Predicted Winner")).toBeVisible();
 
+  // The result section (and its Tooltip triggers) mounts the instant
+  // "Predicted Winner" appears, one render tick ahead of Radix attaching its
+  // focus listeners — focusing immediately can race that attachment. Letting
+  // the subtree settle for a beat avoids that race.
+  await page.waitForTimeout(250);
+
   // preventScroll avoids the browser's own focus-triggered scroll-into-view,
   // which the Tooltip treats as a page scroll and closes itself for — a race
   // unrelated to the reachability behavior this test actually verifies.
@@ -75,6 +81,36 @@ test("confidence and trust score explanations are reachable by keyboard and dism
   await trustScoreInfo.scrollIntoViewIfNeeded();
   await trustScoreInfo.evaluate((el: HTMLElement) => el.focus({ preventScroll: true }));
   await expect(page.getByRole("tooltip")).toContainText("Trust Score sits at");
+});
+
+test("full scenario submission works using only the keyboard", async ({ page }) => {
+  await page.goto("/prediction-studio");
+
+  // Team pickers are native <select> elements — arrow-key selection is
+  // native browser behavior, so selectOption (which never dispatches a
+  // pointer event) stands in for it here. The map pool below is the part
+  // that needed dedicated keyboard support (TASK-021), so it is driven
+  // with real Tab/Arrow/Enter key presses instead.
+  await page.locator("select").nth(0).selectOption("sen");
+  await page.locator("select").nth(1).selectOption("loud");
+
+  const ascent = page.getByRole("button", { name: "Ascent", exact: true });
+  await ascent.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByText("Map Pool (3/3)")).toBeVisible();
+
+  const submit = page.getByRole("button", { name: "Generate Prediction" });
+  await submit.focus();
+  await expect(submit).toBeEnabled();
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByText("Predicted Winner")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Match DNA" })).toBeVisible();
 });
 
 test("full scenario submission works and is accessible in dark mode", async ({ page }) => {

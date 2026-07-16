@@ -88,7 +88,11 @@ export function ScenarioBuilder({ teams, maps, isSubmitting, onSubmit }: Scenari
         onToggle={toggleMap}
       />
 
-      {validationError ? <p className="text-sm text-danger">{validationError}</p> : null}
+      {validationError ? (
+        <p role="alert" className="text-sm text-danger">
+          {validationError}
+        </p>
+      ) : null}
 
       <Button
         type="button"

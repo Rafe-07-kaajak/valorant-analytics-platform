@@ -34,7 +34,11 @@ export function PredictionStudioClient({ teams, maps }: PredictionStudioClientPr
           onSubmit={requestPrediction}
         />
 
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-danger">
+            {error} Adjust the scenario above and try again.
+          </p>
+        ) : null}
 
         {result && teamA && teamB ? (
           <PredictionResultExperience result={result} teamA={teamA} teamB={teamB} />

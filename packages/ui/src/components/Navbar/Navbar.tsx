@@ -44,7 +44,7 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
                     href={link.href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "text-sm font-medium transition-colors duration-(--duration-fast) hover:text-foreground",
+                      "rounded-sm text-sm font-medium transition-colors duration-(--duration-fast) hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
                       isActive ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
@@ -79,7 +79,7 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setMobileNavOpen(false)}
                   className={cn(
-                    "rounded-md px-xs py-2xs text-sm font-medium transition-colors duration-(--duration-fast)",
+                    "rounded-md px-xs py-2xs text-sm font-medium transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
                     isActive
                       ? "bg-surface-border text-foreground"
                       : "text-muted-foreground hover:text-foreground",
