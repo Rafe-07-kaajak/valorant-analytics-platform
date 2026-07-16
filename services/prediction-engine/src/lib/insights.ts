@@ -1,6 +1,8 @@
 import type { Insight, KeyFactor, MatchDna, Team, TeamDna } from "@repo/shared";
+import type { HeadToHeadRecord } from "./analyticsEngine";
+import type { FormWindow } from "./normalizeMatchHistory";
 
-interface GenerateInsightsInput {
+export interface GenerateInsightsInput {
   winner: Team;
   loser: Team;
   winnerDna: TeamDna;
@@ -8,6 +10,16 @@ interface GenerateInsightsInput {
   matchDna: MatchDna;
   confidence: number;
   trustScore: number;
+  /** From the winner's perspective, or null when the two teams have no recorded history. */
+  headToHead: HeadToHeadRecord | null;
+  winnerRecentForm: FormWindow | null;
+  loserRecentForm: FormWindow | null;
+  /** Fraction (0-1) of DNA dimensions whose lead direction agrees with the overall verdict — feeds the Confidence explanation. */
+  dimensionAgreement: number;
+  /** Average (0-1) recency stability across both teams — feeds the Confidence explanation. */
+  formStability: number;
+  /** Average (0-1) Team DNA feature coverage across both teams — feeds the Trust Score explanation. */
+  featureCoverage: number;
 }
 
 export function generateKeyFactors({ winner, loser, winnerDna, loserDna }: GenerateInsightsInput): KeyFactor[] {
@@ -36,10 +48,84 @@ export function generateKeyFactors({ winner, loser, winnerDna, loserDna }: Gener
   return factors;
 }
 
+/**
+ * Head-to-head insight from the winner's perspective — omitted entirely when
+ * the two teams have no recorded history, per docs/10-prediction-engine.md's
+ * "Honesty is preferred over certainty" rather than fabricating one.
+ */
+function buildHeadToHeadInsight(winner: Team, loser: Team, headToHead: HeadToHeadRecord | null): Insight | null {
+  if (!headToHead) return null;
+
+  const winnerWins = headToHead.teamAId === winner.id ? headToHead.teamAWins : headToHead.teamBWins;
+  const loserWins = headToHead.matchesPlayed - winnerWins;
+
+  return {
+    id: "head-to-head",
+    kind: winnerWins >= loserWins ? "advantage" : "weakness",
+    title: "Head-to-Head",
+    description: `${winner.name} has won ${winnerWins} of their ${headToHead.matchesPlayed} previous ${headToHead.matchesPlayed === 1 ? "meeting" : "meetings"} against ${loser.name} (${loserWins} for ${loser.name}).`,
+  };
+}
+
+/**
+ * Recent-form insight comparing both teams' last-5 win rate — omitted when
+ * either team lacks enough recent matches to report a rate, rather than
+ * claiming a trend from insufficient data.
+ */
+function buildRecentFormInsight(
+  winner: Team,
+  loser: Team,
+  winnerRecentForm: FormWindow | null,
+  loserRecentForm: FormWindow | null,
+): Insight | null {
+  if (
+    !winnerRecentForm ||
+    !loserRecentForm ||
+    winnerRecentForm.winRate === null ||
+    loserRecentForm.winRate === null
+  ) {
+    return null;
+  }
+
+  const winnerRate = Math.round(winnerRecentForm.winRate * 100);
+  const loserRate = Math.round(loserRecentForm.winRate * 100);
+
+  return {
+    id: "recent-form",
+    kind: winnerRate >= loserRate ? "advantage" : "weakness",
+    title: "Recent Form",
+    description: `${winner.name} have won ${winnerRecentForm.wins} of their last ${winnerRecentForm.matchesConsidered} matches (${winnerRate}%), while ${loser.name} have won ${loserRecentForm.wins} of their last ${loserRecentForm.matchesConsidered} (${loserRate}%).`,
+  };
+}
+
 export function generateInsights(
-  { winnerDna, matchDna, confidence, trustScore }: Pick<
+  {
+    winner,
+    loser,
+    winnerDna,
+    matchDna,
+    confidence,
+    trustScore,
+    headToHead,
+    winnerRecentForm,
+    loserRecentForm,
+    dimensionAgreement,
+    formStability,
+    featureCoverage,
+  }: Pick<
     GenerateInsightsInput,
-    "winnerDna" | "matchDna" | "confidence" | "trustScore"
+    | "winner"
+    | "loser"
+    | "winnerDna"
+    | "matchDna"
+    | "confidence"
+    | "trustScore"
+    | "headToHead"
+    | "winnerRecentForm"
+    | "loserRecentForm"
+    | "dimensionAgreement"
+    | "formStability"
+    | "featureCoverage"
   >,
   keyFactors: KeyFactor[],
 ): Insight[] {
@@ -74,11 +160,24 @@ export function generateInsights(
     description: `${decisiveDimension.label} shows the widest gap between these two teams and carries the most weight in this prediction.`,
   });
 
+  const headToHeadInsight = buildHeadToHeadInsight(winner, loser, headToHead);
+  if (headToHeadInsight) insights.push(headToHeadInsight);
+
+  const recentFormInsight = buildRecentFormInsight(winner, loser, winnerRecentForm, loserRecentForm);
+  if (recentFormInsight) insights.push(recentFormInsight);
+
   insights.push({
     id: "confidence-explanation",
     kind: "confidence",
     title: "Confidence Explanation",
-    description: `This prediction carries ${confidence}% confidence and a ${trustScore}% trust score, reflecting mock data coverage rather than a live analytical pipeline.`,
+    description: `Confidence sits at ${confidence}% because ${Math.round(dimensionAgreement * 100)}% of measured Team DNA dimensions agree with ${winner.name}, and recent form is ${Math.round(formStability * 100)}% consistent with each team's overall win rate.`,
+  });
+
+  insights.push({
+    id: "trust-score-explanation",
+    kind: "confidence",
+    title: "Trust Score Explanation",
+    description: `Trust Score sits at ${trustScore}% because both teams have ${Math.round(featureCoverage * 100)}% Team DNA feature coverage from the normalized match history, combined with this prediction's ${confidence}% confidence.`,
   });
 
   return insights;

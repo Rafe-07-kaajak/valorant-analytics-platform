@@ -4,6 +4,7 @@ import { teams } from "./data/teams";
 import { computeFormStability, generateTeamDna, getFeatureCoverage, clampScore } from "./lib/teamDna";
 import { computeDimensionAgreement, computeWeightedAdvantage, generateMatchDna } from "./lib/matchDna";
 import { generateKeyFactors, generateInsights } from "./lib/insights";
+import { getHeadToHead, getRecentForm } from "./lib/analyticsEngine";
 import { generatePipeline } from "./lib/pipeline";
 import { getCached, scenarioCacheKey, setCached } from "./cache";
 
@@ -65,7 +66,29 @@ function computePrediction(request: PredictionRequest): PredictionResult {
   const winnerDna = predictedWinnerId === teamA.id ? teamADna : teamBDna;
   const loserDna = predictedWinnerId === teamA.id ? teamBDna : teamADna;
 
-  const insightInput = { winner, loser, winnerDna, loserDna, matchDna, confidence, trustScore };
+  // Head-to-head and recent form come from the Analytics Engine (TASK-017),
+  // which sits alongside the Prediction pipeline per docs/05-domain-model.md,
+  // and feed the Explainability Pipeline's Supporting Evidence
+  // (docs/03-system-architecture.md, docs/10-prediction-engine.md).
+  const headToHead = getHeadToHead(winner.id, loser.id);
+  const winnerRecentForm = getRecentForm(winner.id)?.last5 ?? null;
+  const loserRecentForm = getRecentForm(loser.id)?.last5 ?? null;
+
+  const insightInput = {
+    winner,
+    loser,
+    winnerDna,
+    loserDna,
+    matchDna,
+    confidence,
+    trustScore,
+    headToHead,
+    winnerRecentForm,
+    loserRecentForm,
+    dimensionAgreement,
+    formStability,
+    featureCoverage,
+  };
   const keyFactors = generateKeyFactors(insightInput);
   const insights = generateInsights(insightInput, keyFactors);
   const pipeline = generatePipeline(request.requestId);

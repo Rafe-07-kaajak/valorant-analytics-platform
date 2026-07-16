@@ -40,9 +40,41 @@ test("full scenario submission renders an explainable result with no accessibili
   await expect(page.getByText("Predicted Winner")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Match DNA" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "How This Prediction Was Made" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Feature Contribution" })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+});
+
+test("confidence and trust score explanations are reachable by keyboard and dismissible via Escape", async ({
+  page,
+}) => {
+  await page.goto("/prediction-studio");
+
+  await page.locator("select").nth(0).selectOption("sen");
+  await page.locator("select").nth(1).selectOption("loud");
+  await page.getByRole("button", { name: "Ascent" }).click();
+  await page.getByRole("button", { name: "Haven" }).click();
+  await page.getByRole("button", { name: "Bind" }).click();
+  await page.getByRole("button", { name: "Generate Prediction" }).click();
+
+  await expect(page.getByText("Predicted Winner")).toBeVisible();
+
+  // preventScroll avoids the browser's own focus-triggered scroll-into-view,
+  // which the Tooltip treats as a page scroll and closes itself for — a race
+  // unrelated to the reachability behavior this test actually verifies.
+  const confidenceInfo = page.getByRole("button", { name: "What does Confidence mean?" });
+  await confidenceInfo.scrollIntoViewIfNeeded();
+  await confidenceInfo.evaluate((el: HTMLElement) => el.focus({ preventScroll: true }));
+  await expect(page.getByRole("tooltip")).toContainText("Confidence sits at");
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toBeHidden();
+
+  const trustScoreInfo = page.getByRole("button", { name: "What does Trust Score mean?" });
+  await trustScoreInfo.scrollIntoViewIfNeeded();
+  await trustScoreInfo.evaluate((el: HTMLElement) => el.focus({ preventScroll: true }));
+  await expect(page.getByRole("tooltip")).toContainText("Trust Score sits at");
 });
 
 test("full scenario submission works and is accessible in dark mode", async ({ page }) => {

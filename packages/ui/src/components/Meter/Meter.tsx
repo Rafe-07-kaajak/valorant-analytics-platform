@@ -1,14 +1,21 @@
 import { cn } from "../../lib/cn";
 
+const toneClasses = {
+  brand: { track: "bg-brand-400/25", fill: "bg-brand-500" },
+  success: { track: "bg-badge-success-bg", fill: "bg-badge-success-text" },
+  danger: { track: "bg-badge-danger-bg", fill: "bg-badge-danger-text" },
+} as const;
+
 export interface MeterProps {
   value: number;
   max?: number;
   label: string;
   valueLabel?: string;
+  tone?: keyof typeof toneClasses;
   className?: string;
 }
 
-export function Meter({ value, max = 100, label, valueLabel, className }: MeterProps) {
+export function Meter({ value, max = 100, label, valueLabel, tone = "brand", className }: MeterProps) {
   const percent = Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
@@ -25,10 +32,13 @@ export function Meter({ value, max = 100, label, valueLabel, className }: MeterP
         aria-valuenow={Math.round(value)}
         aria-valuemin={0}
         aria-valuemax={max}
-        className="h-2 w-full overflow-hidden rounded-full bg-brand-400/25"
+        className={cn("h-2 w-full overflow-hidden rounded-full", toneClasses[tone].track)}
       >
         <div
-          className="h-full rounded-full bg-brand-500 transition-[width] duration-(--duration-base) ease-(--ease-standard)"
+          className={cn(
+            "h-full rounded-full transition-[width] duration-(--duration-base) ease-(--ease-standard)",
+            toneClasses[tone].fill,
+          )}
           style={{ width: `${percent}%` }}
         />
       </div>

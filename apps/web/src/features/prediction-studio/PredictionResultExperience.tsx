@@ -3,6 +3,7 @@ import { PredictionSummary } from "./PredictionSummary";
 import { ResultTimeline } from "./ResultTimeline";
 import { MatchDnaSection } from "../match-dna/MatchDnaSection";
 import { ExplanationCard } from "../insights/ExplanationCard";
+import { FeatureContribution } from "../insights/FeatureContribution";
 import { KeyFactorsList } from "../insights/KeyFactorsList";
 import { InsightsList } from "../insights/InsightsList";
 
@@ -19,6 +20,7 @@ export function PredictionResultExperience({ result, teamA, teamB }: PredictionR
       <MatchDnaSection result={result} teamA={teamA} teamB={teamB} />
       <ExplanationCard explanation={result.explanation} />
       <KeyFactorsList factors={result.keyFactors} />
+      <FeatureContribution factors={result.keyFactors} />
       <InsightsList insights={result.insights} />
       <ResultTimeline stages={result.pipeline} />
 
