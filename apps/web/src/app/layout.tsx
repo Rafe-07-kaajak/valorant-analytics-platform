@@ -19,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
     default: "Valorant Analytics Platform",
     template: "%s",
@@ -28,6 +29,14 @@ export const metadata: Metadata = {
     title: "Valorant Analytics Platform",
     description: "Explainable predictions for professional VALORANT matches.",
     type: "website",
+    images: [
+      {
+        url: MEDIA_ASSETS.heroFallbackImage.path,
+        width: MEDIA_ASSETS.heroFallbackImage.width,
+        height: MEDIA_ASSETS.heroFallbackImage.height,
+        alt: "Valorant Analytics Platform",
+      },
+    ],
   },
 };
 
