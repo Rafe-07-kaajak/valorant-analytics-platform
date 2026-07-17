@@ -75,7 +75,10 @@ test("full scenario submission renders an explainable result with no accessibili
   await page.getByRole("button", { name: "Bind" }).click();
   await page.getByRole("button", { name: "Generate Prediction" }).click();
 
-  await expect(page.getByText("Predicted Winner")).toBeVisible();
+  // A generous timeout absorbs Next.js dev-mode compile/request latency
+  // under concurrent e2e load (same rationale as landing.spec.ts's
+  // navigation timeouts) — not a UI regression.
+  await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Match DNA" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "How This Prediction Was Made" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Feature Contribution" })).toBeVisible();
@@ -98,7 +101,10 @@ test("confidence and trust score explanations are reachable by keyboard and dism
   await page.getByRole("button", { name: "Bind" }).click();
   await page.getByRole("button", { name: "Generate Prediction" }).click();
 
-  await expect(page.getByText("Predicted Winner")).toBeVisible();
+  // A generous timeout absorbs Next.js dev-mode compile/request latency
+  // under concurrent e2e load (same rationale as landing.spec.ts's
+  // navigation timeouts) — not a UI regression.
+  await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
 
   // The result section (and its Tooltip triggers) mounts the instant
   // "Predicted Winner" appears, one render tick ahead of Radix attaching its
@@ -162,7 +168,10 @@ test("full scenario submission works using only the keyboard", async ({ page }) 
   await expect(submit).toBeEnabled();
   await page.keyboard.press("Enter");
 
-  await expect(page.getByText("Predicted Winner")).toBeVisible();
+  // A generous timeout absorbs Next.js dev-mode compile/request latency
+  // under concurrent e2e load (same rationale as landing.spec.ts's
+  // navigation timeouts) — not a UI regression.
+  await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Match DNA" })).toBeVisible();
 });
 
@@ -177,7 +186,10 @@ test("full scenario submission works and is accessible in dark mode", async ({ p
   await page.getByRole("button", { name: "Bind" }).click();
   await page.getByRole("button", { name: "Generate Prediction" }).click();
 
-  await expect(page.getByText("Predicted Winner")).toBeVisible();
+  // A generous timeout absorbs Next.js dev-mode compile/request latency
+  // under concurrent e2e load (same rationale as landing.spec.ts's
+  // navigation timeouts) — not a UI regression.
+  await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);

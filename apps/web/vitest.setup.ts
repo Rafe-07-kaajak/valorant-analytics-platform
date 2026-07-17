@@ -22,6 +22,25 @@ if (typeof window !== "undefined" && typeof window.PointerEvent === "undefined")
   window.PointerEvent = PointerEventPolyfill;
 }
 
+// jsdom doesn't implement these Element APIs; Radix's Tabs (roving-tabindex
+// keyboard navigation) and other primitives call them internally and throw
+// or silently no-op without them, which otherwise breaks fireEvent.click/
+// keyDown-driven interaction in component tests.
+if (typeof Element !== "undefined") {
+  if (!Element.prototype.hasPointerCapture) {
+    Element.prototype.hasPointerCapture = () => false;
+  }
+  if (!Element.prototype.setPointerCapture) {
+    Element.prototype.setPointerCapture = () => {};
+  }
+  if (!Element.prototype.releasePointerCapture) {
+    Element.prototype.releasePointerCapture = () => {};
+  }
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = () => {};
+  }
+}
+
 // next/image depends on the Next.js runtime (loader, srcset generation) that
 // isn't present when a component test runs directly under Vitest/jsdom.
 // Rendering a plain <img> with the same props is a faithful enough stand-in

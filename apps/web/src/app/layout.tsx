@@ -42,7 +42,10 @@ export const metadata: Metadata = {
   },
 };
 
-const navLinks = [{ label: "Prediction Studio", href: "/prediction-studio" }];
+const navLinks = [
+  { label: "Prediction Studio", href: "/prediction-studio" },
+  { label: "Comparison Lab", href: "/team-comparison" },
+];
 
 export default function RootLayout({
   children,

@@ -3,6 +3,14 @@ import { RegionCard } from "./RegionCard";
 import { TeamCard } from "./TeamCard";
 import { SelectedTeamSummary } from "./SelectedTeamSummary";
 
+/** Per-side region/team selection state — reused by any feature composing `VctTeamSideSelector` (Prediction Studio, Team Comparison Lab). */
+export interface SideSelection {
+  regionId: VctRegionId | null;
+  teamId: VctTeamId | null;
+}
+
+export const EMPTY_SIDE_SELECTION: SideSelection = { regionId: null, teamId: null };
+
 export interface VctTeamSideSelectorProps {
   side: "A" | "B";
   regions: readonly VctRegion[];

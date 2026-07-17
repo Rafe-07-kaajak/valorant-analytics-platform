@@ -115,10 +115,9 @@ export const MEDIA_ASSETS = {
     type: "image",
     width: 2816,
     height: 1536,
-    section: "matchDna.teamDnaCard",
-    role: "reserved",
-    integrated: false,
-    note: "Reserved for a future per-team detail view — TeamDnaCard already renders real DNA data and a second illustrative comparison image alongside it would compete with, rather than support, that data.",
+    section: "teamComparison.page",
+    role: "inset",
+    integrated: true,
   },
   matchDnaCore: {
     id: "match-dna-core",

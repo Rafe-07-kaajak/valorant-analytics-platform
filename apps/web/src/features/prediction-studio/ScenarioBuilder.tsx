@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { SERIES_MAP_LIMITS, type GameMap, type Scenario, type SeriesFormat } from "@repo/shared";
 import { Button, Card, Label, Select, Spinner, Stack } from "@repo/ui";
-import type { VctRegion, VctRegionId, VctTeam, VctTeamId } from "../../constants/vct";
-import { VctTeamSideSelector } from "./VctTeamSideSelector";
+import type { VctRegion, VctTeam } from "../../constants/vct";
+import { VctTeamSideSelector, EMPTY_SIDE_SELECTION, type SideSelection } from "./VctTeamSideSelector";
 import { MapSelector } from "./MapSelector";
 
 export interface ScenarioBuilderProps {
@@ -17,12 +17,7 @@ export interface ScenarioBuilderProps {
   onSubmit: (scenario: Scenario) => void;
 }
 
-interface SideSelection {
-  regionId: VctRegionId | null;
-  teamId: VctTeamId | null;
-}
-
-const EMPTY_SELECTION: SideSelection = { regionId: null, teamId: null };
+const EMPTY_SELECTION: SideSelection = EMPTY_SIDE_SELECTION;
 
 export function ScenarioBuilder({ regions, teams, maps, disclosure, isSubmitting, onSubmit }: ScenarioBuilderProps) {
   const [teamASelection, setTeamASelection] = useState<SideSelection>(EMPTY_SELECTION);
