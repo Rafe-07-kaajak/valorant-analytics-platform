@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@repo/ui";
+import { usePointerGlow } from "../../hooks/usePointerGlow";
 import type { VctRegion } from "../../constants/vct";
 
 export interface RegionCardProps {
@@ -12,15 +13,22 @@ export interface RegionCardProps {
  * Region step of the TASK-032 two-step selector. Hover/focus/selected
  * micro-interactions reference the TASK-033 shared motion tokens
  * (apps/web/src/styles/tokens.css) rather than one-off arbitrary values.
+ * TASK-034 adds a card-local pointer spotlight ("pointer-glow") — weaker
+ * than the selected-state glow below by design (opacity, not a ring).
  */
 export function RegionCard({ region, selected, onSelect }: RegionCardProps) {
+  const glow = usePointerGlow<HTMLButtonElement>();
+
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
+      onPointerEnter={glow.onPointerEnter}
+      onPointerMove={glow.onPointerMove}
+      onPointerLeave={glow.onPointerLeave}
       className={cn(
-        "group flex min-h-[44px] flex-col items-center gap-2xs rounded-md border border-surface-border bg-surface p-sm text-center",
+        "group pointer-glow flex min-h-[44px] flex-col items-center gap-2xs rounded-md border border-surface-border bg-surface p-sm text-center",
         "motion-safe:transition-[transform,border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
         "motion-safe:hover:-translate-y-(--lift-card-selectable) motion-safe:active:scale-(--scale-press)",
         "hover:border-brand-400/70 focus-visible:-translate-y-(--lift-card-selectable) focus-visible:border-brand-400/70",

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { cn, focusRing, Footer } from "@repo/ui";
 import { SiteNavbar } from "../components/SiteNavbar";
 import { MotionProvider } from "../components/MotionProvider";
+import { CursorTracker } from "../components/effects/CursorTracker";
+import { CursorSpotlight } from "../components/effects/CursorSpotlight";
 import { MediaBackground } from "../components/media/MediaBackground";
 import { MEDIA_ASSETS } from "../constants/media";
 import "./globals.css";
@@ -50,6 +52,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
+        <CursorTracker />
+        <CursorSpotlight />
         <MotionProvider>
           <SiteNavbar links={navLinks} />
           <main>{children}</main>

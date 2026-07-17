@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Check } from "lucide-react";
 import { cn } from "@repo/ui";
+import { usePointerGlow } from "../../hooks/usePointerGlow";
 import type { VctTeam } from "../../constants/vct";
 
 export interface TeamCardProps {
@@ -18,11 +20,18 @@ export interface TeamCardProps {
  * screen reader user can still reach the card and hear why, per TASK-032's
  * accessibility requirements. Hover/focus/selected micro-interactions
  * reference the TASK-033 shared motion tokens rather than one-off values.
+ * TASK-034 adds a card-local pointer spotlight ("pointer-glow"), tinted
+ * cyan for Team A / coral for Team B — weaker than the selected-state glow
+ * below by design, and never attached at all when the card is disabled.
  */
 export function TeamCard({ team, side, selected, disabledReason, onSelect }: TeamCardProps) {
   const disabled = Boolean(disabledReason);
   const accent = side === "A" ? "team-a" : "team-b";
   const reasonId = disabled ? `${team.id}-${side}-disabled-reason` : undefined;
+  const glow = usePointerGlow<HTMLButtonElement>();
+  const spotlightStyle = {
+    "--spotlight-color": `color-mix(in oklab, var(--${accent}) 20%, transparent)`,
+  } as CSSProperties;
 
   return (
     <button
@@ -33,8 +42,13 @@ export function TeamCard({ team, side, selected, disabledReason, onSelect }: Tea
       onClick={() => {
         if (!disabled) onSelect();
       }}
+      style={disabled ? undefined : spotlightStyle}
+      onPointerEnter={disabled ? undefined : glow.onPointerEnter}
+      onPointerMove={disabled ? undefined : glow.onPointerMove}
+      onPointerLeave={disabled ? undefined : glow.onPointerLeave}
       className={cn(
         "group relative flex min-h-[44px] flex-col items-center gap-2xs rounded-md border border-surface-border bg-surface p-sm text-center",
+        !disabled && "pointer-glow",
         "motion-safe:transition-[transform,border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
         disabled

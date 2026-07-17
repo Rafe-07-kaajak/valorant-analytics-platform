@@ -1,17 +1,25 @@
+"use client";
+
 import Link from "next/link";
 import { buttonVariants, Card, cn, Container, ScrollReveal, Section } from "@repo/ui";
 import { MediaBackground } from "../../components/media/MediaBackground";
 import { EnergyPulse } from "../../components/effects/EnergyPulse";
+import { usePointerGlow } from "../../hooks/usePointerGlow";
 import { MEDIA_ASSETS } from "../../constants/media";
 
 export function FinalCta() {
+  const glow = usePointerGlow<HTMLDivElement>();
+
   return (
     <Section>
       <Container>
         <ScrollReveal>
           <Card
             data-theme="dark"
-            className="relative flex flex-col items-center gap-md overflow-hidden py-2xl text-center"
+            onPointerEnter={glow.onPointerEnter}
+            onPointerMove={glow.onPointerMove}
+            onPointerLeave={glow.onPointerLeave}
+            className="pointer-glow relative flex flex-col items-center gap-md overflow-hidden py-2xl text-center"
           >
             <MediaBackground asset={MEDIA_ASSETS.finalCta} scrim="full" />
             <EnergyPulse />

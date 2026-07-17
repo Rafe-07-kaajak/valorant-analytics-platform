@@ -33,7 +33,9 @@ test("theme toggle switches and persists across navigation", async ({ page }) =>
   // compile, which can take several seconds under concurrent e2e load —
   // not a UI regression, just the dev server warming up a route.
   await expect(page).toHaveURL(/prediction-studio/, { timeout: 15_000 });
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  // Same dev-mode latency as above — the new page's bundle needs to finish
+  // hydrating before useTheme's effect re-applies data-theme on <html>.
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
 });
 
 test("hero CTA navigates to Prediction Studio", async ({ page }) => {

@@ -1,0 +1,144 @@
+/* TASK-034 — cursor-reactive effects. Pure CSS, driven by custom properties
+   from one global pointermove listener (CursorTracker, --cursor-x/--cursor-y
+   on <html>) and per-element pointer handlers (usePointerGlow, --spotlight-x/
+   --spotlight-y scoped to that element) — no per-frame React state, no
+   canvas. Reuses TASK-033's duration and easing tokens. See
+   docs/22-interaction-system.md for the full effect hierarchy. */
+
+/* ---------- Global cursor spotlight ---------- */
+
+:root {
+  --spotlight-radius: 340px;
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --spotlight-radius: 420px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --spotlight-radius: 280px;
+  }
+}
+
+.cursor-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cursor-spotlight::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--spotlight-radius) * 2);
+  height: calc(var(--spotlight-radius) * 2);
+  border-radius: 9999px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-400) 9%, transparent) 0%, transparent 70%);
+  transform: translate3d(var(--cursor-x, -9999px), var(--cursor-y, -9999px), 0) translate(-50%, -50%);
+  opacity: 0;
+  transition:
+    opacity var(--duration-panel) var(--ease-standard),
+    transform 500ms var(--ease-standard);
+  will-change: transform;
+}
+
+html[data-cursor-active="true"] .cursor-spotlight::before {
+  opacity: 1;
+}
+
+[data-theme="dark"] .cursor-spotlight::before {
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-400) 16%, transparent) 0%, transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-spotlight::before {
+    transition: opacity var(--duration-panel) var(--ease-standard);
+  }
+}
+
+@media (pointer: coarse), (hover: none) {
+  .cursor-spotlight {
+    display: none;
+  }
+}
+
+/* ---------- Tactical grid parallax + local proximity glow ---------- */
+
+.tactical-grid-parallax {
+  transition: transform 700ms var(--ease-standard);
+  transform: translate3d(
+    calc((var(--cursor-x-normalized, 0.5) - 0.5) * -16px),
+    calc((var(--cursor-y-normalized, 0.5) - 0.5) * -16px),
+    0
+  );
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse), (hover: none) {
+  .tactical-grid-parallax {
+    transform: none;
+    transition: none;
+  }
+}
+
+.tactical-grid-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(
+    circle 200px at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    color-mix(in oklab, var(--brand-400) 18%, transparent) 0%,
+    transparent 70%
+  );
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.tactical-grid-glow-host:hover .tactical-grid-glow,
+.tactical-grid-glow-host:focus-within .tactical-grid-glow {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse), (hover: none) {
+  .tactical-grid-glow {
+    display: none;
+  }
+}
+
+/* ---------- Card-local pointer spotlight ---------- */
+
+.pointer-glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.pointer-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle 220px at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    var(--spotlight-color, color-mix(in oklab, var(--brand-400) 20%, transparent)) 0%,
+    transparent 70%
+  );
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.pointer-glow:hover::before,
+.pointer-glow:focus-within::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse), (hover: none) {
+  .pointer-glow::before {
+    display: none;
+  }
+}

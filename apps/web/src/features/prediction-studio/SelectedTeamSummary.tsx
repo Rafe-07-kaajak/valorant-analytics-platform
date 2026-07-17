@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Badge, cn } from "@repo/ui";
+import { usePointerGlow } from "../../hooks/usePointerGlow";
 import { getRegionById, type VctTeam } from "../../constants/vct";
 
 export interface SelectedTeamSummaryProps {
@@ -7,14 +9,25 @@ export interface SelectedTeamSummaryProps {
   side: "A" | "B";
 }
 
+/** TASK-034: a fainter pointer-glow than the interactive TeamCard above it —
+ * this panel is a static display, not a control, so its glow stays subtle
+ * enough not to imply it's clickable (Level 4 in the interaction hierarchy). */
 export function SelectedTeamSummary({ team, side }: SelectedTeamSummaryProps) {
   const region = getRegionById(team.region);
   const accent = side === "A" ? "team-a" : "team-b";
+  const glow = usePointerGlow<HTMLDivElement>();
+  const spotlightStyle = {
+    "--spotlight-color": `color-mix(in oklab, var(--${accent}) 12%, transparent)`,
+  } as CSSProperties;
 
   return (
     <div
+      onPointerEnter={glow.onPointerEnter}
+      onPointerMove={glow.onPointerMove}
+      onPointerLeave={glow.onPointerLeave}
+      style={spotlightStyle}
       className={cn(
-        "flex items-center gap-sm rounded-md border bg-surface p-sm",
+        "pointer-glow flex items-center gap-sm rounded-md border bg-surface p-sm",
         accent === "team-a" ? "border-team-a" : "border-team-b",
       )}
     >

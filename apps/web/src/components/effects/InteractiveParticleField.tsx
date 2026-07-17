@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { cn } from "@repo/ui";
+import { cursorPosition } from "../../lib/cursorPosition";
 
 interface Particle {
   x: number;
@@ -22,6 +23,14 @@ const POINTER_RADIUS = 140;
  *
  * The animation loop only runs when the user has no reduced-motion
  * preference and the field is on screen (IntersectionObserver-gated).
+ *
+ * TASK-034: reads the pointer position from the shared `cursorPosition`
+ * store (written by the app's one global `CursorTracker` listener) instead
+ * of registering its own `window` pointermove/pointerleave listeners, so the
+ * app still has exactly one global pointer listener total. The canvas's
+ * viewport offset is cached in `resize()` (already called on mount and via
+ * ResizeObserver) rather than read on every frame, to avoid a layout read
+ * inside the render loop.
  */
 export function InteractiveParticleField({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,7 +48,8 @@ export function InteractiveParticleField({ className }: { className?: string }) 
     let dpr = 1;
     let rafId = 0;
     let isVisible = true;
-    const pointer = { x: -1000, y: -1000 };
+    let canvasLeft = 0;
+    let canvasTop = 0;
     const particles: Particle[] = [];
 
     const resize = () => {
@@ -47,6 +57,8 @@ export function InteractiveParticleField({ className }: { className?: string }) 
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = rect.width;
       height = rect.height;
+      canvasLeft = rect.left;
+      canvasTop = rect.top;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -73,9 +85,12 @@ export function InteractiveParticleField({ className }: { className?: string }) 
 
       ctx.clearRect(0, 0, width, height);
 
+      const pointerX = cursorPosition.active ? cursorPosition.x - canvasLeft : -1000;
+      const pointerY = cursorPosition.active ? cursorPosition.y - canvasTop : -1000;
+
       for (const particle of particles) {
-        const dx = particle.x - pointer.x;
-        const dy = particle.y - pointer.y;
+        const dx = particle.x - pointerX;
+        const dy = particle.y - pointerY;
         const distance = Math.hypot(dx, dy);
         if (distance < POINTER_RADIUS) {
           const force = (POINTER_RADIUS - distance) / POINTER_RADIUS;
@@ -120,16 +135,6 @@ export function InteractiveParticleField({ className }: { className?: string }) 
       ctx.globalAlpha = 1;
     };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      pointer.x = event.clientX - rect.left;
-      pointer.y = event.clientY - rect.top;
-    };
-    const handlePointerLeave = () => {
-      pointer.x = -1000;
-      pointer.y = -1000;
-    };
-
     resize();
     seed();
     rafId = requestAnimationFrame(step);
@@ -148,15 +153,10 @@ export function InteractiveParticleField({ className }: { className?: string }) 
     );
     intersectionObserver.observe(canvas);
 
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerleave", handlePointerLeave);
-
     return () => {
       cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerleave", handlePointerLeave);
     };
   }, [prefersReducedMotion]);
 
