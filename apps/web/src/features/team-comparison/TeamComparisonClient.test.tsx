@@ -1,13 +1,38 @@
 /** @vitest-environment jsdom */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { maps, VCT_PROFILE_DISCLOSURE, VCT_TEAM_PROFILES } from "@repo/prediction-engine";
 import { VCT_REGIONS, VCT_TEAMS } from "../../constants/vct";
 import { TeamComparisonClient } from "./TeamComparisonClient";
+import { EMPTY_CANONICAL_URL_STATE, type CanonicalUrlState } from "../../lib/urlState";
 
-afterEach(cleanup);
+// TASK-039: TeamComparisonClient now syncs its selection to the URL via
+// useCanonicalUrlState, which requires a Next.js App Router context. This
+// stub mirrors the real App Router: a `replace` call is reflected in the
+// next `useSearchParams()` read, not just recorded as a call — otherwise
+// the hook would (correctly) treat every render as an external navigation
+// back to the empty URL and reset state on every interaction.
+let mockSearch = "";
+const replaceCalls: string[] = [];
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: (url: string) => {
+      replaceCalls.push(url);
+      const queryIndex = url.indexOf("?");
+      mockSearch = queryIndex === -1 ? "" : url.slice(queryIndex + 1);
+    },
+  }),
+  usePathname: () => "/team-comparison",
+  useSearchParams: () => new URLSearchParams(mockSearch),
+}));
 
-function renderClient() {
+afterEach(() => {
+  cleanup();
+  mockSearch = "";
+  replaceCalls.length = 0;
+});
+
+function renderClient(initialUrlState: CanonicalUrlState = EMPTY_CANONICAL_URL_STATE) {
   render(
     <TeamComparisonClient
       regions={VCT_REGIONS}
@@ -15,6 +40,7 @@ function renderClient() {
       profiles={VCT_TEAM_PROFILES}
       maps={maps}
       disclosure={VCT_PROFILE_DISCLOSURE}
+      initialUrlState={initialUrlState}
     />,
   );
 }
@@ -130,5 +156,50 @@ describe("TeamComparisonClient", () => {
       const badgeText = within(row!).getAllByText(/Even|Paper Rex|G2 Esports/)[0]?.textContent;
       expect(badgeText).toBeTruthy();
     });
+
+    it("does not update the URL when switching tabs", () => {
+      selectBothTeams();
+      replaceCalls.length = 0;
+      fireEvent.focus(screen.getByRole("tab", { name: "Maps" }));
+      fireEvent.focus(screen.getByRole("tab", { name: "Factors" }));
+      expect(replaceCalls).toHaveLength(0);
+    });
+  });
+
+  it("initializes both teams and renders the full comparison directly from URL state", () => {
+    renderClient({
+      regionA: "pacific",
+      teamA: "paper-rex",
+      regionB: "americas",
+      teamB: "g2-esports",
+      maps: [],
+      format: null,
+    });
+
+    expect(screen.getByRole("tablist", { name: "Comparison views" })).toBeInTheDocument();
+    expect(screen.getAllByText("Paper Rex").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("G2 Esports").length).toBeGreaterThan(0);
+  });
+
+  it("shows the normal partial state for an incomplete URL-provided selection", () => {
+    renderClient({ ...EMPTY_CANONICAL_URL_STATE, regionA: "pacific", teamA: "paper-rex" });
+    expect(screen.getByText(/Paper Rex is selected for Team A/)).toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+  });
+
+  it("updates the URL when a team is selected", () => {
+    renderClient();
+    selectTeam("A", "Pacific", "Paper Rex");
+    expect(replaceCalls.at(-1)).toBe("/team-comparison?regionA=pacific&teamA=paper-rex");
+  });
+
+  it("shows cross-feature links preserving both teams once selected", () => {
+    renderClient();
+    selectTeam("A", "Pacific", "Paper Rex");
+    selectTeam("B", "Americas", "G2 Esports");
+
+    const link = screen.getByRole("link", { name: /Open in Prediction Studio/ });
+    expect(link).toHaveAttribute("href", expect.stringContaining("teamA=paper-rex"));
+    expect(link).toHaveAttribute("href", expect.stringContaining("teamB=g2-esports"));
   });
 });

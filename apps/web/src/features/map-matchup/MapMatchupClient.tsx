@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type SetStateAction } from "react";
 import type { GameMap } from "@repo/shared";
 import { Card, Container, Section, Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui";
 import type { VctRegion, VctTeam } from "../../constants/vct";
-import { VctTeamSideSelector, EMPTY_SIDE_SELECTION, type SideSelection } from "../prediction-studio/VctTeamSideSelector";
+import { VctTeamSideSelector, type SideSelection } from "../prediction-studio/VctTeamSideSelector";
 import { ComparisonEmptyState } from "../team-comparison/ComparisonEmptyState";
 import {
   adaptDisclosureForComparison,
@@ -24,6 +24,18 @@ import {
   toggleMapSelection,
   type SortMode,
 } from "../../lib/mapMatchup";
+import { AnalyticsContextLinks } from "../../components/AnalyticsContextLinks";
+import { useCanonicalUrlState } from "../../hooks/useCanonicalUrlState";
+import {
+  EMPTY_CANONICAL_URL_STATE,
+  withMaps,
+  withRegionA,
+  withRegionB,
+  withTeamA,
+  withTeamB,
+  type CanonicalFieldKey,
+  type CanonicalUrlState,
+} from "../../lib/urlState";
 import { MapPoolControls } from "./MapPoolControls";
 import { MapRankingView } from "./MapRankingView";
 import { SelectedPoolView } from "./SelectedPoolView";
@@ -35,14 +47,37 @@ export interface MapMatchupClientProps {
   profiles: readonly VctTeamProfile[];
   maps: GameMap[];
   disclosure: string;
+  /** TASK-039: server-parsed from the initial request's search params. Defaults to empty so existing callers (tests) don't need to pass it. */
+  initialUrlState?: CanonicalUrlState;
 }
 
-export function MapMatchupClient({ regions, teams, profiles, maps, disclosure }: MapMatchupClientProps) {
-  const [teamASelection, setTeamASelection] = useState<SideSelection>(EMPTY_SIDE_SELECTION);
-  const [teamBSelection, setTeamBSelection] = useState<SideSelection>(EMPTY_SIDE_SELECTION);
-  const [selectedMapIds, setSelectedMapIds] = useState<string[]>([]);
+const MAP_MATCHUP_FIELDS: readonly CanonicalFieldKey[] = ["regionA", "teamA", "regionB", "teamB", "maps"];
+
+export function MapMatchupClient({
+  regions,
+  teams,
+  profiles,
+  maps,
+  disclosure,
+  initialUrlState = EMPTY_CANONICAL_URL_STATE,
+}: MapMatchupClientProps) {
+  const validMapIds = useMemo(() => new Set(maps.map((map) => map.id)), [maps]);
+  const [urlState, setUrlState] = useCanonicalUrlState(initialUrlState, MAP_MATCHUP_FIELDS, validMapIds);
   const [sortMode, setSortMode] = useState<SortMode>("largest-gap");
   const [activeMapId, setActiveMapId] = useState<string | null>(null);
+
+  const teamASelection: SideSelection = { regionId: urlState.regionA, teamId: urlState.teamA };
+  const teamBSelection: SideSelection = { regionId: urlState.regionB, teamId: urlState.teamB };
+  const selectedMapIds = urlState.maps;
+  const setSelectedMapIds = useCallback(
+    (updater: SetStateAction<string[]>) => {
+      setUrlState((current) => {
+        const next = typeof updater === "function" ? updater(current.maps) : updater;
+        return withMaps(current, next, validMapIds);
+      });
+    },
+    [setUrlState, validMapIds],
+  );
 
   const profileById = useMemo(() => new Map(profiles.map((profile) => [profile.teamId, profile])), [profiles]);
   const teamById = useMemo(() => new Map(teams.map((team) => [team.id, team])), [teams]);
@@ -122,8 +157,8 @@ export function MapMatchupClient({ regions, teams, profiles, maps, disclosure }:
               regionId={teamASelection.regionId}
               teamId={teamASelection.teamId}
               opposingTeamId={teamBSelection.teamId}
-              onRegionChange={(regionId) => setTeamASelection({ regionId, teamId: null })}
-              onTeamChange={(teamId) => setTeamASelection((current) => ({ ...current, teamId }))}
+              onRegionChange={(regionId) => setUrlState((current) => withRegionA(current, regionId))}
+              onTeamChange={(teamId) => setUrlState((current) => withTeamA(current, teamId))}
             />
 
             <div
@@ -140,13 +175,15 @@ export function MapMatchupClient({ regions, teams, profiles, maps, disclosure }:
               regionId={teamBSelection.regionId}
               teamId={teamBSelection.teamId}
               opposingTeamId={teamASelection.teamId}
-              onRegionChange={(regionId) => setTeamBSelection({ regionId, teamId: null })}
-              onTeamChange={(teamId) => setTeamBSelection((current) => ({ ...current, teamId }))}
+              onRegionChange={(regionId) => setUrlState((current) => withRegionB(current, regionId))}
+              onTeamChange={(teamId) => setUrlState((current) => withTeamB(current, teamId))}
             />
           </div>
 
           <p className="text-xs text-muted-foreground">{explorerDisclosure}</p>
         </Card>
+
+        <AnalyticsContextLinks currentFeature="map-matchup" state={urlState} placement="compact" />
 
         {hasMissingProfile ? (
           <p role="alert" className="text-sm text-danger">

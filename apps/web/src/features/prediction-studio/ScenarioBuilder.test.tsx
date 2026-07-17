@@ -5,7 +5,26 @@ import { maps } from "@repo/prediction-engine";
 import { VCT_REGIONS, VCT_TEAMS } from "../../constants/vct";
 import { ScenarioBuilder } from "./ScenarioBuilder";
 
-afterEach(cleanup);
+// TASK-039: ScenarioBuilder now syncs its draft to the URL via
+// useCanonicalUrlState, which requires a Next.js App Router context. This
+// stub mirrors the real App Router: a `replace` call is reflected in the
+// next `useSearchParams()` read, not just recorded as a call.
+let mockSearch = "";
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: (url: string) => {
+      const queryIndex = url.indexOf("?");
+      mockSearch = queryIndex === -1 ? "" : url.slice(queryIndex + 1);
+    },
+  }),
+  usePathname: () => "/prediction-studio",
+  useSearchParams: () => new URLSearchParams(mockSearch),
+}));
+
+afterEach(() => {
+  cleanup();
+  mockSearch = "";
+});
 
 const DISCLOSURE_TEXT = "Predictions use simulated team profiles for demonstration purposes.";
 

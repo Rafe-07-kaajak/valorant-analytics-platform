@@ -70,6 +70,15 @@ test("Run Simulation sends exactly one request and renders the comparison and ch
     if (req.url().includes("/api/simulate-prediction")) simulationRequests.push(req.url());
   });
 
+  // Dev-mode's local API route can resolve in well under a render tick,
+  // making the "Running…" loading state too narrow to reliably observe —
+  // a small artificial delay is the standard way to assert a real,
+  // fast-resolving loading state without weakening what's being verified.
+  await page.route("**/api/simulate-prediction", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.continue();
+  });
+
   await generatePrediction(page);
 
   const tempoSlider = page.getByRole("slider", { name: /Paper Rex Tempo/ });
@@ -164,7 +173,14 @@ test("no console errors or failed asset/network requests while using the simulat
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(msg.text());
   });
-  page.on("requestfailed", (req) => failedRequests.push(req.url()));
+  page.on("requestfailed", (req) => {
+    // TASK-039's cross-feature <Link> elements prefetch their RSC payload as
+    // the href changes with selection; a stale prefetch is intentionally
+    // cancelled (net::ERR_ABORTED) once a newer one supersedes it — not a
+    // real network failure.
+    if (req.failure()?.errorText === "net::ERR_ABORTED") return;
+    failedRequests.push(req.url());
+  });
   page.on("response", (res) => {
     if (res.status() >= 400) failedRequests.push(`${res.status()} ${res.url()}`);
   });

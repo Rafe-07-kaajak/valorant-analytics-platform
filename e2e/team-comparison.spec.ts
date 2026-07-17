@@ -60,6 +60,11 @@ test("switching between Team DNA, Maps, and Factors tabs works without reloading
   await page.goto("/team-comparison");
   await selectTeam(page, "A", "Pacific", "Paper Rex");
   await selectTeam(page, "B", "Americas", "G2 Esports");
+  // TASK-039: the URL now carries the selected teams, set once when both
+  // sides were chosen — tab switching must not touch it further. Wait for
+  // the URL sync to actually land before capturing the "before" snapshot.
+  await expect(page).toHaveURL(/teamB=g2-esports/);
+  const urlAfterSelection = page.url();
 
   await page.getByRole("tab", { name: "Team DNA" }).click();
   await expect(page.getByRole("table")).toBeVisible();
@@ -71,7 +76,7 @@ test("switching between Team DNA, Maps, and Factors tabs works without reloading
   await expect(page.getByText("Aggression Advantage").first()).toBeVisible();
 
   // Still the same URL — tab switches never navigate.
-  await expect(page).toHaveURL(/team-comparison$/);
+  expect(page.url()).toBe(urlAfterSelection);
 });
 
 test("prevents the same team from being selected on both sides", async ({ page }) => {
@@ -148,7 +153,14 @@ test("no console errors or failed asset/network requests across the golden path"
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(msg.text());
   });
-  page.on("requestfailed", (req) => failedRequests.push(req.url()));
+  page.on("requestfailed", (req) => {
+    // TASK-039's cross-feature <Link> elements prefetch their RSC payload as
+    // the href changes with selection; a stale prefetch is intentionally
+    // cancelled (net::ERR_ABORTED) once a newer one supersedes it — not a
+    // real network failure.
+    if (req.failure()?.errorText === "net::ERR_ABORTED") return;
+    failedRequests.push(req.url());
+  });
   page.on("response", (res) => {
     if (res.status() >= 400) failedRequests.push(`${res.status()} ${res.url()}`);
   });

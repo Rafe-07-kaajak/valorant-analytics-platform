@@ -173,7 +173,14 @@ test("no console errors or failed asset/network requests across the golden path"
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(msg.text());
   });
-  page.on("requestfailed", (req) => failedRequests.push(req.url()));
+  page.on("requestfailed", (req) => {
+    // TASK-039's cross-feature <Link> elements prefetch their RSC payload as
+    // the href changes with selection; a stale prefetch is intentionally
+    // cancelled (net::ERR_ABORTED) once a newer one supersedes it — not a
+    // real network failure.
+    if (req.failure()?.errorText === "net::ERR_ABORTED") return;
+    failedRequests.push(req.url());
+  });
   page.on("response", (res) => {
     if (res.status() >= 400) failedRequests.push(`${res.status()} ${res.url()}`);
   });

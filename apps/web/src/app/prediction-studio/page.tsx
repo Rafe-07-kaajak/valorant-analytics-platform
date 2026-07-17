@@ -3,6 +3,7 @@ import { maps, VCT_PROFILE_DISCLOSURE } from "@repo/prediction-engine";
 import { VCT_REGIONS, VCT_TEAMS } from "../../constants/vct";
 import { PredictionStudioClient } from "../../features/prediction-studio/PredictionStudioClient";
 import { MEDIA_ASSETS } from "../../constants/media";
+import { parseUrlState, toUrlSearchParams } from "../../lib/urlState";
 
 export const metadata: Metadata = {
   title: "Prediction Studio | Valorant Analytics Platform",
@@ -24,13 +25,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PredictionStudioPage() {
+interface PredictionStudioPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function PredictionStudioPage({ searchParams }: PredictionStudioPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const validMapIds = new Set(maps.map((map) => map.id));
+  const initialUrlState = parseUrlState(toUrlSearchParams(resolvedSearchParams), { validMapIds });
+
   return (
     <PredictionStudioClient
       regions={VCT_REGIONS}
       teams={VCT_TEAMS}
       maps={maps}
       disclosure={VCT_PROFILE_DISCLOSURE}
+      initialUrlState={initialUrlState}
     />
   );
 }

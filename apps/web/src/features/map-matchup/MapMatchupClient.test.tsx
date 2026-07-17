@@ -1,13 +1,36 @@
 /** @vitest-environment jsdom */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { maps, VCT_PROFILE_DISCLOSURE, VCT_TEAM_PROFILES } from "@repo/prediction-engine";
 import { VCT_REGIONS, VCT_TEAMS } from "../../constants/vct";
 import { MapMatchupClient } from "./MapMatchupClient";
+import { EMPTY_CANONICAL_URL_STATE, type CanonicalUrlState } from "../../lib/urlState";
 
-afterEach(cleanup);
+// TASK-039: MapMatchupClient now syncs its selection to the URL via
+// useCanonicalUrlState, which requires a Next.js App Router context. This
+// stub mirrors the real App Router: a `replace` call is reflected in the
+// next `useSearchParams()` read, not just recorded as a call.
+let mockSearch = "";
+const replaceCalls: string[] = [];
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: (url: string) => {
+      replaceCalls.push(url);
+      const queryIndex = url.indexOf("?");
+      mockSearch = queryIndex === -1 ? "" : url.slice(queryIndex + 1);
+    },
+  }),
+  usePathname: () => "/map-matchup",
+  useSearchParams: () => new URLSearchParams(mockSearch),
+}));
 
-function renderClient() {
+afterEach(() => {
+  cleanup();
+  mockSearch = "";
+  replaceCalls.length = 0;
+});
+
+function renderClient(initialUrlState: CanonicalUrlState = EMPTY_CANONICAL_URL_STATE) {
   render(
     <MapMatchupClient
       regions={VCT_REGIONS}
@@ -15,6 +38,7 @@ function renderClient() {
       profiles={VCT_TEAM_PROFILES}
       maps={maps}
       disclosure={VCT_PROFILE_DISCLOSURE}
+      initialUrlState={initialUrlState}
     />,
   );
 }
@@ -183,5 +207,67 @@ describe("MapMatchupClient", () => {
       const badges = within(rankingList).getAllByText(/Close\/Even|Paper Rex|G2 Esports/);
       expect(badges.length).toBeGreaterThan(0);
     });
+
+    it("does not update the URL when switching tabs or the sort control", () => {
+      selectBothTeams();
+      replaceCalls.length = 0;
+      fireEvent.change(screen.getByLabelText("Sort by"), { target: { value: "map-name" } });
+      fireEvent.focus(screen.getByRole("tab", { name: "Selected Pool" }));
+      expect(replaceCalls).toHaveLength(0);
+    });
+
+    it("updates the URL exactly once per Select All / Clear action", () => {
+      selectBothTeams();
+      replaceCalls.length = 0;
+
+      fireEvent.click(screen.getByRole("button", { name: "Select All" }));
+      expect(replaceCalls).toHaveLength(1);
+      expect(replaceCalls[0]).toContain("maps=");
+
+      fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+      expect(replaceCalls).toHaveLength(2);
+      expect(replaceCalls[1]).not.toContain("maps=");
+    });
+  });
+
+  it("initializes team and map-pool state directly from URL state", () => {
+    renderClient({
+      regionA: "pacific",
+      teamA: "paper-rex",
+      regionB: "americas",
+      teamB: "g2-esports",
+      maps: ["ascent", "haven"],
+      format: null,
+    });
+
+    const poolGroup = screen.getByRole("group", { name: /Map Pool/ });
+    expect(within(poolGroup).getByRole("button", { name: "Ascent" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(poolGroup).getByRole("button", { name: "Haven" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(poolGroup).getByRole("button", { name: "Bind" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("treats an empty maps parameter as a valid, empty pool", () => {
+    renderClient({
+      regionA: "pacific",
+      teamA: "paper-rex",
+      regionB: "americas",
+      teamB: "g2-esports",
+      maps: [],
+      format: null,
+    });
+
+    const poolGroup = screen.getByRole("group", { name: /Map Pool \(0/ });
+    expect(poolGroup).toBeInTheDocument();
+  });
+
+  it("shows cross-feature links preserving both teams and the selected map pool", () => {
+    renderClient();
+    selectTeam("A", "Pacific", "Paper Rex");
+    selectTeam("B", "Americas", "G2 Esports");
+    fireEvent.click(within(screen.getByRole("group", { name: /Map Pool/ })).getByRole("button", { name: "Ascent" }));
+
+    const link = screen.getByRole("link", { name: /Open in Prediction Studio/ });
+    expect(link).toHaveAttribute("href", expect.stringContaining("teamA=paper-rex"));
+    expect(link).toHaveAttribute("href", expect.stringContaining("maps=ascent"));
   });
 });

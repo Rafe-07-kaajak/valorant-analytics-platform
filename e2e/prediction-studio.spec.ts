@@ -7,6 +7,22 @@ import AxeBuilder from "@axe-core/playwright";
  * Rex, Team B → Americas → G2 Esports is used throughout as the canonical
  * example scenario.
  */
+/**
+ * Real Tab-key navigation (rather than a programmatic `.focus()` call)
+ * reliably produces browser `:focus-visible` state, which Radix Tooltip's
+ * focus-triggered open depends on — a chain of real clicks immediately
+ * before a purely-programmatic focus call can leave the browser's
+ * interaction-modality heuristic in a state where `:focus-visible` doesn't
+ * apply, so no amount of waiting afterward opens the tooltip.
+ */
+async function tabToLocator(page: Page, locator: import("@playwright/test").Locator, maxPresses = 30) {
+  for (let i = 0; i < maxPresses; i++) {
+    if (await locator.evaluate((el) => document.activeElement === el).catch(() => false)) return;
+    await page.keyboard.press("Tab");
+  }
+  throw new Error("tabToLocator: target was not reached within maxPresses");
+}
+
 async function selectTeam(page: Page, side: "A" | "B", region: string, team: string) {
   const regionGroup = page.getByRole("group", { name: `Team ${side} region` });
   await regionGroup.getByRole("button", { name: new RegExp(region) }).click();
@@ -106,15 +122,9 @@ test("confidence and trust score explanations are reachable by keyboard and dism
   // navigation timeouts) — not a UI regression.
   await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
 
-  // The result section (and its Tooltip triggers) mounts the instant
-  // "Predicted Winner" appears, one render tick ahead of Radix attaching its
-  // focus listeners — focusing immediately can race that attachment. Letting
-  // the subtree settle for a beat avoids that race.
-  await page.waitForTimeout(250);
-
   const confidenceInfo = page.getByRole("button", { name: "What does Confidence mean?" });
   await confidenceInfo.scrollIntoViewIfNeeded();
-  await confidenceInfo.evaluate((el: HTMLElement) => el.focus({ preventScroll: true }));
+  await tabToLocator(page, confidenceInfo);
   await expect(page.getByRole("tooltip")).toContainText("Confidence sits at");
 
   await page.keyboard.press("Escape");
@@ -122,7 +132,7 @@ test("confidence and trust score explanations are reachable by keyboard and dism
 
   const trustScoreInfo = page.getByRole("button", { name: "What does Trust Score mean?" });
   await trustScoreInfo.scrollIntoViewIfNeeded();
-  await trustScoreInfo.evaluate((el: HTMLElement) => el.focus({ preventScroll: true }));
+  await tabToLocator(page, trustScoreInfo);
   await expect(page.getByRole("tooltip")).toContainText("Trust Score sits at");
 });
 

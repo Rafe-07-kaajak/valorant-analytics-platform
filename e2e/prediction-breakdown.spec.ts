@@ -41,6 +41,9 @@ test("switching between all four tabs works without changing the underlying resu
   await generatePrediction(page);
 
   const winnerText = await page.getByText("Predicted Winner").locator("..").textContent();
+  // TASK-039: the URL now carries the scenario's draft (teams/maps/format),
+  // set once when the scenario was built — tab switching must not touch it.
+  const urlBeforeTabs = page.url();
 
   await page.getByRole("tab", { name: "Match DNA" }).click();
   await expect(page.getByRole("table").first()).toBeVisible();
@@ -55,7 +58,7 @@ test("switching between all four tabs works without changing the underlying resu
   await expect(page.getByRole("list", { name: "Feature contributions ranked by magnitude" })).toBeVisible();
 
   // Still the same URL, and the prediction itself never changed.
-  await expect(page).toHaveURL(/prediction-studio$/);
+  expect(page.url()).toBe(urlBeforeTabs);
   await expect(page.getByText("Predicted Winner").locator("..")).toHaveText(winnerText ?? "");
 });
 
@@ -167,7 +170,14 @@ test("no console errors or failed asset/network requests while exploring the bre
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(msg.text());
   });
-  page.on("requestfailed", (req) => failedRequests.push(req.url()));
+  page.on("requestfailed", (req) => {
+    // TASK-039's cross-feature <Link> elements prefetch their RSC payload as
+    // the href changes with selection; a stale prefetch is intentionally
+    // cancelled (net::ERR_ABORTED) once a newer one supersedes it — not a
+    // real network failure.
+    if (req.failure()?.errorText === "net::ERR_ABORTED") return;
+    failedRequests.push(req.url());
+  });
   page.on("response", (res) => {
     if (res.status() >= 400) failedRequests.push(`${res.status()} ${res.url()}`);
   });

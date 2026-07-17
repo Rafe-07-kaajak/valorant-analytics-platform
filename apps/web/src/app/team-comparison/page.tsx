@@ -3,6 +3,7 @@ import { VCT_PROFILE_DISCLOSURE, VCT_TEAM_PROFILES, maps } from "@repo/predictio
 import { VCT_REGIONS, VCT_TEAMS } from "../../constants/vct";
 import { TeamComparisonClient } from "../../features/team-comparison/TeamComparisonClient";
 import { MEDIA_ASSETS } from "../../constants/media";
+import { parseUrlState, toUrlSearchParams } from "../../lib/urlState";
 
 export const metadata: Metadata = {
   title: "Team Comparison Lab | Valorant Analytics Platform",
@@ -24,7 +25,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TeamComparisonPage() {
+interface TeamComparisonPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function TeamComparisonPage({ searchParams }: TeamComparisonPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const validMapIds = new Set(maps.map((map) => map.id));
+  const initialUrlState = parseUrlState(toUrlSearchParams(resolvedSearchParams), { validMapIds });
+
   return (
     <TeamComparisonClient
       regions={VCT_REGIONS}
@@ -32,6 +41,7 @@ export default function TeamComparisonPage() {
       profiles={VCT_TEAM_PROFILES}
       maps={maps}
       disclosure={VCT_PROFILE_DISCLOSURE}
+      initialUrlState={initialUrlState}
     />
   );
 }

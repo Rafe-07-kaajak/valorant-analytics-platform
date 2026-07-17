@@ -1,11 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { SERIES_MAP_LIMITS, type GameMap, type Scenario, type SeriesFormat } from "@repo/shared";
 import { Button, Card, Label, Select, Spinner, Stack } from "@repo/ui";
 import type { VctRegion, VctTeam } from "../../constants/vct";
-import { VctTeamSideSelector, EMPTY_SIDE_SELECTION, type SideSelection } from "./VctTeamSideSelector";
+import { VctTeamSideSelector, type SideSelection } from "./VctTeamSideSelector";
 import { MapSelector } from "./MapSelector";
+import { AnalyticsContextLinks } from "../../components/AnalyticsContextLinks";
+import { useCanonicalUrlState } from "../../hooks/useCanonicalUrlState";
+import {
+  EMPTY_CANONICAL_URL_STATE,
+  withFormat,
+  withMaps,
+  withRegionA,
+  withRegionB,
+  withTeamA,
+  withTeamB,
+  type CanonicalFieldKey,
+  type CanonicalUrlState,
+} from "../../lib/urlState";
 
 export interface ScenarioBuilderProps {
   regions: readonly VctRegion[];
@@ -15,15 +28,31 @@ export interface ScenarioBuilderProps {
   disclosure: string;
   isSubmitting: boolean;
   onSubmit: (scenario: Scenario) => void;
+  /** TASK-039: server-parsed from the initial request's search params. Defaults to empty so existing callers (tests) don't need to pass it. */
+  initialUrlState?: CanonicalUrlState;
+  /** TASK-039: once a prediction result exists, its own result-scoped links (fed by the result's authoritative scenario, not this draft) take over — the draft's own links hide to avoid two simultaneously visible, potentially divergent link sets. */
+  hasResult?: boolean;
 }
 
-const EMPTY_SELECTION: SideSelection = EMPTY_SIDE_SELECTION;
+const PREDICTION_STUDIO_FIELDS: readonly CanonicalFieldKey[] = ["regionA", "teamA", "regionB", "teamB", "maps", "format"];
 
-export function ScenarioBuilder({ regions, teams, maps, disclosure, isSubmitting, onSubmit }: ScenarioBuilderProps) {
-  const [teamASelection, setTeamASelection] = useState<SideSelection>(EMPTY_SELECTION);
-  const [teamBSelection, setTeamBSelection] = useState<SideSelection>(EMPTY_SELECTION);
-  const [seriesFormat, setSeriesFormat] = useState<SeriesFormat>("BO3");
-  const [mapIds, setMapIds] = useState<string[]>([]);
+export function ScenarioBuilder({
+  regions,
+  teams,
+  maps,
+  disclosure,
+  isSubmitting,
+  onSubmit,
+  initialUrlState = EMPTY_CANONICAL_URL_STATE,
+  hasResult = false,
+}: ScenarioBuilderProps) {
+  const validMapIds = useMemo(() => new Set(maps.map((map) => map.id)), [maps]);
+  const [urlState, setUrlState] = useCanonicalUrlState(initialUrlState, PREDICTION_STUDIO_FIELDS, validMapIds);
+
+  const teamASelection: SideSelection = { regionId: urlState.regionA, teamId: urlState.teamA };
+  const teamBSelection: SideSelection = { regionId: urlState.regionB, teamId: urlState.teamB };
+  const seriesFormat = urlState.format ?? "BO3";
+  const mapIds = urlState.maps;
 
   const maxSelectable = SERIES_MAP_LIMITS[seriesFormat];
 
@@ -34,20 +63,19 @@ export function ScenarioBuilder({ regions, teams, maps, disclosure, isSubmitting
     return null;
   }, [teamASelection.teamId, teamBSelection.teamId, mapIds]);
 
-  function handleSeriesFormatChange(next: SeriesFormat) {
-    setSeriesFormat(next);
-    setMapIds((current) => current.slice(0, SERIES_MAP_LIMITS[next]));
+  function handleSeriesFormatChange(next: typeof seriesFormat) {
+    setUrlState((current) => withFormat(current, next));
   }
 
   function toggleMap(mapId: string) {
-    setMapIds((current) => {
-      if (current.includes(mapId)) {
-        return current.filter((id) => id !== mapId);
-      }
-      if (current.length >= maxSelectable) {
-        return current;
-      }
-      return [...current, mapId];
+    setUrlState((current) => {
+      const currentMaps = current.maps;
+      const nextMaps = currentMaps.includes(mapId)
+        ? currentMaps.filter((id) => id !== mapId)
+        : currentMaps.length >= maxSelectable
+          ? currentMaps
+          : [...currentMaps, mapId];
+      return withMaps(current, nextMaps, validMapIds);
     });
   }
 
@@ -66,8 +94,8 @@ export function ScenarioBuilder({ regions, teams, maps, disclosure, isSubmitting
           regionId={teamASelection.regionId}
           teamId={teamASelection.teamId}
           opposingTeamId={teamBSelection.teamId}
-          onRegionChange={(regionId) => setTeamASelection({ regionId, teamId: null })}
-          onTeamChange={(teamId) => setTeamASelection((current) => ({ ...current, teamId }))}
+          onRegionChange={(regionId) => setUrlState((current) => withRegionA(current, regionId))}
+          onTeamChange={(teamId) => setUrlState((current) => withTeamA(current, teamId))}
         />
 
         <div
@@ -84,10 +112,12 @@ export function ScenarioBuilder({ regions, teams, maps, disclosure, isSubmitting
           regionId={teamBSelection.regionId}
           teamId={teamBSelection.teamId}
           opposingTeamId={teamASelection.teamId}
-          onRegionChange={(regionId) => setTeamBSelection({ regionId, teamId: null })}
-          onTeamChange={(teamId) => setTeamBSelection((current) => ({ ...current, teamId }))}
+          onRegionChange={(regionId) => setUrlState((current) => withRegionB(current, regionId))}
+          onTeamChange={(teamId) => setUrlState((current) => withTeamB(current, teamId))}
         />
       </div>
+
+      {!hasResult ? <AnalyticsContextLinks currentFeature="prediction-studio" state={urlState} placement="compact" /> : null}
 
       <Stack gap="2xs">
         <Label htmlFor="series-format">Series Format</Label>
