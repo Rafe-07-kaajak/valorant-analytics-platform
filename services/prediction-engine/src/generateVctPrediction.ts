@@ -44,17 +44,27 @@ function computeVctFormStability(profile: VctTeamProfile): number {
   return 1 - Math.abs(profile.overallRating - profile.recentFormIndex) / 100;
 }
 
-function computeVctPrediction(request: PredictionRequest, teamA: Team, teamB: Team): PredictionResult {
+/**
+ * TASK-038: the actual prediction math, factored out of `computeVctPrediction`
+ * so that both the production path (profiles read from the frozen
+ * `VCT_TEAM_PROFILES` registry) and the isolated What-if Simulator path
+ * (`simulateVctPrediction`, profiles are validated clones) call the exact
+ * same function — one formula, never duplicated. This is a pure,
+ * behavior-preserving extraction: `profileA`/`profileB` are now parameters
+ * instead of being looked up inside this function, and nothing else about
+ * the computation changed.
+ */
+export function computeVctPredictionFromProfiles(
+  request: PredictionRequest,
+  teamA: Team,
+  teamB: Team,
+  profileA: VctTeamProfile,
+  profileB: VctTeamProfile,
+): PredictionResult {
   const { scenario } = request;
 
   if (teamA.id !== scenario.teamAId || teamB.id !== scenario.teamBId) {
     throw new Error("Resolved team identity does not match the submitted scenario.");
-  }
-
-  const profileA = getVctTeamProfile(teamA.id as VctTeamId);
-  const profileB = getVctTeamProfile(teamB.id as VctTeamId);
-  if (!profileA || !profileB) {
-    throw new Error("Unknown VCT team in scenario.");
   }
 
   const teamADna = profileA.dna;
@@ -140,6 +150,15 @@ function computeVctPrediction(request: PredictionRequest, teamA: Team, teamB: Te
     generatedAt: new Date().toISOString(),
     predictionVersion: "vct-engine-0.1",
   };
+}
+
+function computeVctPrediction(request: PredictionRequest, teamA: Team, teamB: Team): PredictionResult {
+  const profileA = getVctTeamProfile(teamA.id as VctTeamId);
+  const profileB = getVctTeamProfile(teamB.id as VctTeamId);
+  if (!profileA || !profileB) {
+    throw new Error("Unknown VCT team in scenario.");
+  }
+  return computeVctPredictionFromProfiles(request, teamA, teamB, profileA, profileB);
 }
 
 /**

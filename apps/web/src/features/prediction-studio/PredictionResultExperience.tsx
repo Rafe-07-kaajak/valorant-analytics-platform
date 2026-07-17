@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import type { PredictionResult, Team } from "@repo/shared";
+import type { GameMap, PredictionResult, Team } from "@repo/shared";
 import { PredictionSummary } from "./PredictionSummary";
 import { ResultTimeline } from "./ResultTimeline";
 import { InteractivePredictionBreakdown } from "./breakdown/InteractivePredictionBreakdown";
 import { useBreakdownState } from "./breakdown/useBreakdownState";
+import { WhatIfSimulator } from "./simulator/WhatIfSimulator";
 import { MatchDnaSection } from "../match-dna/MatchDnaSection";
 import { ExplanationCard } from "../insights/ExplanationCard";
 import { FeatureContribution } from "../insights/FeatureContribution";
@@ -17,9 +18,16 @@ export interface PredictionResultExperienceProps {
   result: PredictionResult;
   teamA: Team;
   teamB: Team;
+  maps: GameMap[];
 }
 
-export function PredictionResultExperience({ result, teamA, teamB }: PredictionResultExperienceProps) {
+/** Identical shape to the engine's own `scenarioCacheKey` — used only to remount `WhatIfSimulator` when the underlying scenario genuinely changes, never for caching. */
+function scenarioKey(result: PredictionResult): string {
+  const { teamAId, teamBId, seriesFormat, mapIds } = result.scenario;
+  return [teamAId, teamBId, seriesFormat, [...mapIds].sort().join(",")].join("|");
+}
+
+export function PredictionResultExperience({ result, teamA, teamB, maps }: PredictionResultExperienceProps) {
   const breakdown = useBreakdownState();
   const explanationFragments = useMemo(() => splitExplanationFragments(result), [result]);
 
@@ -27,6 +35,7 @@ export function PredictionResultExperience({ result, teamA, teamB }: PredictionR
     <div className="flex flex-col gap-lg motion-safe:transition-[opacity,transform] motion-safe:duration-(--duration-panel) motion-safe:ease-(--ease-standard) motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0">
       <PredictionSummary result={result} teamA={teamA} teamB={teamB} />
       <InteractivePredictionBreakdown result={result} teamA={teamA} teamB={teamB} breakdown={breakdown} />
+      <WhatIfSimulator key={scenarioKey(result)} result={result} teamA={teamA} teamB={teamB} maps={maps} />
       <MatchDnaSection result={result} teamA={teamA} teamB={teamB} />
       <ExplanationCard
         explanation={result.explanation}

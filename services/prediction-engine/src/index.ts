@@ -32,3 +32,9 @@ export type { VctTeamProfileValidationIssue } from "./lib/validateVctTeamProfile
 // compatible with the existing PredictionRequest/PredictionResult contracts.
 export { generateVctPrediction } from "./generateVctPrediction";
 export { validateVctScenario } from "./validateVctScenario";
+
+// TASK-038 — isolated What-if Simulator path. Additive: the production
+// prediction path above is untouched by these exports.
+export { simulateVctPrediction } from "./simulateVctPrediction";
+export { validateSimulationRequest } from "./validateSimulationRequest";
+export { getVctProfileBaseline } from "./lib/vctProfileBaseline";

@@ -51,6 +51,7 @@ export function PredictionStudioClient({ regions, teams, maps, disclosure }: Pre
             result={result}
             teamA={toPredictionTeam(resultTeamA)}
             teamB={toPredictionTeam(resultTeamB)}
+            maps={maps}
           />
         ) : null}
       </Container>
