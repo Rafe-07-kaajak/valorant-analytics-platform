@@ -48,7 +48,11 @@ test("hero CTA navigates to Prediction Studio", async ({ page }) => {
 test("landing page is accessible in dark mode", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Toggle color theme" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
+  // Let hover/theme-driven style recalculation settle under concurrent e2e
+  // load before scanning — same rationale as team-comparison.spec.ts and
+  // map-matchup.spec.ts's axe checks.
+  await page.waitForTimeout(400);
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);

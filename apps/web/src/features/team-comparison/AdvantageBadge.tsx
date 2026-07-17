@@ -10,7 +10,7 @@ export interface AdvantageBadgeProps {
 }
 
 const TIER_LABEL: Record<DifferenceTier, string> = {
-  none: "Even",
+  none: "Close/Even",
   slight: "Slight edge",
   moderate: "Moderate edge",
   strong: "Strong edge",
@@ -19,13 +19,15 @@ const TIER_LABEL: Record<DifferenceTier, string> = {
 /**
  * Always pairs color with the actual team name (never a bare colored dot),
  * so Team A/Team B are never distinguished by color alone — the leading
- * team's name is always present in the badge text.
+ * team's name is always present in the badge text. "Close/Even" (rather
+ * than a bare "Even") deliberately avoids implying more certainty than a
+ * modeled, simulated-data gap warrants — see TASK-036's threshold labeling.
  */
 export function AdvantageBadge({ advantage, tier, teamAName, teamBName, className }: AdvantageBadgeProps) {
   if (advantage === "even") {
     return (
       <Badge tone="neutral" className={className}>
-        Even
+        Close/Even
       </Badge>
     );
   }

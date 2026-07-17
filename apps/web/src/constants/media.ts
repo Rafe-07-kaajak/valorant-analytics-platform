@@ -179,10 +179,9 @@ export const MEDIA_ASSETS = {
     type: "image",
     width: 2816,
     height: 1536,
-    section: "predictionStudio.header",
-    role: "reserved",
-    integrated: false,
-    note: "Reserved to keep the form-dense Prediction Studio page free of extra background/contrast risk this pass — scenario building is the priority there, not ambiance.",
+    section: "mapMatchup.page",
+    role: "inset",
+    integrated: true,
   },
   tacticalMapLoop: {
     id: "tactical-map-loop",

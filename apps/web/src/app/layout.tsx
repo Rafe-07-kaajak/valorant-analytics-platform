@@ -45,6 +45,7 @@ export const metadata: Metadata = {
 const navLinks = [
   { label: "Prediction Studio", href: "/prediction-studio" },
   { label: "Comparison Lab", href: "/team-comparison" },
+  { label: "Map Explorer", href: "/map-matchup" },
 ];
 
 export default function RootLayout({
