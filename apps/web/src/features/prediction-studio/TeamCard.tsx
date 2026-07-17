@@ -16,7 +16,8 @@ export interface TeamCardProps {
  * Team step of the TASK-032 two-step selector. Kept focusable (aria-disabled
  * rather than the native `disabled` attribute) even when unavailable, so a
  * screen reader user can still reach the card and hear why, per TASK-032's
- * accessibility requirements.
+ * accessibility requirements. Hover/focus/selected micro-interactions
+ * reference the TASK-033 shared motion tokens rather than one-off values.
  */
 export function TeamCard({ team, side, selected, disabledReason, onSelect }: TeamCardProps) {
   const disabled = Boolean(disabledReason);
@@ -39,7 +40,7 @@ export function TeamCard({ team, side, selected, disabledReason, onSelect }: Tea
         disabled
           ? "cursor-not-allowed opacity-40 pointer-events-none"
           : cn(
-              "motion-safe:hover:-translate-y-[3px] motion-safe:focus-visible:-translate-y-[3px] motion-safe:active:scale-[0.97]",
+              "motion-safe:hover:-translate-y-(--lift-card-selectable) motion-safe:focus-visible:-translate-y-(--lift-card-selectable) motion-safe:active:scale-(--scale-press)",
               accent === "team-a" ? "hover:border-team-a/70 focus-visible:border-team-a/70" : "hover:border-team-b/70 focus-visible:border-team-b/70",
             ),
         selected &&
@@ -64,7 +65,7 @@ export function TeamCard({ team, side, selected, disabledReason, onSelect }: Tea
           sizes="48px"
           className={cn(
             "object-contain motion-safe:transition-transform motion-safe:duration-(--duration-base)",
-            !disabled && "motion-safe:group-hover:scale-[1.03] motion-safe:group-focus-visible:scale-[1.03]",
+            !disabled && "motion-safe:group-hover:scale-(--scale-logo-hover) motion-safe:group-focus-visible:scale-(--scale-logo-hover)",
           )}
         />
       </span>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
-import { Footer } from "@repo/ui";
+import { cn, focusRing, Footer } from "@repo/ui";
 import { SiteNavbar } from "../components/SiteNavbar";
 import { MotionProvider } from "../components/MotionProvider";
 import { MediaBackground } from "../components/media/MediaBackground";
@@ -60,7 +60,10 @@ export default function RootLayout({
                 logo={
                   <Link
                     href="/"
-                    className="rounded-sm text-sm font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                    className={cn(
+                      "rounded-sm text-sm font-semibold text-foreground transition-opacity duration-(--duration-fast) ease-(--ease-standard) hover:opacity-80 focus-visible:opacity-80",
+                      focusRing,
+                    )}
                   >
                     Valorant Analytics
                   </Link>

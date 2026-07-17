@@ -22,5 +22,7 @@ export * from "./components/Modal";
 export * from "./components/Dialog";
 export * from "./components/Drawer";
 export * from "./components/Tooltip";
+export * from "./components/Tabs";
 export * from "./charts/RadarChart";
 export { cn } from "./lib/cn";
+export { focusRing, linkInteraction, iconButtonInteraction, EASE_EMPHASIZED } from "./lib/motion";

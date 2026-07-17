@@ -20,6 +20,8 @@ export function Tooltip({ content, children, className }: TooltipProps) {
             sideOffset={6}
             className={cn(
               "z-50 max-w-64 rounded-md border border-surface-border bg-surface px-xs py-2xs text-sm text-foreground shadow-md",
+              "motion-safe:transition-[opacity,transform] motion-safe:duration-(--duration-fast) motion-safe:ease-(--ease-standard)",
+              "motion-safe:starting:opacity-0 motion-safe:starting:scale-95",
               className,
             )}
           >

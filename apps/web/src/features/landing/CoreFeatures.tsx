@@ -1,7 +1,6 @@
 "use client";
 
 import { BarChart3, Dna, MessageSquareText, Target } from "lucide-react";
-import { motion } from "framer-motion";
 import { Card, Container, ScrollReveal, Section } from "@repo/ui";
 import { MediaBackground } from "../../components/media/MediaBackground";
 import { MEDIA_ASSETS } from "../../constants/media";
@@ -45,15 +44,16 @@ export function CoreFeatures() {
         <div className="grid grid-cols-1 gap-md sm:grid-cols-2">
           {FEATURES.map((feature, index) => (
             <ScrollReveal key={feature.title} delay={index * 0.08}>
-              <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}>
-                <Card className="flex h-full flex-col gap-sm">
-                  <span className="flex size-10 items-center justify-center rounded-full bg-badge-brand-bg text-badge-brand-text">
-                    <feature.icon className="size-5" aria-hidden="true" />
-                  </span>
-                  <h3>{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </Card>
-              </motion.div>
+              {/* Static, non-clickable information card (Level 4) — a very
+                  subtle border response only, no lift or scale, so it never
+                  implies an action that doesn't exist. */}
+              <Card className="flex h-full flex-col gap-sm transition-colors duration-(--duration-base) ease-(--ease-standard) hover:border-foreground/20">
+                <span className="flex size-10 items-center justify-center rounded-full bg-badge-brand-bg text-badge-brand-text">
+                  <feature.icon className="size-5" aria-hidden="true" />
+                </span>
+                <h3>{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </Card>
             </ScrollReveal>
           ))}
         </div>

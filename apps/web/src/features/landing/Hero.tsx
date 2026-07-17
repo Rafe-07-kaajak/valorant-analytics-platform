@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
-import { buttonVariants, Container, Section } from "@repo/ui";
+import { buttonVariants, Container, EASE_EMPHASIZED, Section } from "@repo/ui";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { MediaBackground } from "../../components/media/MediaBackground";
 import { MEDIA_ASSETS } from "../../constants/media";
@@ -14,7 +14,7 @@ const container: Variants = {
 
 const item: Variants = {
   hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_EMPHASIZED } },
 };
 
 export function Hero() {

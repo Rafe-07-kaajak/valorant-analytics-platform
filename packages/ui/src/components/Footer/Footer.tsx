@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { cn } from "../../lib/cn";
+import { linkInteraction } from "../../lib/motion";
 import { Container } from "../Container/Container";
 
 export interface FooterLink {
@@ -27,7 +29,10 @@ export function Footer({ logo, tagline, links }: FooterProps) {
             <a
               key={link.href}
               href={link.href}
-              className="rounded-sm text-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+              className={cn(
+                "rounded-sm text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline",
+                linkInteraction,
+              )}
             >
               {link.label}
             </a>

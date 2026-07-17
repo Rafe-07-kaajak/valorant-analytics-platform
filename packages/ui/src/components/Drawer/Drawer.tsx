@@ -4,6 +4,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/cn";
+import { iconButtonInteraction } from "../../lib/motion";
 
 export interface DrawerProps {
   open: boolean;
@@ -18,17 +19,21 @@ export function Drawer({ open, onOpenChange, children, ariaLabel, side = "right"
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm motion-safe:transition-opacity motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard) motion-safe:starting:opacity-0" />
         <DialogPrimitive.Content
           aria-label={ariaLabel}
           className={cn(
             "fixed inset-y-0 z-50 flex w-[min(20rem,100%)] flex-col gap-md border-surface-border bg-surface p-lg shadow-lg focus:outline-none",
-            side === "right" ? "right-0 border-l" : "left-0 border-r",
+            "motion-safe:transition-transform motion-safe:duration-(--duration-panel) motion-safe:ease-(--ease-standard)",
+            side === "right" ? "right-0 border-l motion-safe:starting:translate-x-full" : "left-0 border-r motion-safe:starting:-translate-x-full",
             className,
           )}
         >
           <DialogPrimitive.Close
-            className="ml-auto rounded-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            className={cn(
+              "ml-auto rounded-sm text-muted-foreground hover:text-foreground",
+              iconButtonInteraction,
+            )}
             aria-label="Close"
           >
             <X size={20} aria-hidden="true" />

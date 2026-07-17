@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { KeyboardEvent } from "react";
 import type { GameMap } from "@repo/shared";
-import { Button, cn } from "@repo/ui";
+import { Button } from "@repo/ui";
 
 export interface MapSelectorProps {
   maps: GameMap[];
@@ -55,7 +55,6 @@ export function MapSelector({ maps, selectedMapIds, maxSelectable, onToggle }: M
               size="sm"
               disabled={disabled}
               aria-pressed={selected}
-              className={cn(disabled && "opacity-40")}
               onClick={() => onToggle(map.id)}
               onKeyDown={(event) => handleKeyDown(event, index)}
             >

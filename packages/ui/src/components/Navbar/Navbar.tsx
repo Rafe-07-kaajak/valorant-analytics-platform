@@ -3,6 +3,7 @@
 import { type HTMLAttributes, type ReactNode, forwardRef, useState } from "react";
 import { Menu } from "lucide-react";
 import { cn } from "../../lib/cn";
+import { iconButtonInteraction, linkInteraction } from "../../lib/motion";
 import { Container } from "../Container/Container";
 import { Drawer } from "../Drawer/Drawer";
 
@@ -44,8 +45,9 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
                     href={link.href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "rounded-sm text-sm font-medium transition-colors duration-(--duration-fast) hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
-                      isActive ? "text-foreground" : "text-muted-foreground",
+                      "rounded-sm text-sm font-medium underline-offset-4 hover:underline",
+                      linkInteraction,
+                      isActive ? "text-foreground underline" : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {link.label}
@@ -59,7 +61,10 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
             {actions}
             <button
               type="button"
-              className="flex size-9 items-center justify-center rounded-md text-foreground transition-colors duration-(--duration-fast) hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 sm:hidden"
+              className={cn(
+                "flex size-9 items-center justify-center rounded-md text-foreground hover:bg-surface sm:hidden",
+                iconButtonInteraction,
+              )}
               aria-label="Open navigation menu"
               onClick={() => setMobileNavOpen(true)}
             >
@@ -79,7 +84,8 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setMobileNavOpen(false)}
                   className={cn(
-                    "rounded-md px-xs py-2xs text-sm font-medium transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+                    "rounded-md px-xs py-2xs text-sm font-medium",
+                    linkInteraction,
                     isActive
                       ? "bg-surface-border text-foreground"
                       : "text-muted-foreground hover:text-foreground",

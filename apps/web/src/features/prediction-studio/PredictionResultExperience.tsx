@@ -15,7 +15,7 @@ export interface PredictionResultExperienceProps {
 
 export function PredictionResultExperience({ result, teamA, teamB }: PredictionResultExperienceProps) {
   return (
-    <div className="flex flex-col gap-lg">
+    <div className="flex flex-col gap-lg motion-safe:transition-[opacity,transform] motion-safe:duration-(--duration-panel) motion-safe:ease-(--ease-standard) motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0">
       <PredictionSummary result={result} teamA={teamA} teamB={teamB} />
       <MatchDnaSection result={result} teamA={teamA} teamB={teamB} />
       <ExplanationCard explanation={result.explanation} />

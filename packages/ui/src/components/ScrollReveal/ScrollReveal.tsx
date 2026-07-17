@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
+import { EASE_EMPHASIZED } from "../../lib/motion";
 
 export interface ScrollRevealProps {
   children: ReactNode;
@@ -25,7 +26,7 @@ export function ScrollReveal({ children, className, delay = 0, as = "div" }: Scr
       whileInView="visible"
       viewport={{ once: true, margin: "-80px" }}
       variants={variants}
-      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.6, delay, ease: EASE_EMPHASIZED }}
     >
       {children}
     </MotionTag>

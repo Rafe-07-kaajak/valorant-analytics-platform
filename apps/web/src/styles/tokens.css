@@ -54,13 +54,43 @@
 }
 
 /* Motion — consumed directly via arbitrary-value syntax, not a Tailwind
-   utility-generating namespace, so no @theme registration needed. */
+   utility-generating namespace, so no @theme registration needed.
+   TASK-033: unified, restrained micro-interaction system. Durations and
+   movement limits below are the single source of truth for hover/focus/
+   press/panel motion across packages/ui and apps/web — see
+   docs/22-interaction-system.md for the interaction hierarchy these serve. */
 :root {
-  --duration-fast: 120ms;
+  --duration-fast: 160ms;
   --duration-base: 200ms;
-  --duration-slow: 360ms;
+  --duration-panel: 280ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Movement limits — kept small and restrained. Referenced via arbitrary-
+     value syntax, e.g. `-translate-y-(--lift-button)`, `scale-(--scale-press)`. */
+  --lift-button: -2px;
+  --lift-card-selectable: -3px;
+  --lift-card-info: -2px;
+  --lift-card-feature: -4px;
+  --travel-icon: 3px;
+  --scale-logo-hover: 1.03;
+  --scale-press: 0.98;
+}
+
+/* Global reduced-motion safety net. Individual components gate their own
+   transforms behind motion-safe:, but this catch-all guarantees near-instant
+   transitions even for elements that only animate color/background (Navbar,
+   Footer, Modal, Drawer, form controls) rather than duplicating motion-safe:
+   on every color transition in the codebase. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Semantic surface tokens — light theme (default) */

@@ -29,13 +29,39 @@ test("theme toggle switches and persists across navigation", async ({ page }) =>
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
   await page.getByRole("link", { name: "Prediction Studio" }).first().click();
-  await expect(page).toHaveURL(/prediction-studio/);
+  // A generous timeout here absorbs Next.js dev-mode's on-demand route
+  // compile, which can take several seconds under concurrent e2e load —
+  // not a UI regression, just the dev server warming up a route.
+  await expect(page).toHaveURL(/prediction-studio/, { timeout: 15_000 });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
 test("hero CTA navigates to Prediction Studio", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Open Prediction Studio" }).first().click();
-  await expect(page).toHaveURL(/prediction-studio/);
+  await expect(page).toHaveURL(/prediction-studio/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Prediction Studio" })).toBeVisible();
+});
+
+test("landing page is accessible in dark mode", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test("the hero CTA is keyboard-reachable and shows a visible focus state", async ({ page }) => {
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: "Open Prediction Studio" }).first();
+
+  await cta.focus();
+  await expect(cta).toBeFocused();
+
+  const outlineWidth = await cta.evaluate((el) => getComputedStyle(el).outlineWidth);
+  expect(outlineWidth).not.toBe("0px");
+
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/prediction-studio/, { timeout: 15_000 });
 });
