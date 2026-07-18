@@ -25,7 +25,7 @@ describe("parseTeamPage", () => {
   });
 
   it("returns a fatal error when the team name is missing", () => {
-    const html = `<div class="team-page" data-team-id="1"></div>`;
+    const html = `<div class="team-header" data-team-id="1"></div>`;
     const result = parseTeamPage(html, SOURCE);
     expect(result.value).toBeNull();
     expect(result.errors.some((e) => e.message.includes("name"))).toBe(true);
@@ -36,6 +36,12 @@ describe("parseTeamPage", () => {
     const result = parseTeamPage(html, { sourceUrl: "https://www.vlr.gg/teams/overview", fetchedAt: SOURCE.fetchedAt });
     expect(result.value?.vlrTeamId).toBe("2593");
     expect(result.warnings.some((w) => w.code === "parser_fallback_used")).toBe(true);
+  });
+
+  it("reads the name from the h1 specifically, not the tag nested alongside it in .team-header-name", () => {
+    const result = parseTeamPage(readFixture("team-page.html"), SOURCE);
+    expect(result.value?.name).toBe("Fnatic");
+    expect(result.value?.shortName).toBe("FNC");
   });
 
   it("is deterministic across repeated parses of the same input", () => {

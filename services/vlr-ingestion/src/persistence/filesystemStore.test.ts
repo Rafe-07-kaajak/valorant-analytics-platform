@@ -105,6 +105,51 @@ describe("FilesystemIngestionStore — checkpoints and discovery summaries", () 
   });
 });
 
+describe("FilesystemIngestionStore — failure ledger", () => {
+  it("records a new failure with attemptCount 1", async () => {
+    const entry = await store.recordFailure(
+      { entityType: "match", externalId: "347540", operation: "fetch-match", errorCode: "timeout", retryable: true, safeMessage: "Request timed out." },
+      "2026-07-18T00:00:00.000Z",
+    );
+    expect(entry).toMatchObject({ attemptCount: 1, resolved: false, firstFailureAt: "2026-07-18T00:00:00.000Z", latestFailureAt: "2026-07-18T00:00:00.000Z" });
+  });
+
+  it("increments attemptCount and updates latestFailureAt on a repeated failure for the same key, preserving firstFailureAt", async () => {
+    await store.recordFailure({ entityType: "match", externalId: "347540", operation: "fetch-match", errorCode: "timeout", retryable: true, safeMessage: "Timed out." }, "2026-07-18T00:00:00.000Z");
+    const second = await store.recordFailure({ entityType: "match", externalId: "347540", operation: "fetch-match", errorCode: "timeout", retryable: true, safeMessage: "Timed out again." }, "2026-07-18T00:05:00.000Z");
+    expect(second).toMatchObject({ attemptCount: 2, firstFailureAt: "2026-07-18T00:00:00.000Z", latestFailureAt: "2026-07-18T00:05:00.000Z" });
+  });
+
+  it("keeps failures for different operations on the same entity independent", async () => {
+    await store.recordFailure({ entityType: "match", externalId: "347540", operation: "discover-matches", errorCode: "timeout", retryable: true, safeMessage: "a" }, "t1");
+    await store.recordFailure({ entityType: "match", externalId: "347540", operation: "fetch-match", errorCode: "timeout", retryable: true, safeMessage: "b" }, "t1");
+    const failures = await store.listFailures();
+    expect(failures).toHaveLength(2);
+  });
+
+  it("marks a failure resolved without deleting its history", async () => {
+    await store.recordFailure({ entityType: "match", externalId: "1", operation: "fetch-match", errorCode: "timeout", retryable: true, safeMessage: "a" }, "t1");
+    await store.markFailureResolved("match", "1", "fetch-match");
+    const [entry] = await store.listFailures();
+    expect(entry?.resolved).toBe(true);
+    expect(entry?.attemptCount).toBe(1);
+  });
+
+  it("filters failures by resolved and retryable status", async () => {
+    await store.recordFailure({ entityType: "match", externalId: "1", operation: "fetch-match", errorCode: "timeout", retryable: true, safeMessage: "a" }, "t1");
+    await store.recordFailure({ entityType: "match", externalId: "2", operation: "fetch-match", errorCode: "invalid_provider_id", retryable: false, safeMessage: "b" }, "t1");
+    await store.markFailureResolved("match", "1", "fetch-match");
+
+    expect(await store.listFailures({ resolved: true })).toHaveLength(1);
+    expect(await store.listFailures({ resolved: false })).toHaveLength(1);
+    expect(await store.listFailures({ retryable: false })).toHaveLength(1);
+  });
+
+  it("returns an empty list when no failures have been recorded", async () => {
+    expect(await store.listFailures()).toEqual([]);
+  });
+});
+
 describe("FilesystemIngestionStore — safety and malformed input", () => {
   it("throws a persistence_failure error for a malformed JSON file instead of crashing", async () => {
     const path = join(rootDir, "raw", "vlr", "team", "broken.json");

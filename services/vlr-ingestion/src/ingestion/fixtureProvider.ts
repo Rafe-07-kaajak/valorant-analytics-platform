@@ -6,8 +6,10 @@ import { parseEventDiscoveryPage } from "../vlr/parsers/eventDiscoveryParser";
 import { parseEventPage } from "../vlr/parsers/eventParser";
 import { parseMatchDetailPage } from "../vlr/parsers/matchDetailParser";
 import { parseMatchListPage } from "../vlr/parsers/matchListParser";
-import type { VlrEvent, VlrMatchDetail, VlrMatchSummary } from "../vlr/schemas/raw";
+import type { VlrEvent, VlrEventStatus, VlrMatchDetail, VlrMatchStatus, VlrMatchSummary } from "../vlr/schemas/raw";
 import type { VlrIngestionProvider } from "./vlrIngestionProvider";
+
+const VALID_EVENT_STATUSES: readonly VlrEventStatus[] = ["upcoming", "ongoing", "completed"];
 
 /**
  * Fixture-backed provider behind `pnpm ingest:fixtures` — see
@@ -50,7 +52,8 @@ export class FixtureVlrProvider implements VlrIngestionProvider {
       const fixtureName = EVENT_FIXTURES[vlrEventId];
       if (!fixtureName) continue;
       const eventHtml = readFixtureFile(fixtureName);
-      const eventResult = parseEventPage(eventHtml, { sourceUrl: `https://www.vlr.gg/event/${vlrEventId}/name`, fetchedAt: this.fetchedAt });
+      const statusHint = VALID_EVENT_STATUSES.find((candidate) => candidate === discoveryResult.value!.find((entry) => entry.vlrEventId === vlrEventId)?.statusRaw);
+      const eventResult = parseEventPage(eventHtml, { sourceUrl: `https://www.vlr.gg/event/${vlrEventId}/name`, fetchedAt: this.fetchedAt, statusHint });
       if (!eventResult.value) continue;
       if (eventResult.value.startDateIso && !isWithinDateScope(eventResult.value.startDateIso, scope.startDate, scope.endDate)) continue;
       events.push(eventResult.value);
@@ -66,11 +69,11 @@ export class FixtureVlrProvider implements VlrIngestionProvider {
     return result.value ?? [];
   }
 
-  async getMatch(vlrMatchId: string, vlrEventId: string): Promise<VlrMatchDetail | null> {
+  async getMatch(vlrMatchId: string, vlrEventId: string, options?: { statusHint?: VlrMatchStatus }): Promise<VlrMatchDetail | null> {
     const fixtureName = MATCH_DETAIL_FIXTURES[vlrMatchId];
     if (!fixtureName) return null;
     const html = readFixtureFile(fixtureName);
-    const result = parseMatchDetailPage(html, { sourceUrl: `https://www.vlr.gg/${vlrMatchId}/match`, fetchedAt: this.fetchedAt, vlrEventId });
+    const result = parseMatchDetailPage(html, { sourceUrl: `https://www.vlr.gg/${vlrMatchId}/match`, fetchedAt: this.fetchedAt, vlrEventId, statusHint: options?.statusHint });
     return result.value;
   }
 }

@@ -1,23 +1,38 @@
 {
   "$schema": "none",
   "createdAt": "2026-07-18",
-  "notice": "Every fixture in this directory is a synthetic, hand-authored HTML snippet built to match the markup contract documented in src/vlr/parsers. None of them are captures of real VLR.gg pages. They exist solely to exercise parser logic deterministically without any network access.",
+  "updatedAt": "2026-07-18",
+  "notice": "Every fixture in this directory is a synthetic, hand-authored HTML snippet — none are real VLR.gg captures, and no live VLR.gg page was ever committed to this repository. As of TASK-042, each fixture's structure (element classes, nesting, attributes) was rewritten to match real vlr.gg markup verified during a bounded live-request session (events index, event detail x3, event match-list, match detail, team page) whose raw responses were held only in the gitignored services/vlr-ingestion/.local/raw-inspect/ scratch directory and never committed. Content (team/event names, IDs, scores) remains fabricated/placeholder — only the structural shape is real-derived. See docs/30-vlr-historical-backfill.md ('Real markup verification') for the full comparison.",
+  "liveVerification": {
+    "verifiedAt": "2026-07-18",
+    "pagesInspected": [
+      "https://www.vlr.gg/events",
+      "https://www.vlr.gg/event/2766/valorant-champions-2026",
+      "https://www.vlr.gg/event/2765/valorant-masters-london-2026",
+      "https://www.vlr.gg/event/2977/vct-2026-americas-stage-2",
+      "https://www.vlr.gg/event/matches/2765",
+      "https://www.vlr.gg/684613/xi-lai-gaming-vs-nrg-valorant-masters-london-2026-r1",
+      "https://www.vlr.gg/team/13581/xi-lai-gaming"
+    ],
+    "parserVersionBefore": "vlr-parsers@1.0.0",
+    "parserVersionAfter": "vlr-parsers@2.0.0"
+  },
   "fixtures": {
-    "team-page.html": { "purpose": "Team page parser happy path: name, tag, country, logo, roster.", "synthetic": true },
-    "event-page-vct-americas.html": { "purpose": "Event classified as an approved VCT region (Americas) via structured metadata.", "synthetic": true },
-    "event-page-masters.html": { "purpose": "Event classified as Masters via parent series metadata.", "synthetic": true },
-    "event-page-champions.html": { "purpose": "Event classified as Champions via parent series metadata.", "synthetic": true },
-    "event-page-excluded-tier2.html": { "purpose": "Event excluded as tier-2 via an explicit tag.", "synthetic": true },
-    "event-page-excluded-game-changers.html": { "purpose": "Event excluded as Game Changers via an explicit tag.", "synthetic": true },
-    "event-page-excluded-showmatch.html": { "purpose": "Event excluded as a showmatch via an explicit tag.", "synthetic": true },
-    "event-page-unknown.html": { "purpose": "Event with no classifiable evidence; must resolve to unknown, never an approved family.", "synthetic": true },
-    "event-discovery-page.html": { "purpose": "Event discovery/listing page with a deliberate duplicate entry to test dedup.", "synthetic": true },
-    "match-list-page.html": { "purpose": "Match list page for one event, with a deliberate duplicate match link to test dedup.", "synthetic": true },
-    "match-completed.html": { "purpose": "Completed match with a full 3-map Bo3 result, including an overtime map.", "synthetic": true },
-    "match-completed-2.html": { "purpose": "Second completed match (2-0), referenced by match-list-page.html's second entry, for end-to-end ingestion tests.", "synthetic": true },
-    "match-scheduled.html": { "purpose": "Upcoming/scheduled match with no map results yet.", "synthetic": true },
-    "match-missing-fields.html": { "purpose": "Completed match with several genuinely optional fields absent (series format, patch, attack/defense splits).", "synthetic": true },
-    "match-malformed.html": { "purpose": "Malformed page missing the match header entirely, to prove the parser fails loudly instead of returning a silently empty record.", "synthetic": true },
-    "match-postponed.html": { "purpose": "Postponed match with no map results, to exercise non-completed status handling.", "synthetic": true }
+    "team-page.html": { "purpose": "Team page parser happy path: name (h1, distinct from the nested tag), short tag, country, logo, roster.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-discovery-page.html": { "purpose": "Event discovery/listing page (.events-container / a.event-item) with a deliberate duplicate entry to test dedup.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-vct-americas.html": { "purpose": "Event classified as an approved VCT region (Americas) via the real breadcrumb stage+region tag structure.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-masters.html": { "purpose": "Event classified as Masters via the real breadcrumb stage tag reading literally 'Masters'.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-champions.html": { "purpose": "Event classified as Champions via the real breadcrumb shape (no stage tag, multiple region tags, title says Champions not Champions Tour).", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-excluded-tier2.html": { "purpose": "Challengers event excluded as tier-2 by name, even though it shares the same VCT breadcrumb structure as an approved league event.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-excluded-game-changers.html": { "purpose": "Event excluded as Game Changers via name pattern, under its own (non-VCT) breadcrumb.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-excluded-showmatch.html": { "purpose": "Event excluded as a showmatch via name pattern, under an unrelated breadcrumb.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "event-page-unknown.html": { "purpose": "Event with no classifiable evidence; must resolve to unknown, never an approved family.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-list-page.html": { "purpose": "Match list page for one event (day-heading + a.match-item cards, no team ID present), with a deliberate duplicate match link to test dedup.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-completed.html": { "purpose": "Completed match with a full 3-map Bo3 result (gamesnav + vm-stats-game join), attack/defense splits, an overtime map, and a 10-player aggregate roster table.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-completed-2.html": { "purpose": "Second completed match (2-0), referenced by match-list-page.html's second entry, for end-to-end ingestion tests.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-scheduled.html": { "purpose": "Upcoming/scheduled match with no map results yet; status inferred from the presence of a scheduled timestamp with no 'final'/'LIVE' note.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-missing-fields.html": { "purpose": "Completed match with several genuinely optional fields absent (series format, patch, attack/defense splits).", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-malformed.html": { "purpose": "Malformed page missing the match header entirely, to prove the parser fails loudly instead of returning a silently empty record.", "synthetic": true, "structureDerivedFromLiveMarkup": true },
+    "match-postponed.html": { "purpose": "Postponed match with no map results; real markup has no postponed signal of its own, so this exercises the required statusHint path.", "synthetic": true, "structureDerivedFromLiveMarkup": true }
   }
 }

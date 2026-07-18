@@ -17,8 +17,17 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,json,yml,yaml,css}\" --ignore-unknown",
     "ingest:vlr:fixtures": "pnpm --filter @repo/vlr-ingestion run ingest:fixtures",
     "ingest:vlr:scope:dry-run": "pnpm --filter @repo/vlr-ingestion run ingest:scope:dry-run",
-    "ingest:vlr:match": "pnpm --filter @repo/vlr-ingestion run ingest:match --",
-    "ingest:vlr:event": "pnpm --filter @repo/vlr-ingestion run ingest:event --"
+    "ingest:vlr:match": "pnpm --filter @repo/vlr-ingestion run ingest:match",
+    "ingest:vlr:event": "pnpm --filter @repo/vlr-ingestion run ingest:event",
+    "ingest:vlr:smoke": "pnpm --filter @repo/vlr-ingestion run ingest:smoke",
+    "ingest:vlr:discover": "pnpm --filter @repo/vlr-ingestion run ingest:discover",
+    "ingest:vlr:backfill": "pnpm --filter @repo/vlr-ingestion run ingest:backfill",
+    "ingest:vlr:resume": "pnpm --filter @repo/vlr-ingestion run ingest:backfill",
+    "ingest:vlr:retry": "pnpm --filter @repo/vlr-ingestion run ingest:retry",
+    "ingest:vlr:report": "pnpm --filter @repo/vlr-ingestion run ingest:report",
+    "ingest:vlr:validate": "pnpm --filter @repo/vlr-ingestion run ingest:validate",
+    "ingest:vlr:manifest": "pnpm --filter @repo/vlr-ingestion run ingest:manifest",
+    "ingest:vlr:status": "pnpm --filter @repo/vlr-ingestion run ingest:status"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

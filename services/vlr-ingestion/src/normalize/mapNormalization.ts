@@ -11,7 +11,7 @@ export interface NormalizedMapName {
   readonly recognized: boolean;
 }
 
-const KNOWN_MAPS = ["Ascent", "Bind", "Breeze", "Fracture", "Haven", "Icebox", "Lotus", "Pearl", "Split", "Sunset", "Abyss"] as const;
+const KNOWN_MAPS = ["Ascent", "Bind", "Breeze", "Fracture", "Haven", "Icebox", "Lotus", "Pearl", "Split", "Sunset", "Abyss", "Corrode"] as const;
 
 const ALIAS_LOOKUP: ReadonlyMap<string, string> = new Map(KNOWN_MAPS.map((map) => [map.toLowerCase(), map]));
 

@@ -15,7 +15,15 @@
     "ingest:fixtures": "tsx src/cli/fixtures.ts",
     "ingest:scope:dry-run": "tsx src/cli/scopeDryRun.ts",
     "ingest:match": "tsx src/cli/matchCommand.ts",
-    "ingest:event": "tsx src/cli/eventCommand.ts"
+    "ingest:event": "tsx src/cli/eventCommand.ts",
+    "ingest:smoke": "tsx src/cli/smoke.ts",
+    "ingest:discover": "tsx src/cli/discover.ts",
+    "ingest:backfill": "tsx src/cli/backfill.ts",
+    "ingest:retry": "tsx src/cli/retry.ts",
+    "ingest:report": "tsx src/cli/report.ts",
+    "ingest:validate": "tsx src/cli/validate.ts",
+    "ingest:manifest": "tsx src/cli/datasetManifestCommand.ts",
+    "ingest:status": "tsx src/cli/status.ts"
   },
   "dependencies": {
     "@repo/prediction-engine": "workspace:*",

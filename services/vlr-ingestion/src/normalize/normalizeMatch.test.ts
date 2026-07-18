@@ -94,9 +94,9 @@ describe("normalizeMatch — quality flags", () => {
   });
 
   it("flags an unrecognized map name without remapping it", () => {
-    const raw = { ...RAW_MATCH, maps: [{ ...RAW_MATCH.maps[0]!, mapNameRaw: "Corrode" }] };
+    const raw = { ...RAW_MATCH, maps: [{ ...RAW_MATCH.maps[0]!, mapNameRaw: "Fizzbin" }] };
     const result = normalizeMatch(baseInput({ raw }));
-    expect(result.maps[0]?.map.name).toBe("Corrode");
+    expect(result.maps[0]?.map.name).toBe("Fizzbin");
     expect(result.maps[0]?.qualityFlags.some((f) => f.code === "unknown_map")).toBe(true);
   });
 

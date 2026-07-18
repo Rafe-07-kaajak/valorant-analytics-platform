@@ -50,3 +50,23 @@ export { IngestionService } from "./ingestion/ingestionService";
 export type { IngestionServiceDeps, RunOptions } from "./ingestion/ingestionService";
 export { FixtureVlrProvider } from "./ingestion/fixtureProvider";
 export type { RunSummary } from "./ingestion/runSummary";
+
+// Real (live) VLR provider — TASK-042
+export { RealVlrProvider } from "./vlr/realVlrProvider";
+export type { RealVlrProviderProgress } from "./vlr/realVlrProvider";
+
+// Historical discovery and backfill — TASK-042
+export { buildEventDiscoveryManifest, discoverEventsResumable, saveEventDiscoveryManifest, loadEventDiscoveryManifest } from "./discovery/eventManifest";
+export type { EventManifestEntry, EventDiscoveryManifest, ResumableDiscoveryProvider, DiscoverEventsResumableOptions, DiscoverEventsResumableResult } from "./discovery/eventManifest";
+export { buildMatchDiscoveryManifest, buildMatchDiscoveryManifestResumable, saveMatchDiscoveryManifest, loadMatchDiscoveryManifest } from "./discovery/matchManifest";
+export type { MatchManifestEntry, MatchDiscoveryManifest, ResumableMatchDiscoveryProvider } from "./discovery/matchManifest";
+export { buildPreBackfillReport, formatPreBackfillReport } from "./discovery/preBackfillReport";
+export type { PreBackfillReport } from "./discovery/preBackfillReport";
+export { runBackfillBatch, runRetryBatch } from "./ingestion/backfillRunner";
+export type { BackfillRunnerDeps, BackfillBatchResult } from "./ingestion/backfillRunner";
+export { buildQualityReport, formatQualityReport } from "./discovery/qualityReport";
+export type { QualityReport } from "./discovery/qualityReport";
+export { validateCompleteness } from "./discovery/completenessValidation";
+export type { CompletenessValidationResult } from "./discovery/completenessValidation";
+export { buildDatasetManifest, saveDatasetManifest, loadDatasetManifest } from "./discovery/datasetManifest";
+export type { DatasetManifest } from "./discovery/datasetManifest";

@@ -12,26 +12,33 @@ describe("parseMatchListPage", () => {
     expect(result.value?.map((m) => m.vlrMatchId)).toEqual(["347540", "347541", "347540"]);
   });
 
-  it("captures teams, status, round, and series format", () => {
+  it("captures team names (real markup exposes no team ID at this stage), status, round, and day heading", () => {
     const result = parseMatchListPage(readFixture("match-list-page.html"), SOURCE);
     expect(result.value?.[0]).toMatchObject({
-      teamAVlrTeamId: "2593",
-      teamBVlrTeamId: "2594",
+      teamANameRaw: "Fnatic",
+      teamBNameRaw: "Team Liquid",
       status: "completed",
-      roundStageText: "Grand Final",
-      seriesFormatRaw: "Bo3",
+      roundStageText: "Grand Final Playoffs",
+      scheduledAtRaw: "Sat, January 15, 2025 6:00 PM",
       vlrEventId: "2001",
     });
+    expect(result.value?.[0]?.teamAVlrTeamId).toBeUndefined();
   });
 
-  it("returns a fatal error when the match-list root is missing", () => {
+  it("returns a fatal error when no recognizable event page chrome is present", () => {
     const result = parseMatchListPage("<div>nothing</div>", SOURCE);
     expect(result.value).toBeNull();
     expect(result.errors[0]?.code).toBe("critical_field_missing");
   });
 
-  it("skips an item missing a required team without throwing", () => {
-    const html = `<div class="match-list"><a class="match-list-item" href="/1" data-status="completed"><span class="match-team" data-team-id="1">A</span></a></div>`;
+  it("treats a genuinely empty match list (e.g. an event with no matches yet) as a valid, non-fatal empty result", () => {
+    const result = parseMatchListPage(`<div class="event-header"></div>`, SOURCE);
+    expect(result.errors).toHaveLength(0);
+    expect(result.value).toEqual([]);
+  });
+
+  it("skips an item missing a required field (ID or status) without throwing", () => {
+    const html = `<div class="event-header"></div><div class="wf-card"><a class="match-item" href="/1"></a></div>`;
     const result = parseMatchListPage(html, SOURCE);
     expect(result.value).toHaveLength(0);
     expect(result.warnings.some((w) => w.code === "partial_record")).toBe(true);

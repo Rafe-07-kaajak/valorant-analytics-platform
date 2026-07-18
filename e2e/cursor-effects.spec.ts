@@ -82,7 +82,14 @@ test("no horizontal overflow or console errors while the cursor moves across the
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(msg.text());
   });
-  page.on("requestfailed", (req) => failedRequests.push(req.url()));
+  page.on("requestfailed", (req) => {
+    // Next.js's <Link> prefetches its RSC payload on hover/viewport-entry; a
+    // stale prefetch is intentionally cancelled (net::ERR_ABORTED) the
+    // moment cursor movement supersedes it with another — not a real
+    // network failure. Same exclusion as cross-feature-navigation.spec.ts.
+    if (req.failure()?.errorText === "net::ERR_ABORTED") return;
+    failedRequests.push(req.url());
+  });
   page.on("response", (res) => {
     if (res.status() >= 400) failedRequests.push(`${res.status()} ${res.url()}`);
   });

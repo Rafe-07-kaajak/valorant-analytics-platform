@@ -107,10 +107,31 @@ export function findAliasCandidates(displayName: string, entries: readonly VlrTe
 }
 
 /**
- * Initial team mapping registry. Left empty: TASK-041 must not invent VLR
- * team IDs, and no verified real VLR ID was available from approved
- * fixtures at foundation time (fixtures are synthetic — see fixtures/). This
- * import site is where TASK-042 adds verified entries as real IDs are
- * confirmed from live VLR pages.
+ * Initial team mapping registry. Left empty at TASK-041 foundation time
+ * (fixtures were synthetic — no verified real VLR ID was available).
+ *
+ * TASK-042 verified these 10 exact-ID mappings directly from a live VLR.gg
+ * match page (https://www.vlr.gg/684613/xi-lai-gaming-vs-nrg-valorant-masters-london-2026-r1
+ * and its linked team pages, fetched 2026-07-18 during the live-markup
+ * verification session — raw HTML held only in the gitignored
+ * services/vlr-ingestion/.local/raw-inspect/ scratch directory, never
+ * committed). Each `/team/<id>/<slug>` link's display name was matched
+ * exactly against `@repo/prediction-engine`'s 32-team directory; unmatched
+ * teams seen on that page (e.g. Karmine Corp, Team Secret) are correctly
+ * left unmapped — see requirement 10 ("never map only by name").
+ * Remaining unmapped supported teams are discovered and added the same way
+ * as the real backfill encounters their matches — see docs/30 for the
+ * running "unmapped teams" report.
  */
-export const INITIAL_TEAM_MAPPING_REGISTRY: readonly VlrTeamMappingEntry[] = [];
+export const INITIAL_TEAM_MAPPING_REGISTRY: readonly VlrTeamMappingEntry[] = [
+  { vlrTeamId: "1034", internalTeamId: "nrg", reason: "Verified via /team/1034/nrg link on a live match page (2026-07-18)." },
+  { vlrTeamId: "120", internalTeamId: "100-thieves", reason: "Verified via /team/120/100-thieves link on a live match page (2026-07-18)." },
+  { vlrTeamId: "2355", internalTeamId: "kru-esports", reason: "Verified via /team/2355/kr-esports link (display name 'KRÜ Esports') on a live match page (2026-07-18)." },
+  { vlrTeamId: "1001", internalTeamId: "team-heretics", reason: "Verified via /team/1001/team-heretics link on a live match page (2026-07-18)." },
+  { vlrTeamId: "2059", internalTeamId: "team-vitality", reason: "Verified via /team/2059/team-vitality link on a live match page (2026-07-18)." },
+  { vlrTeamId: "397", internalTeamId: "bbl-esports", reason: "Verified via /team/397/bbl-esports link on a live match page (2026-07-18)." },
+  { vlrTeamId: "624", internalTeamId: "paper-rex", reason: "Verified via /team/624/paper-rex link on a live match page (2026-07-18)." },
+  { vlrTeamId: "918", internalTeamId: "global-esports", reason: "Verified via /team/918/global-esports link on a live match page (2026-07-18)." },
+  { vlrTeamId: "1119", internalTeamId: "all-gamers", reason: "Verified via /team/1119/all-gamers link on a live match page (2026-07-18)." },
+  { vlrTeamId: "13581", internalTeamId: "xi-lai-gaming", reason: "Verified via /team/13581/xi-lai-gaming link — the match page's own team A — fetched live (2026-07-18)." },
+];

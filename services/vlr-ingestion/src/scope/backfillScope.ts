@@ -139,6 +139,24 @@ export function serializeBackfillScope(scope: BackfillScope): string {
 }
 
 /**
+ * Serializes only the *stable* identity of a discovery campaign — never
+ * `endDate` (always "today", so including it would invalidate a resumable
+ * discovery checkpoint every single day) and never the per-run bounds
+ * (`maximumEvents`/`maximumMatches`/include-exclude lists), which don't
+ * change what archive is being scanned. Used to bind a discovery checkpoint
+ * to "the same campaign", distinct from `serializeBackfillScope`'s full,
+ * exact-run identity used for the fixture-pipeline's own checkpoint key.
+ */
+export function serializeDiscoveryScopeIdentity(scope: Pick<BackfillScope, "startDate" | "eventFamilies" | "regions" | "tournamentLevels">): string {
+  return JSON.stringify({
+    startDate: scope.startDate,
+    eventFamilies: [...scope.eventFamilies].sort(),
+    regions: [...scope.regions].sort(),
+    tournamentLevels: [...scope.tournamentLevels].sort(),
+  });
+}
+
+/**
  * Builds the canonical TASK-042 target scope: completed matches from
  * 2025-01-01 through `asOfDate` (defaults to "now") across the six approved
  * event families. `endDate` is computed at call time so extending the scope

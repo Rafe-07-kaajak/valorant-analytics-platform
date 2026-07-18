@@ -24,7 +24,7 @@ describe("parseEventDiscoveryPage", () => {
   });
 
   it("warns and skips list items missing an ID or name, without throwing", () => {
-    const html = `<div class="event-list"><a class="event-list-item" href="/event/1"></a></div>`;
+    const html = `<div class="events-container"><a class="event-item" href="/event/1"></a></div>`;
     const result = parseEventDiscoveryPage(html, SOURCE);
     expect(result.value).toHaveLength(0);
     expect(result.warnings.some((w) => w.code === "partial_record")).toBe(true);

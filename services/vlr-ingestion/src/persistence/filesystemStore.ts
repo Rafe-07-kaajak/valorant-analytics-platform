@@ -6,6 +6,8 @@ import { resolveSafePath, safeFileName } from "./pathSafety";
 import type {
   DiscoveryIndexStore,
   EventDiscoveryCheckpoint,
+  FailureLedgerEntry,
+  FailureLedgerStore,
   IngestionCheckpointStore,
   IngestionStore,
   MatchDetailCheckpoint,
@@ -46,7 +48,7 @@ function recordChanged(existing: unknown, incoming: unknown): boolean {
  * (temp-file + rename), every path validated against `dataDir` via
  * `resolveSafePath`.
  */
-export class FilesystemIngestionStore implements IngestionStore, RawRecordStore, NormalizedRecordStore, IngestionCheckpointStore, DiscoveryIndexStore {
+export class FilesystemIngestionStore implements IngestionStore, RawRecordStore, NormalizedRecordStore, IngestionCheckpointStore, DiscoveryIndexStore, FailureLedgerStore {
   private readonly rootDir: string;
 
   constructor(rootDir: string) {
@@ -180,6 +182,57 @@ export class FilesystemIngestionStore implements IngestionStore, RawRecordStore,
 
   async getDiscoverySummary<T>(scopeKey: string): Promise<T | null> {
     return this.readJsonSafe<T>(this.discoverySummaryPath(scopeKey));
+  }
+
+  // --- FailureLedgerStore ---------------------------------------------------
+
+  private failureLedgerPath(): string {
+    return resolveSafePath(this.rootDir, "failures", "ledger.json");
+  }
+
+  private ledgerKey(entityType: FailureLedgerEntry["entityType"], externalId: string, operation: string): string {
+    return `${entityType}:${externalId}:${operation}`;
+  }
+
+  private async readLedger(): Promise<FailureLedgerEntry[]> {
+    return (await this.readJsonSafe<FailureLedgerEntry[]>(this.failureLedgerPath())) ?? [];
+  }
+
+  async recordFailure(
+    entry: Omit<FailureLedgerEntry, "attemptCount" | "firstFailureAt" | "latestFailureAt" | "resolved">,
+    now: string,
+  ): Promise<FailureLedgerEntry> {
+    const ledger = await this.readLedger();
+    const key = this.ledgerKey(entry.entityType, entry.externalId, entry.operation);
+    const existingIndex = ledger.findIndex((e) => this.ledgerKey(e.entityType, e.externalId, e.operation) === key);
+
+    const updated: FailureLedgerEntry = {
+      ...entry,
+      attemptCount: existingIndex >= 0 ? ledger[existingIndex]!.attemptCount + 1 : 1,
+      firstFailureAt: existingIndex >= 0 ? ledger[existingIndex]!.firstFailureAt : now,
+      latestFailureAt: now,
+      resolved: false,
+    };
+
+    if (existingIndex >= 0) ledger[existingIndex] = updated;
+    else ledger.push(updated);
+
+    await this.writeJsonAtomic(this.failureLedgerPath(), ledger);
+    return updated;
+  }
+
+  async markFailureResolved(entityType: FailureLedgerEntry["entityType"], externalId: string, operation: string): Promise<void> {
+    const ledger = await this.readLedger();
+    const key = this.ledgerKey(entityType, externalId, operation);
+    const index = ledger.findIndex((e) => this.ledgerKey(e.entityType, e.externalId, e.operation) === key);
+    if (index < 0) return;
+    ledger[index] = { ...ledger[index]!, resolved: true };
+    await this.writeJsonAtomic(this.failureLedgerPath(), ledger);
+  }
+
+  async listFailures(filter?: { resolved?: boolean; retryable?: boolean }): Promise<readonly FailureLedgerEntry[]> {
+    const ledger = await this.readLedger();
+    return ledger.filter((entry) => (filter?.resolved === undefined || entry.resolved === filter.resolved) && (filter?.retryable === undefined || entry.retryable === filter.retryable));
   }
 
   /** Test-only convenience: removes the entire store directory. Never called by production code. */

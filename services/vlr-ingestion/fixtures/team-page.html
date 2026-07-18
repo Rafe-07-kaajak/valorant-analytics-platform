@@ -1,11 +1,35 @@
-<!-- SYNTHETIC TEST FIXTURE — not a real VLR.gg capture. See fixtures.meta.json. -->
-<div class="team-page" data-team-id="2593">
-  <h1 class="team-header-name">Fnatic</h1>
-  <div class="team-header-tag">FNC</div>
-  <div class="team-header-country">United Kingdom</div>
-  <img class="team-header-logo" src="https://example-cdn.test/logos/fnc.png" />
-  <div class="team-roster">
-    <a class="team-roster-item" href="/player/101/boaster">Boaster</a>
-    <a class="team-roster-item" href="/player/102/derke">Derke</a>
+<!-- SYNTHETIC TEST FIXTURE, structurally derived from real vlr.gg/team/<id> markup verified live during TASK-042 (see fixtures.meta.json) — not a real VLR.gg capture. -->
+<!-- data-team-id is not part of real markup; added here only to exercise the documented data-team-id fallback path when the source URL has no ID. -->
+<div class="team-header" data-team-id="2593">
+  <div class="wf-avatar team-header-logo">
+    <img src="/img/logos/fnc.png" alt="Fnatic team logo">
+  </div>
+  <div class="team-header-desc">
+    <div class="team-header-name">
+      <h1 class="wf-title">Fnatic</h1>
+      <h2 class="wf-title team-header-tag">FNC</h2>
+    </div>
+    <div class="team-header-country">
+      <i class="flag mod-gb"></i>
+      United Kingdom
+    </div>
+  </div>
+</div>
+<div class="team-roster">
+  <div class="team-roster-item">
+    <a href="/player/101/boaster">
+      <div class="team-roster-item-name">
+        <div class="team-roster-item-name-alias">Boaster</div>
+        <div class="team-roster-item-name-real">Jake Howlett</div>
+      </div>
+    </a>
+  </div>
+  <div class="team-roster-item">
+    <a href="/player/102/derke">
+      <div class="team-roster-item-name">
+        <div class="team-roster-item-name-alias">Derke</div>
+        <div class="team-roster-item-name-real">Nikita Sirmitev</div>
+      </div>
+    </a>
   </div>
 </div>

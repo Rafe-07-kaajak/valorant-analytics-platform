@@ -3,6 +3,7 @@ import { isApprovedEventFamily } from "../classification/eventFamily";
 import type { EventClassificationOverride } from "../classification/eventOverrides";
 import { IngestionError } from "../errors";
 import { contentHash } from "../normalize/contentHash";
+import { deterministicInternalId } from "../identity/deterministicId";
 import { resolveTeamIdentity } from "../identity/teamMapping";
 import type { VlrTeamMappingEntry } from "../identity/teamMapping";
 import { normalizeEvent } from "../normalize/normalizeEvent";
@@ -172,9 +173,24 @@ export class IngestionService {
     summary: RunSummaryBuilder,
     signal: AbortSignal | undefined,
   ): Promise<boolean> {
+    // A match already normalized as "completed" on a previous run is never
+    // re-fetched — see TASK-042 requirement 8 ("do not restart already
+    // completed match IDs") and requirement 9 ("resume automatically from
+    // the last checkpoint"). Anything else (upcoming/live/postponed/
+    // cancelled, or never normalized at all) is re-fetched every run, since
+    // only a completed match's result is realistically immutable.
+    if (!dryRun) {
+      const existingMatch = await this.deps.store.getNormalizedEntity<NormalizedMatch>("match", deterministicInternalId("match", matchSummary.vlrMatchId));
+      if (existingMatch?.status === "completed") {
+        summary.skippedUnchangedMatches += 1;
+        summary.completedMatches += 1;
+        return false;
+      }
+    }
+
     let detail: VlrMatchDetail | null;
     try {
-      detail = await this.deps.provider.getMatch(matchSummary.vlrMatchId, vlrEventId, { signal });
+      detail = await this.deps.provider.getMatch(matchSummary.vlrMatchId, vlrEventId, { signal, statusHint: matchSummary.status });
     } catch (error) {
       summary.recordFailure({ stage: "fetch-match", externalId: matchSummary.vlrMatchId, message: describeError(error) });
       return true;

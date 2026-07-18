@@ -56,6 +56,13 @@ export interface VlrEvent {
   readonly parentSeries?: string;
   /** Raw category/label metadata found on the page (e.g. a badge or breadcrumb), for classification evidence. */
   readonly rawCategoryLabels?: readonly string[];
+  /**
+   * The event page's own "Matches (N)" nav-tab count — the only authoritative
+   * expected-total signal VLR exposes (TASK-042 live-markup verification: the
+   * match-list page itself has no pagination and no visible "N of M" counter
+   * of its own). Used to verify match discovery actually found everything.
+   */
+  readonly listedMatchCount?: number;
   readonly source: RawSourceMetadata;
 }
 
@@ -64,8 +71,19 @@ export type VlrMatchStatus = "upcoming" | "live" | "completed" | "postponed" | "
 export interface VlrMatchSummary {
   readonly vlrMatchId: string;
   readonly matchUrl: string;
-  readonly teamAVlrTeamId: string;
-  readonly teamBVlrTeamId: string;
+  /**
+   * VLR's real match-list markup (verified live, TASK-042) exposes team
+   * *names* on the listing row but no team ID or profile link — only the
+   * match detail page links to `/team/<id>/...`. These IDs are therefore
+   * genuinely optional at the summary stage; `getMatch` (match detail) is
+   * the only authoritative source for team identity, matching
+   * `IngestionService.processMatch`, which resolves identity from
+   * `VlrMatchDetail`, never from this summary.
+   */
+  readonly teamAVlrTeamId?: string;
+  readonly teamBVlrTeamId?: string;
+  readonly teamANameRaw?: string;
+  readonly teamBNameRaw?: string;
   readonly scheduledAtRaw?: string;
   readonly scheduledAtIso?: string;
   readonly status: VlrMatchStatus;

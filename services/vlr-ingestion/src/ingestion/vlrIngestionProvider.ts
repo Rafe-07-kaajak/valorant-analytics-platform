@@ -1,5 +1,5 @@
 import type { BackfillScope } from "../scope/backfillScope";
-import type { VlrEvent, VlrMatchDetail, VlrMatchSummary } from "../vlr/schemas/raw";
+import type { VlrEvent, VlrMatchDetail, VlrMatchStatus, VlrMatchSummary } from "../vlr/schemas/raw";
 
 /**
  * The narrow, VLR-typed contract the ingestion coordinator actually drives
@@ -21,6 +21,13 @@ export interface VlrIngestionProvider {
   discoverEvents(scope: BackfillScope, options?: VlrFetchOptions): Promise<readonly VlrEvent[]>;
   /** Discovers match summaries belonging to one already-discovered event. */
   discoverMatches(vlrEventId: string, options?: VlrFetchOptions): Promise<readonly VlrMatchSummary[]>;
-  /** Fetches full match detail for one already-discovered match. */
-  getMatch(vlrMatchId: string, vlrEventId: string, options?: VlrFetchOptions): Promise<VlrMatchDetail | null>;
+  /**
+   * Fetches full match detail for one already-discovered match.
+   * `statusHint`, when supplied, should be the status already observed on
+   * the match-list discovery entry — real VLR match-detail markup carries
+   * no status text of its own (TASK-042 live-markup verification), so this
+   * is the only reliable source for a non-inferable status like
+   * "postponed"/"cancelled".
+   */
+  getMatch(vlrMatchId: string, vlrEventId: string, options?: VlrFetchOptions & { statusHint?: VlrMatchStatus }): Promise<VlrMatchDetail | null>;
 }

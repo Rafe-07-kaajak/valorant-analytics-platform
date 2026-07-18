@@ -10,7 +10,14 @@ import { JSDOM } from "jsdom";
  * hand-rolled with regex.
  */
 
-export const PARSER_VERSION = "vlr-parsers@1.0.0";
+/**
+ * Bumped from 1.0.0 in TASK-042 once every parser was rewritten against
+ * real VLR.gg markup (verified live in `.local/raw-inspect/`, never
+ * committed) instead of TASK-041's synthetic-only fixture contract. A
+ * stored raw/normalized record's `parserVersion` older than this signals it
+ * was produced by the pre-verification parsers and may warrant reprocessing.
+ */
+export const PARSER_VERSION = "vlr-parsers@2.0.0";
 
 export interface ParseIssue {
   readonly code: string;

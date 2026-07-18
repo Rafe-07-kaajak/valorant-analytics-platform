@@ -10,7 +10,10 @@ import { qualityFlag } from "./qualityFlags";
 import type { QualityFlag } from "./qualityFlags";
 import { contentHash } from "./contentHash";
 import { NORMALIZED_SCHEMA_VERSION } from "./schemaVersion";
-import type { IngestionRecordMetadata, NormalizedEvent, NormalizedMapResult, NormalizedMatch } from "./normalizedSchemas";
+import type { IngestionRecordMetadata, NormalizedEvent, NormalizedMapResult, NormalizedMatch, NormalizedRosterSnapshot } from "./normalizedSchemas";
+
+/** Standard Valorant competitive roster size; a smaller published roster is flagged, never fabricated up to this count. */
+const EXPECTED_ROSTER_SIZE = 5;
 
 /**
  * Raw → normalized match, idempotent — see
@@ -60,11 +63,24 @@ function normalizeMaps(raw: VlrMatchDetail, teamAIdentity: ResolvedTeamIdentity,
   });
 }
 
+function normalizeRosters(raw: VlrMatchDetail, teamAIdentity: ResolvedTeamIdentity, teamBIdentity: ResolvedTeamIdentity, asOf: string): NormalizedRosterSnapshot[] | undefined {
+  if (!raw.rostersAtMatchTime) return undefined;
+  return raw.rostersAtMatchTime.map((roster) => {
+    const teamInternalId = roster.teamVlrTeamId === raw.teamAVlrTeamId ? teamAIdentity.internalId : roster.teamVlrTeamId === raw.teamBVlrTeamId ? teamBIdentity.internalId : deterministicInternalId("team", roster.teamVlrTeamId);
+    return {
+      teamInternalId,
+      asOf,
+      playerInternalIds: roster.vlrPlayerIds.map((vlrPlayerId) => deterministicInternalId("player", vlrPlayerId)),
+    };
+  });
+}
+
 export function normalizeMatch(input: NormalizeMatchInput): NormalizedMatch {
   const { raw, teamAIdentity, teamBIdentity, event } = input;
   const scheduledAt = normalizeTimestamp(raw.scheduledAtRaw, raw.scheduledAtIso);
   const seriesFormat = normalizeSeriesFormat(raw.seriesFormatRaw);
   const maps = normalizeMaps(raw, teamAIdentity, teamBIdentity);
+  const rosterSnapshots = normalizeRosters(raw, teamAIdentity, teamBIdentity, input.parsedAt);
   const winnerId = resolveWinnerInternalId(raw.winnerVlrTeamId, raw, teamAIdentity, teamBIdentity);
   const { teamAWins, teamBWins } = countMapWins(raw.maps, raw.teamAVlrTeamId, raw.teamBVlrTeamId);
   const mapWinsForWinner = winnerId === teamAIdentity.internalId ? teamAWins : winnerId === teamBIdentity.internalId ? teamBWins : 0;
@@ -89,6 +105,9 @@ export function normalizeMatch(input: NormalizeMatchInput): NormalizedMatch {
   if (input.isDuplicate) qualityFlags.push(qualityFlag("duplicate_match", "This match ID was already ingested from another discovery path."));
   if (raw.status !== "completed") qualityFlags.push(qualityFlag("not_completed", `Match status is "${raw.status}", not completed.`));
   if (raw.status === "completed" && !winnerId) qualityFlags.push(qualityFlag("inconsistent_winner", "Completed match has no resolvable winner."));
+  if (raw.status === "completed" && (!rosterSnapshots || rosterSnapshots.some((roster) => roster.playerInternalIds.length < EXPECTED_ROSTER_SIZE))) {
+    qualityFlags.push(qualityFlag("incomplete_roster", "Completed match is missing a full 5-player roster for at least one team.", { field: "rosterSnapshots" }));
+  }
 
   const trainingEligibility = evaluateTrainingEligibility({
     status: raw.status,
@@ -131,6 +150,7 @@ export function normalizeMatch(input: NormalizeMatchInput): NormalizedMatch {
     seriesFormat,
     eventId: event.internalId,
     maps,
+    rosterSnapshots,
     sourceReference: { provider: "vlr", externalId: raw.vlrMatchId, sourceUrl: source.sourceUrl },
     trainingEligibility,
     qualityFlags,

@@ -77,6 +77,27 @@ describe("classifyEvent — unknown handling", () => {
     expect(result.classification).not.toBe("masters");
     expect(result.classification).not.toBe("champions");
   });
+
+  it("does not match 'masters' as a bare name-only substring — real third-party events misclassified during TASK-042 live discovery", () => {
+    const result = classifyEvent(event({ name: "FunPay Clutch Masters" }));
+    expect(result.classification).not.toBe("masters");
+    const result2 = classifyEvent(event({ name: "POP Esports Masters Season 6" }));
+    expect(result2.classification).not.toBe("masters");
+    const result3 = classifyEvent(event({ name: "Shanghai Esports Masters 2025" }));
+    expect(result3.classification).not.toBe("masters");
+    // The genuine official naming convention still resolves at low confidence.
+    const genuine = classifyEvent(event({ name: "Valorant Masters Bangkok 2025" }));
+    expect(genuine.classification).toBe("masters");
+  });
+
+  it("does not match 'champions' as a substring of 'Championship' — a real event misclassified during TASK-042 live discovery", () => {
+    const result = classifyEvent(event({ name: "HUTECH Esports Championship" }));
+    expect(result.classification).not.toBe("champions");
+    const result2 = classifyEvent(event({ name: "College VALORANT Championship 2026" }));
+    expect(result2.classification).not.toBe("champions");
+    const result3 = classifyEvent(event({ name: "ESSL Champions Cup 2026", parentSeries: "Champions Tour 2026" }));
+    expect(result3.classification).not.toBe("champions");
+  });
 });
 
 describe("classifyEvent — evidence and confidence", () => {

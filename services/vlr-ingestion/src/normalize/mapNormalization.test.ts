@@ -14,10 +14,14 @@ describe("normalizeMapName", () => {
     expect(normalizeMapName("  Lotus  ")).toEqual({ name: "Lotus", raw: "Lotus", recognized: true });
   });
 
+  it("recognizes Corrode, added to the competitive map pool within this dataset's window", () => {
+    expect(normalizeMapName("Corrode")).toEqual({ name: "Corrode", raw: "Corrode", recognized: true });
+  });
+
   it("preserves an unrecognized map name verbatim and flags it", () => {
-    const result = normalizeMapName("Corrode");
+    const result = normalizeMapName("Fizzbin");
     expect(result.recognized).toBe(false);
-    expect(result.name).toBe("Corrode");
+    expect(result.name).toBe("Fizzbin");
   });
 
   it("never remaps an unknown map to a different known map", () => {

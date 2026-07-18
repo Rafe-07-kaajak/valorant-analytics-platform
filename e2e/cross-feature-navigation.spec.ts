@@ -140,19 +140,39 @@ test("browser back/forward restores prior URL-backed selections across a real pa
   await selectTeam(page, "A", "Pacific", "Paper Rex");
   await selectTeam(page, "B", "Americas", "G2 Esports");
   await expect(page.getByText("Overall Rating")).toBeVisible();
+  // router.replace() is async — component state (hence "Overall Rating")
+  // can be visible a render or two before the URL/history entry it drives
+  // actually commits. The history entry this test's later goBack() must
+  // land on is exactly this one (replaced in place, never pushed — see the
+  // comment above), so the actual query string, not just rendered text,
+  // has to be confirmed before navigating away from it. Same reasoning as
+  // the "Copy Link" test below. Without this, a fast click here can
+  // navigate away before the second replace() lands, so goBack() later
+  // restores an earlier (or empty) history state — reproduced as an
+  // intermittent, load-sensitive "Paper Rex button not found after
+  // goBack()" failure without this wait.
+  await expect(page).toHaveURL(/teamA=paper-rex/);
+  await expect(page).toHaveURL(/teamB=g2-esports/);
 
   await page.getByRole("link", { name: /Open in Prediction Studio/ }).click();
   await expect(page).toHaveURL(/prediction-studio/);
   await expect(page.getByRole("button", { name: /Paper Rex/ })).toHaveAttribute("aria-pressed", "true");
 
+  // goBack()/goForward() re-render an async Server Component page via a
+  // fresh RSC round-trip (these routes have dynamic searchParams, so
+  // there's no static cache to serve instead) — measurably heavier than a
+  // normal Link click, and observed to occasionally exceed the suite's
+  // default timeout only late in a full single-worker run (never in
+  // isolation) as the long-lived dev server/browser accumulate load. A
+  // longer timeout here is a test-runtime margin, not a functional wait.
   await page.goBack();
-  await expect(page).toHaveURL(/team-comparison/);
-  await expect(page.getByText("Overall Rating")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Paper Rex/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/team-comparison/, { timeout: 15_000 });
+  await expect(page.getByText("Overall Rating")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /Paper Rex/ })).toHaveAttribute("aria-pressed", "true", { timeout: 15_000 });
 
   await page.goForward();
-  await expect(page).toHaveURL(/prediction-studio/);
-  await expect(page.getByRole("button", { name: /G2 Esports/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/prediction-studio/, { timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /G2 Esports/ })).toHaveAttribute("aria-pressed", "true", { timeout: 15_000 });
 });
 
 test("cross-feature links use normal anchor hrefs, compatible with opening in a new tab", async ({ page }) => {
