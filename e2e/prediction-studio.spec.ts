@@ -101,6 +101,12 @@ test("full scenario submission renders an explainable result with no accessibili
   // Visible near both the controls (always) and the result (as a warning) once a prediction exists.
   await expect(page.getByText(/simulated team profiles/i).first()).toBeVisible();
 
+  // Let the result's and What-if Simulator's motion-safe entrance transition
+  // settle before scanning — mid-transition text is briefly lower-opacity,
+  // which reads as a false-positive contrast violation (same rationale as
+  // team-comparison.spec.ts and prediction-breakdown.spec.ts's axe checks).
+  await page.waitForTimeout(400);
+
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });
@@ -200,6 +206,9 @@ test("full scenario submission works and is accessible in dark mode", async ({ p
   // under concurrent e2e load (same rationale as landing.spec.ts's
   // navigation timeouts) — not a UI regression.
   await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
+
+  // Same rationale as the light-mode scan above.
+  await page.waitForTimeout(400);
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);

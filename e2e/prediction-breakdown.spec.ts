@@ -43,6 +43,9 @@ test("switching between all four tabs works without changing the underlying resu
   const winnerText = await page.getByText("Predicted Winner").locator("..").textContent();
   // TASK-039: the URL now carries the scenario's draft (teams/maps/format),
   // set once when the scenario was built — tab switching must not touch it.
+  // The URL-sync `replace` lands asynchronously, so wait for it before
+  // capturing the baseline (otherwise this races under heavy parallel load).
+  await expect(page).toHaveURL(/teamB=g2-esports/);
   const urlBeforeTabs = page.url();
 
   await page.getByRole("tab", { name: "Match DNA" }).click();
