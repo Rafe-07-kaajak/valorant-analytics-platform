@@ -22,6 +22,9 @@ playwright/.cache/
 .env
 .env*.local
 
+# generated local ingestion data (see services/vlr-ingestion)
+services/vlr-ingestion/.local/
+
 # logs
 *.log
 npm-debug.log*

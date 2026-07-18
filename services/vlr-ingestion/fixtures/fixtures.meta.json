@@ -1,0 +1,23 @@
+{
+  "$schema": "none",
+  "createdAt": "2026-07-18",
+  "notice": "Every fixture in this directory is a synthetic, hand-authored HTML snippet built to match the markup contract documented in src/vlr/parsers. None of them are captures of real VLR.gg pages. They exist solely to exercise parser logic deterministically without any network access.",
+  "fixtures": {
+    "team-page.html": { "purpose": "Team page parser happy path: name, tag, country, logo, roster.", "synthetic": true },
+    "event-page-vct-americas.html": { "purpose": "Event classified as an approved VCT region (Americas) via structured metadata.", "synthetic": true },
+    "event-page-masters.html": { "purpose": "Event classified as Masters via parent series metadata.", "synthetic": true },
+    "event-page-champions.html": { "purpose": "Event classified as Champions via parent series metadata.", "synthetic": true },
+    "event-page-excluded-tier2.html": { "purpose": "Event excluded as tier-2 via an explicit tag.", "synthetic": true },
+    "event-page-excluded-game-changers.html": { "purpose": "Event excluded as Game Changers via an explicit tag.", "synthetic": true },
+    "event-page-excluded-showmatch.html": { "purpose": "Event excluded as a showmatch via an explicit tag.", "synthetic": true },
+    "event-page-unknown.html": { "purpose": "Event with no classifiable evidence; must resolve to unknown, never an approved family.", "synthetic": true },
+    "event-discovery-page.html": { "purpose": "Event discovery/listing page with a deliberate duplicate entry to test dedup.", "synthetic": true },
+    "match-list-page.html": { "purpose": "Match list page for one event, with a deliberate duplicate match link to test dedup.", "synthetic": true },
+    "match-completed.html": { "purpose": "Completed match with a full 3-map Bo3 result, including an overtime map.", "synthetic": true },
+    "match-completed-2.html": { "purpose": "Second completed match (2-0), referenced by match-list-page.html's second entry, for end-to-end ingestion tests.", "synthetic": true },
+    "match-scheduled.html": { "purpose": "Upcoming/scheduled match with no map results yet.", "synthetic": true },
+    "match-missing-fields.html": { "purpose": "Completed match with several genuinely optional fields absent (series format, patch, attack/defense splits).", "synthetic": true },
+    "match-malformed.html": { "purpose": "Malformed page missing the match header entirely, to prove the parser fails loudly instead of returning a silently empty record.", "synthetic": true },
+    "match-postponed.html": { "purpose": "Postponed match with no map results, to exercise non-completed status handling.", "synthetic": true }
+  }
+}

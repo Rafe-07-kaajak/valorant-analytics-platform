@@ -14,7 +14,11 @@
     "test": "turbo run test",
     "test:e2e": "playwright test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,json,yml,yaml,css}\" --ignore-unknown",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,json,yml,yaml,css}\" --ignore-unknown"
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,json,yml,yaml,css}\" --ignore-unknown",
+    "ingest:vlr:fixtures": "pnpm --filter @repo/vlr-ingestion run ingest:fixtures",
+    "ingest:vlr:scope:dry-run": "pnpm --filter @repo/vlr-ingestion run ingest:scope:dry-run",
+    "ingest:vlr:match": "pnpm --filter @repo/vlr-ingestion run ingest:match --",
+    "ingest:vlr:event": "pnpm --filter @repo/vlr-ingestion run ingest:event --"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

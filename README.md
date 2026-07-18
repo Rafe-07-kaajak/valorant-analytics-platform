@@ -45,10 +45,21 @@ Current Progress:
 
 Implemented so far: the Sprint 01 design/theme/UI foundation, the Landing
 Experience, Prediction Studio (scenario builder through explainable
-results and Match DNA), and a Prediction Engine backend
+results and Match DNA), a Prediction Engine backend
 (`services/prediction-engine`) generating deterministic predictions over
-synthetic data. Live data integration and production deployment have not
-started yet — see [Project Roadmap](#project-roadmap) below.
+synthetic data, and a VLR.gg data-ingestion foundation
+(`services/vlr-ingestion` — see
+[docs/29-vlr-data-ingestion-foundation.md](docs/29-vlr-data-ingestion-foundation.md))
+that is fixture-tested only; it has not yet backfilled real match history,
+and Prediction Studio still runs entirely on synthetic data. Live data
+integration and production deployment have not started yet — see
+[Project Roadmap](#project-roadmap) below.
+
+Ingestion commands (safe by default — no network access unless explicitly enabled):
+
+- `pnpm ingest:vlr:fixtures` — runs the full ingestion pipeline against synthetic fixtures only
+- `pnpm ingest:vlr:scope:dry-run` — prints the canonical historical-backfill target scope and safety policy
+- `pnpm ingest:vlr:match -- <id>` / `pnpm ingest:vlr:event -- <id>` — single bounded live fetches, require `VLR_NETWORK_ENABLED=true`
 
 ---
 

@@ -110,8 +110,17 @@ test("landing and prediction studio remain accessible with cursor effects active
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
   await page.mouse.move(500, 200);
-  await page.waitForTimeout(100);
+  // Wait for the theme-driven color transition to settle before scanning —
+  // same rationale as landing.spec.ts, team-comparison.spec.ts, and
+  // map-matchup.spec.ts's axe checks. This spec previously only waited
+  // 100ms with no confirmation that `data-theme` had actually committed,
+  // which is shorter than the Button component's own 160ms color
+  // transition (`--duration-fast`) and could catch a mid-transition color
+  // under concurrent e2e load, producing an intermittent false-positive
+  // contrast violation rather than a real one.
+  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.goto("/prediction-studio");
