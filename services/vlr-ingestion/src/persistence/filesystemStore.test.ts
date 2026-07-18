@@ -74,6 +74,27 @@ describe("FilesystemIngestionStore — normalized entities and indexes", () => {
     expect(await store.listUnmappedTeams()).toEqual([]);
     expect(await store.listUnknownEvents()).toEqual([]);
   });
+
+  it("listNormalizedEntityIds returns every persisted record's own internalId, sorted", async () => {
+    await store.upsertNormalizedEntity("match", "vlr:match:2", { internalId: "vlr:match:2" });
+    await store.upsertNormalizedEntity("match", "vlr:match:1", { internalId: "vlr:match:1" });
+    expect(await store.listNormalizedEntityIds("match")).toEqual(["vlr:match:1", "vlr:match:2"]);
+  });
+
+  it("listNormalizedEntityIds returns an empty list when the entity directory doesn't exist yet", async () => {
+    expect(await store.listNormalizedEntityIds("match")).toEqual([]);
+  });
+
+  it("deleteNormalizedEntity removes a persisted record", async () => {
+    await store.upsertNormalizedEntity("match", "vlr:match:1", { internalId: "vlr:match:1" });
+    await store.deleteNormalizedEntity("match", "vlr:match:1");
+    expect(await store.getNormalizedEntity("match", "vlr:match:1")).toBeNull();
+    expect(await store.listNormalizedEntityIds("match")).toEqual([]);
+  });
+
+  it("deleteNormalizedEntity on a never-stored record does not throw", async () => {
+    await expect(store.deleteNormalizedEntity("match", "vlr:match:never")).resolves.toBeUndefined();
+  });
 });
 
 describe("FilesystemIngestionStore — checkpoints and discovery summaries", () => {

@@ -47,12 +47,16 @@ Implemented so far: the Sprint 01 design/theme/UI foundation, the Landing
 Experience, Prediction Studio (scenario builder through explainable
 results and Match DNA), a Prediction Engine backend
 (`services/prediction-engine`) generating deterministic predictions over
-synthetic data, and a VLR.gg data-ingestion foundation
+synthetic data, and a VLR.gg data-ingestion pipeline
 (`services/vlr-ingestion` — see
-[docs/29-vlr-data-ingestion-foundation.md](docs/29-vlr-data-ingestion-foundation.md))
-that is fixture-tested only; it has not yet backfilled real match history,
-and Prediction Studio still runs entirely on synthetic data. Live data
-integration and production deployment have not started yet — see
+[docs/29-vlr-data-ingestion-foundation.md](docs/29-vlr-data-ingestion-foundation.md),
+[docs/30-vlr-historical-backfill.md](docs/30-vlr-historical-backfill.md), and
+[docs/31-vlr-identity-and-data-quality.md](docs/31-vlr-identity-and-data-quality.md))
+that has completed a real historical backfill (434 completed matches, 2025-01-01
+onward) and identity-resolution/data-quality hardening into a curated local
+dataset. Prediction Studio still runs entirely on synthetic data — the curated
+VLR dataset is not yet consumed by the frontend or any prediction model. Live
+data integration and production deployment have not started yet — see
 [Project Roadmap](#project-roadmap) below.
 
 Ingestion commands (safe by default — no network access unless explicitly enabled):
@@ -60,6 +64,8 @@ Ingestion commands (safe by default — no network access unless explicitly enab
 - `pnpm ingest:vlr:fixtures` — runs the full ingestion pipeline against synthetic fixtures only
 - `pnpm ingest:vlr:scope:dry-run` — prints the canonical historical-backfill target scope and safety policy
 - `pnpm ingest:vlr:match -- <id>` / `pnpm ingest:vlr:event -- <id>` — single bounded live fetches, require `VLR_NETWORK_ENABLED=true`
+- `pnpm ingest:vlr:identity:audit` / `pnpm ingest:vlr:quality:audit` — read-only identity and data-quality reports over the persisted dataset
+- `pnpm ingest:vlr:curate` — generates the deterministic curated dataset for future feature-engineering work
 
 ---
 

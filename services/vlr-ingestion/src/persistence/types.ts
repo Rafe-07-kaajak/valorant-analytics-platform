@@ -30,6 +30,15 @@ export interface NormalizedRecordStore {
   getNormalizedEntity<T>(entityType: string, internalId: string): Promise<T | null>;
   listUnmappedTeams(): Promise<readonly string[]>;
   listUnknownEvents(): Promise<readonly string[]>;
+  /** Enumerates every persisted internal ID for `entityType` — TASK-043 requirement 10 (stale-record reconciliation needs the full current-on-disk set, not just manifest-referenced IDs). Sorted, deterministic. */
+  listNormalizedEntityIds(entityType: string): Promise<readonly string[]>;
+  /**
+   * Deletes one persisted normalized record. Destructive — TASK-043
+   * requirement 10 requires this capability exist only behind an explicit,
+   * separate cleanup command (`cli/cleanup.ts`) that defaults to a dry run;
+   * nothing in the audit/reconciliation/curation pipeline calls this.
+   */
+  deleteNormalizedEntity(entityType: string, internalId: string): Promise<void>;
 }
 
 export interface EventDiscoveryCheckpoint {

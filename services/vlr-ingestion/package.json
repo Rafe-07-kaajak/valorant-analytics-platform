@@ -23,7 +23,17 @@
     "ingest:report": "tsx src/cli/report.ts",
     "ingest:validate": "tsx src/cli/validate.ts",
     "ingest:manifest": "tsx src/cli/datasetManifestCommand.ts",
-    "ingest:status": "tsx src/cli/status.ts"
+    "ingest:status": "tsx src/cli/status.ts",
+    "ingest:identity:audit": "tsx src/cli/identityAudit.ts",
+    "ingest:identity:teams": "tsx src/cli/identityTeams.ts",
+    "ingest:identity:players": "tsx src/cli/identityPlayers.ts",
+    "ingest:quality:audit": "tsx src/cli/qualityAudit.ts",
+    "ingest:quality:reconcile": "tsx src/cli/qualityReconcile.ts",
+    "ingest:quality:validate": "tsx src/cli/qualityValidate.ts",
+    "ingest:curate": "tsx src/cli/curate.ts",
+    "ingest:curated:status": "tsx src/cli/curatedStatus.ts",
+    "ingest:cleanup": "tsx src/cli/cleanup.ts",
+    "ingest:mapping:import": "tsx src/cli/mappingImport.ts"
   },
   "dependencies": {
     "@repo/prediction-engine": "workspace:*",

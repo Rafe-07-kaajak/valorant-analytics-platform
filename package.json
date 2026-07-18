@@ -27,7 +27,17 @@
     "ingest:vlr:report": "pnpm --filter @repo/vlr-ingestion run ingest:report",
     "ingest:vlr:validate": "pnpm --filter @repo/vlr-ingestion run ingest:validate",
     "ingest:vlr:manifest": "pnpm --filter @repo/vlr-ingestion run ingest:manifest",
-    "ingest:vlr:status": "pnpm --filter @repo/vlr-ingestion run ingest:status"
+    "ingest:vlr:status": "pnpm --filter @repo/vlr-ingestion run ingest:status",
+    "ingest:vlr:identity:audit": "pnpm --filter @repo/vlr-ingestion run ingest:identity:audit",
+    "ingest:vlr:identity:teams": "pnpm --filter @repo/vlr-ingestion run ingest:identity:teams",
+    "ingest:vlr:identity:players": "pnpm --filter @repo/vlr-ingestion run ingest:identity:players",
+    "ingest:vlr:quality:audit": "pnpm --filter @repo/vlr-ingestion run ingest:quality:audit",
+    "ingest:vlr:quality:reconcile": "pnpm --filter @repo/vlr-ingestion run ingest:quality:reconcile",
+    "ingest:vlr:quality:validate": "pnpm --filter @repo/vlr-ingestion run ingest:quality:validate",
+    "ingest:vlr:curate": "pnpm --filter @repo/vlr-ingestion run ingest:curate",
+    "ingest:vlr:curated:status": "pnpm --filter @repo/vlr-ingestion run ingest:curated:status",
+    "ingest:vlr:cleanup": "pnpm --filter @repo/vlr-ingestion run ingest:cleanup",
+    "ingest:vlr:mapping:import": "pnpm --filter @repo/vlr-ingestion run ingest:mapping:import"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

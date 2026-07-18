@@ -4,7 +4,8 @@ import { deterministicInternalId } from "./deterministicId";
 
 /**
  * Team identity mapping — see docs/29-vlr-data-ingestion-foundation.md
- * ("Mapping Policy") and TASK-041 requirement 9.
+ * ("Mapping Policy"), docs/31-vlr-identity-and-data-quality.md, TASK-041
+ * requirement 9, and TASK-043's identity-resolution hardening.
  *
  * Maps a VLR external team ID to one of the existing 32 internal
  * `VctTeamId`s that already power the synthetic profile layer
@@ -13,12 +14,38 @@ import { deterministicInternalId } from "./deterministicId";
  * silently create a mapping — see `findAliasCandidates`, which only
  * *suggests*, never resolves.
  */
+export type TeamMappingStatus = "verified" | "provisional" | "conflicted" | "retired";
+
+/** A single piece of evidence supporting a mapping's status — TASK-043 requirement 3. */
+export interface TeamIdentityEvidence {
+  readonly description: string;
+  readonly sourceUrl?: string;
+  readonly observedAt?: string;
+}
+
 export interface VlrTeamMappingEntry {
   readonly vlrTeamId: string;
   readonly internalTeamId: VctTeamId;
   /** Display-name aliases seen for this team, for diagnostics only. */
   readonly aliases?: readonly string[];
   readonly reason: string;
+  /** Defaults to "verified" when omitted — every pre-TASK-043 entry was already a manually-verified exact-ID mapping. */
+  readonly status?: TeamMappingStatus;
+  /** Defaults to "authoritative" when omitted, matching pre-TASK-043 entries' verification standard. */
+  readonly confidence?: "authoritative" | "high" | "low";
+  readonly evidence?: readonly TeamIdentityEvidence[];
+  readonly verifiedAt?: string;
+  readonly sourceUrl?: string;
+  readonly notes?: string;
+}
+
+/** `entry.status`, defaulted for pre-TASK-043 entries that never set it — see `VlrTeamMappingEntry`'s doc comment. */
+export function effectiveMappingStatus(entry: VlrTeamMappingEntry): TeamMappingStatus {
+  return entry.status ?? "verified";
+}
+
+export function effectiveMappingConfidence(entry: VlrTeamMappingEntry): "authoritative" | "high" | "low" {
+  return entry.confidence ?? "authoritative";
 }
 
 export interface TeamMappingConflict {
@@ -123,15 +150,34 @@ export function findAliasCandidates(displayName: string, entries: readonly VlrTe
  * as the real backfill encounters their matches — see docs/30 for the
  * running "unmapped teams" report.
  */
+function verifiedEntry(
+  vlrTeamId: string,
+  internalTeamId: VctTeamId,
+  slug: string,
+  reason: string,
+): VlrTeamMappingEntry {
+  const sourceUrl = `https://www.vlr.gg/team/${vlrTeamId}/${slug}`;
+  return {
+    vlrTeamId,
+    internalTeamId,
+    reason,
+    status: "verified",
+    confidence: "authoritative",
+    verifiedAt: "2026-07-18",
+    sourceUrl,
+    evidence: [{ description: reason, sourceUrl, observedAt: "2026-07-18" }],
+  };
+}
+
 export const INITIAL_TEAM_MAPPING_REGISTRY: readonly VlrTeamMappingEntry[] = [
-  { vlrTeamId: "1034", internalTeamId: "nrg", reason: "Verified via /team/1034/nrg link on a live match page (2026-07-18)." },
-  { vlrTeamId: "120", internalTeamId: "100-thieves", reason: "Verified via /team/120/100-thieves link on a live match page (2026-07-18)." },
-  { vlrTeamId: "2355", internalTeamId: "kru-esports", reason: "Verified via /team/2355/kr-esports link (display name 'KRÜ Esports') on a live match page (2026-07-18)." },
-  { vlrTeamId: "1001", internalTeamId: "team-heretics", reason: "Verified via /team/1001/team-heretics link on a live match page (2026-07-18)." },
-  { vlrTeamId: "2059", internalTeamId: "team-vitality", reason: "Verified via /team/2059/team-vitality link on a live match page (2026-07-18)." },
-  { vlrTeamId: "397", internalTeamId: "bbl-esports", reason: "Verified via /team/397/bbl-esports link on a live match page (2026-07-18)." },
-  { vlrTeamId: "624", internalTeamId: "paper-rex", reason: "Verified via /team/624/paper-rex link on a live match page (2026-07-18)." },
-  { vlrTeamId: "918", internalTeamId: "global-esports", reason: "Verified via /team/918/global-esports link on a live match page (2026-07-18)." },
-  { vlrTeamId: "1119", internalTeamId: "all-gamers", reason: "Verified via /team/1119/all-gamers link on a live match page (2026-07-18)." },
-  { vlrTeamId: "13581", internalTeamId: "xi-lai-gaming", reason: "Verified via /team/13581/xi-lai-gaming link — the match page's own team A — fetched live (2026-07-18)." },
+  verifiedEntry("1034", "nrg", "nrg", "Verified via /team/1034/nrg link on a live match page (2026-07-18)."),
+  verifiedEntry("120", "100-thieves", "100-thieves", "Verified via /team/120/100-thieves link on a live match page (2026-07-18)."),
+  verifiedEntry("2355", "kru-esports", "kr-esports", "Verified via /team/2355/kr-esports link (display name 'KRÜ Esports') on a live match page (2026-07-18)."),
+  verifiedEntry("1001", "team-heretics", "team-heretics", "Verified via /team/1001/team-heretics link on a live match page (2026-07-18)."),
+  verifiedEntry("2059", "team-vitality", "team-vitality", "Verified via /team/2059/team-vitality link on a live match page (2026-07-18)."),
+  verifiedEntry("397", "bbl-esports", "bbl-esports", "Verified via /team/397/bbl-esports link on a live match page (2026-07-18)."),
+  verifiedEntry("624", "paper-rex", "paper-rex", "Verified via /team/624/paper-rex link on a live match page (2026-07-18)."),
+  verifiedEntry("918", "global-esports", "global-esports", "Verified via /team/918/global-esports link on a live match page (2026-07-18)."),
+  verifiedEntry("1119", "all-gamers", "all-gamers", "Verified via /team/1119/all-gamers link on a live match page (2026-07-18)."),
+  verifiedEntry("13581", "xi-lai-gaming", "xi-lai-gaming", "Verified via /team/13581/xi-lai-gaming link — the match page's own team A — fetched live (2026-07-18)."),
 ];

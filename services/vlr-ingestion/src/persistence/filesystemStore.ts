@@ -1,5 +1,5 @@
-import { mkdir, readFile, rename, writeFile, rm } from "node:fs/promises";
-import { dirname } from "node:path";
+import { mkdir, readdir, readFile, rename, writeFile, rm } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { IngestionError } from "../errors";
 import { resolveSafePath, safeFileName } from "./pathSafety";
@@ -132,12 +132,42 @@ export class FilesystemIngestionStore implements IngestionStore, RawRecordStore,
     return this.readJsonSafe<T>(this.normalizedPath(entityType, internalId));
   }
 
+  async deleteNormalizedEntity(entityType: string, internalId: string): Promise<void> {
+    await rm(this.normalizedPath(entityType, internalId), { force: true });
+  }
+
   async listUnmappedTeams(): Promise<readonly string[]> {
     return (await this.readJsonSafe<string[]>(this.indexPath("unmapped-teams"))) ?? [];
   }
 
   async listUnknownEvents(): Promise<readonly string[]> {
     return (await this.readJsonSafe<string[]>(this.indexPath("unknown-events"))) ?? [];
+  }
+
+  /**
+   * Enumerates every persisted normalized record's own `internalId` field for
+   * `entityType`, by reading each file directly rather than reconstructing
+   * an ID from its (lossily-encoded, via `safeFileName`) filename — see
+   * `persistence/types.ts`. Deterministically sorted; returns an empty list
+   * (never throws) when the entity directory doesn't exist yet.
+   */
+  async listNormalizedEntityIds(entityType: string): Promise<readonly string[]> {
+    const dir = resolveSafePath(this.rootDir, "normalized", safeFileName(entityType));
+    let fileNames: string[];
+    try {
+      fileNames = await readdir(dir);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw new IngestionError("persistence_failure", `Failed to list directory "${dir}": ${String(error)}`);
+    }
+
+    const ids: string[] = [];
+    for (const fileName of fileNames) {
+      if (!fileName.endsWith(".json")) continue;
+      const record = await this.readJsonSafe<{ internalId?: string }>(join(dir, fileName));
+      if (record?.internalId) ids.push(record.internalId);
+    }
+    return ids.sort();
   }
 
   // --- IngestionCheckpointStore --------------------------------------------

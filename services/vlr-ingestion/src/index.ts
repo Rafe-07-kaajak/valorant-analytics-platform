@@ -18,8 +18,54 @@ export type { EventClassificationOverride } from "./classification/eventOverride
 
 // Identity
 export { buildVlrSourceReference, parseVlrSourceReference, deterministicInternalId } from "./identity/deterministicId";
-export { validateTeamMappingRegistry, buildTeamMappingLookup, resolveTeamIdentity, findAliasCandidates, INITIAL_TEAM_MAPPING_REGISTRY } from "./identity/teamMapping";
-export type { VlrTeamMappingEntry, ResolvedTeamIdentity } from "./identity/teamMapping";
+export { validateTeamMappingRegistry, buildTeamMappingLookup, resolveTeamIdentity, findAliasCandidates, effectiveMappingStatus, effectiveMappingConfidence, INITIAL_TEAM_MAPPING_REGISTRY } from "./identity/teamMapping";
+export type { VlrTeamMappingEntry, ResolvedTeamIdentity, TeamMappingStatus, TeamIdentityEvidence } from "./identity/teamMapping";
+export { validateTeamAliasRegistry, findCanonicalTeamsForAlias, normalizeAliasText, INITIAL_TEAM_ALIAS_REGISTRY } from "./identity/teamAliasRegistry";
+export type { TeamAlias, TeamAliasType, TeamAliasCollision } from "./identity/teamAliasRegistry";
+export { buildTeamLifecycleTimeline, detectRenames, detectSharedDisplayNames } from "./identity/teamLifecycle";
+export type { TeamNameObservation, TeamLifecyclePeriod, RenameEvidence } from "./identity/teamLifecycle";
+export { resolvePlayerIdentity, buildPlayerHandleHistory, detectDuplicateHandles, isMissingPlayerId } from "./identity/playerIdentity";
+export type { ProviderPlayerIdentity, CanonicalPlayerIdentity, PlayerHandleObservation, PlayerAlias, PlayerIdentityConflict } from "./identity/playerIdentity";
+export { buildTeamAudit, buildPlayerAudit, buildEventAudit } from "./identity/identityAudit";
+export type { TeamAudit, TeamAuditEntry, PlayerAudit, PlayerAuditEntry, EventAudit, EventAuditEntry } from "./identity/identityAudit";
+
+// Data quality (TASK-043)
+export { createQualityIssue, mergeQualityIssues, sortQualityIssues, summarizeQualityIssues, defaultSeverityForCode } from "./quality/qualityIssue";
+export type { QualityIssue, QualityIssueCode, QualityIssueSeverity, QualityIssueEntityType, QualityIssueSummary } from "./quality/qualityIssue";
+export { QUALITY_RULES_VERSION } from "./quality/qualityRulesVersion";
+export { computeRosterCompletenessScore, auditMatchRosters, buildPlayerTeamAppearanceTimeline } from "./quality/rosterQuality";
+export type { RosterCompletenessScore, PlayerTeamAppearance } from "./quality/rosterQuality";
+export { isUnplayedMapPlaceholder, auditMatchMaps } from "./quality/mapHardening";
+export { auditMatchScoreConsistency } from "./quality/scoreConsistency";
+export { auditMatchTimestamp } from "./quality/timestampHardening";
+export { detectDuplicateMatchCandidates } from "./quality/duplicateDetection";
+export type { DuplicateMatchCandidate, DuplicateClassification } from "./quality/duplicateDetection";
+export { evaluateQuarantine, buildQuarantineRecord } from "./quality/quarantine";
+export type { QuarantineRecord, QuarantineEvaluation } from "./quality/quarantine";
+export { evaluateHardenedTrainingEligibility } from "./quality/trainingEligibilityHardened";
+export type { HardenedEligibilityResult, HardenedIneligibilityReason } from "./quality/trainingEligibilityHardened";
+export { runQualityAudit } from "./quality/qualityAudit";
+export type { QualityAuditResult, MatchAuditSummary } from "./quality/qualityAudit";
+
+// Reconciliation (TASK-043)
+export { reconcileEvents } from "./reconciliation/eventReconciliation";
+export { reconcileMatches } from "./reconciliation/matchReconciliation";
+export { runFullReconciliation } from "./reconciliation/runReconciliation";
+export { countByCategory, buildCategoryByExternalId } from "./reconciliation/reconciliationTypes";
+export type { ReconciliationCategory, ReconciliationEntry, ReconciliationReport } from "./reconciliation/reconciliationTypes";
+
+// Curated dataset export (TASK-043)
+export { buildCuratedDataset, writeCuratedDataset, stableStringify } from "./curate/curatedExport";
+export type { CuratedDatasetFiles, CuratedDatasetManifest, CuratedExportInput } from "./curate/curatedExport";
+export { computeCuratedDatasetVersion, computeIdentityMappingVersion } from "./curate/curatedVersion";
+
+// Mapping import (TASK-043)
+export { validateTeamMappingImport, loadTeamMappingImportFile, safeJsonParse } from "./mapping/mappingImport";
+export type { TeamMappingImportReport } from "./mapping/mappingImport";
+
+// Dataset loading (TASK-043)
+export { loadNormalizedDataset } from "./discovery/loadNormalizedDataset";
+export type { NormalizedDataset } from "./discovery/loadNormalizedDataset";
 
 // Provider abstraction
 export type { EsportsDataProvider } from "./provider/types";
