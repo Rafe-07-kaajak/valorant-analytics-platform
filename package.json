@@ -43,7 +43,15 @@
     "ingest:vlr:features:validate": "pnpm --filter @repo/vlr-ingestion run ingest:features:validate",
     "ingest:vlr:features:status": "pnpm --filter @repo/vlr-ingestion run ingest:features:status",
     "ingest:vlr:features:catalog": "pnpm --filter @repo/vlr-ingestion run ingest:features:catalog",
-    "ingest:vlr:features:splits": "pnpm --filter @repo/vlr-ingestion run ingest:features:splits"
+    "ingest:vlr:features:splits": "pnpm --filter @repo/vlr-ingestion run ingest:features:splits",
+    "ingest:vlr:model:audit": "pnpm --filter @repo/vlr-ingestion run ingest:model:audit",
+    "ingest:vlr:model:train": "pnpm --filter @repo/vlr-ingestion run ingest:model:train",
+    "ingest:vlr:model:backtest": "pnpm --filter @repo/vlr-ingestion run ingest:model:backtest",
+    "ingest:vlr:model:evaluate": "pnpm --filter @repo/vlr-ingestion run ingest:model:evaluate",
+    "ingest:vlr:model:calibrate": "pnpm --filter @repo/vlr-ingestion run ingest:model:calibrate",
+    "ingest:vlr:model:select": "pnpm --filter @repo/vlr-ingestion run ingest:model:select",
+    "ingest:vlr:model:status": "pnpm --filter @repo/vlr-ingestion run ingest:model:status",
+    "ingest:vlr:model:predict": "pnpm --filter @repo/vlr-ingestion run ingest:model:predict --"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

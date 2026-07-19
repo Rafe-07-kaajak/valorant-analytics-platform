@@ -39,7 +39,15 @@
     "ingest:features:validate": "tsx src/cli/featuresValidate.ts",
     "ingest:features:status": "tsx src/cli/featuresStatus.ts",
     "ingest:features:catalog": "tsx src/cli/featuresCatalog.ts",
-    "ingest:features:splits": "tsx src/cli/featuresSplits.ts"
+    "ingest:features:splits": "tsx src/cli/featuresSplits.ts",
+    "ingest:model:audit": "tsx src/cli/modelAudit.ts",
+    "ingest:model:train": "tsx src/cli/modelTrain.ts",
+    "ingest:model:backtest": "tsx src/cli/modelBacktest.ts",
+    "ingest:model:evaluate": "tsx src/cli/modelEvaluate.ts",
+    "ingest:model:calibrate": "tsx src/cli/modelCalibrate.ts",
+    "ingest:model:select": "tsx src/cli/modelSelect.ts",
+    "ingest:model:status": "tsx src/cli/modelStatus.ts",
+    "ingest:model:predict": "tsx src/cli/modelPredict.ts"
   },
   "dependencies": {
     "@repo/prediction-engine": "workspace:*",
