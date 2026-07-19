@@ -37,7 +37,13 @@
     "ingest:vlr:curate": "pnpm --filter @repo/vlr-ingestion run ingest:curate",
     "ingest:vlr:curated:status": "pnpm --filter @repo/vlr-ingestion run ingest:curated:status",
     "ingest:vlr:cleanup": "pnpm --filter @repo/vlr-ingestion run ingest:cleanup",
-    "ingest:vlr:mapping:import": "pnpm --filter @repo/vlr-ingestion run ingest:mapping:import"
+    "ingest:vlr:mapping:import": "pnpm --filter @repo/vlr-ingestion run ingest:mapping:import",
+    "ingest:vlr:features:audit": "pnpm --filter @repo/vlr-ingestion run ingest:features:audit",
+    "ingest:vlr:features:build": "pnpm --filter @repo/vlr-ingestion run ingest:features:build",
+    "ingest:vlr:features:validate": "pnpm --filter @repo/vlr-ingestion run ingest:features:validate",
+    "ingest:vlr:features:status": "pnpm --filter @repo/vlr-ingestion run ingest:features:status",
+    "ingest:vlr:features:catalog": "pnpm --filter @repo/vlr-ingestion run ingest:features:catalog",
+    "ingest:vlr:features:splits": "pnpm --filter @repo/vlr-ingestion run ingest:features:splits"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

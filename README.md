@@ -50,14 +50,18 @@ results and Match DNA), a Prediction Engine backend
 synthetic data, and a VLR.gg data-ingestion pipeline
 (`services/vlr-ingestion` — see
 [docs/29-vlr-data-ingestion-foundation.md](docs/29-vlr-data-ingestion-foundation.md),
-[docs/30-vlr-historical-backfill.md](docs/30-vlr-historical-backfill.md), and
-[docs/31-vlr-identity-and-data-quality.md](docs/31-vlr-identity-and-data-quality.md))
+[docs/30-vlr-historical-backfill.md](docs/30-vlr-historical-backfill.md),
+[docs/31-vlr-identity-and-data-quality.md](docs/31-vlr-identity-and-data-quality.md), and
+[docs/32-vlr-feature-engineering.md](docs/32-vlr-feature-engineering.md))
 that has completed a real historical backfill (434 completed matches, 2025-01-01
-onward) and identity-resolution/data-quality hardening into a curated local
-dataset. Prediction Studio still runs entirely on synthetic data — the curated
-VLR dataset is not yet consumed by the frontend or any prediction model. Live
-data integration and production deployment have not started yet — see
-[Project Roadmap](#project-roadmap) below.
+onward), identity-resolution/data-quality hardening into a curated local
+dataset, and a leakage-safe feature-engineering pipeline producing 432
+model-ready pre-match feature rows with temporal train/validation/test splits
+and walk-forward folds. Prediction Studio still runs entirely on synthetic
+data — the curated VLR dataset and its derived features are not yet consumed
+by the frontend or any prediction model. Live data integration and production
+deployment have not started yet — see [Project Roadmap](#project-roadmap)
+below.
 
 Ingestion commands (safe by default — no network access unless explicitly enabled):
 
@@ -65,7 +69,8 @@ Ingestion commands (safe by default — no network access unless explicitly enab
 - `pnpm ingest:vlr:scope:dry-run` — prints the canonical historical-backfill target scope and safety policy
 - `pnpm ingest:vlr:match -- <id>` / `pnpm ingest:vlr:event -- <id>` — single bounded live fetches, require `VLR_NETWORK_ENABLED=true`
 - `pnpm ingest:vlr:identity:audit` / `pnpm ingest:vlr:quality:audit` — read-only identity and data-quality reports over the persisted dataset
-- `pnpm ingest:vlr:curate` — generates the deterministic curated dataset for future feature-engineering work
+- `pnpm ingest:vlr:curate` — generates the deterministic curated dataset for feature-engineering work
+- `pnpm ingest:vlr:features:build` / `pnpm ingest:vlr:features:validate` — generates and validates the deterministic feature dataset for future model training
 
 ---
 

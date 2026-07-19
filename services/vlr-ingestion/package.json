@@ -33,7 +33,13 @@
     "ingest:curate": "tsx src/cli/curate.ts",
     "ingest:curated:status": "tsx src/cli/curatedStatus.ts",
     "ingest:cleanup": "tsx src/cli/cleanup.ts",
-    "ingest:mapping:import": "tsx src/cli/mappingImport.ts"
+    "ingest:mapping:import": "tsx src/cli/mappingImport.ts",
+    "ingest:features:audit": "tsx src/cli/featuresAudit.ts",
+    "ingest:features:build": "tsx src/cli/featuresBuild.ts",
+    "ingest:features:validate": "tsx src/cli/featuresValidate.ts",
+    "ingest:features:status": "tsx src/cli/featuresStatus.ts",
+    "ingest:features:catalog": "tsx src/cli/featuresCatalog.ts",
+    "ingest:features:splits": "tsx src/cli/featuresSplits.ts"
   },
   "dependencies": {
     "@repo/prediction-engine": "workspace:*",
