@@ -26,6 +26,19 @@ const ERROR_POLICY: Readonly<Record<PredictionErrorCode, ErrorPolicy>> = {
   inference_failed: { retryable: false, httpStatus: 500 },
   request_invalid: { retryable: false, httpStatus: 400 },
   internal_error: { retryable: false, httpStatus: 500 },
+  // TASK-048: runtime-package source-mode errors. `_missing` is retryable
+  // (an operator hasn't built/mounted the package yet, and it may appear
+  // later); every other code indicates a packaging/config defect an
+  // operator must fix, not a condition that resolves itself on retry.
+  runtime_package_missing: { retryable: true, httpStatus: 503 },
+  runtime_package_manifest_invalid: { retryable: false, httpStatus: 500 },
+  runtime_package_hash_mismatch: { retryable: false, httpStatus: 500 },
+  runtime_package_version_mismatch: { retryable: false, httpStatus: 409 },
+  runtime_package_model_mismatch: { retryable: false, httpStatus: 409 },
+  runtime_package_feature_mismatch: { retryable: false, httpStatus: 409 },
+  runtime_package_row_count_mismatch: { retryable: false, httpStatus: 500 },
+  runtime_package_unsafe_path: { retryable: false, httpStatus: 400 },
+  runtime_package_unsupported_target: { retryable: false, httpStatus: 500 },
 };
 
 export class PredictionApiError extends Error {

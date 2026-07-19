@@ -59,7 +59,13 @@
     "inference:model:predict": "pnpm --filter @repo/model-inference run inference:model:predict --",
     "inference:model:batch": "pnpm --filter @repo/model-inference run inference:model:batch --",
     "inference:model:reload": "pnpm --filter @repo/model-inference run inference:model:reload",
-    "inference:model:benchmark": "pnpm --filter @repo/model-inference run inference:model:benchmark"
+    "inference:model:benchmark": "pnpm --filter @repo/model-inference run inference:model:benchmark",
+    "runtime:package:audit": "pnpm --filter @repo/model-inference run runtime:package:audit",
+    "runtime:package:build": "pnpm --filter @repo/model-inference run runtime:package:build",
+    "runtime:package:validate": "pnpm --filter @repo/model-inference run runtime:package:validate",
+    "runtime:package:status": "pnpm --filter @repo/model-inference run runtime:package:status",
+    "runtime:package:clean": "pnpm --filter @repo/model-inference run runtime:package:clean",
+    "runtime:package:smoke": "pnpm --filter @repo/model-inference run runtime:package:smoke"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

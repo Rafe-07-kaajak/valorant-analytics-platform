@@ -1,0 +1,58 @@
+# TASK-048 — illustrative, reference-only example. Not wired into any
+# script, package.json, or CI workflow. See docs/36-real-prediction-runtime-
+# packaging.md, "Container guidance" for the full explanation.
+#
+# Demonstrates a minimal container layout for apps/web with:
+#   - a Next.js `output: "standalone"` multi-stage build
+#   - the TASK-048 runtime package mounted read-only at container runtime
+#     (never baked into the image — it is generated/refreshed independently
+#     of an app deploy)
+#   - a non-root runtime user
+#
+# `output: "standalone"` is NOT enabled in the repository's committed
+# `apps/web/next.config.ts` because Next's trace-copy step recreates pnpm's
+# symlinked node_modules layout, which requires OS-level symlink privileges
+# unavailable on a non-admin/non-Developer-Mode Windows host (verified:
+# `pnpm build` fails there with `EPERM: operation not permitted, symlink`).
+# A Docker build runs inside a Linux container filesystem regardless of the
+# host OS, so this restriction does not apply here — set `output:
+# "standalone"` in a build-time override (or a build ARG-gated config) when
+# actually building this image.
+
+FROM node:20-slim AS base
+WORKDIR /app
+RUN corepack enable
+
+FROM base AS deps
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/web/package.json apps/web/package.json
+COPY packages packages
+COPY services services
+COPY configs configs
+RUN pnpm install --frozen-lockfile
+
+FROM deps AS build
+COPY . .
+# Requires `output: "standalone"` to be set (see note above) for this
+# multi-stage pattern to produce `.next/standalone`.
+RUN pnpm --filter web build
+
+FROM node:20-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV REAL_PREDICTION_SOURCE_MODE=runtime-package
+# Mounted read-only at container run time (e.g. `-v ./runtime-package:/app/runtime-package:ro`),
+# never copied into the image — a data refresh should never require a rebuild.
+ENV REAL_PREDICTION_RUNTIME_PACKAGE_DIR=/app/runtime-package
+ENV REAL_PREDICTION_REQUIRE_RUNTIME_PACKAGE=true
+
+COPY --from=build /app/apps/web/.next/standalone ./
+COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build /app/apps/web/public ./apps/web/public
+
+# Non-root runtime user; the runtime package is read-only, so no writable
+# volume is required for this process to operate.
+USER node
+
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

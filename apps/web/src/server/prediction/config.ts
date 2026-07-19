@@ -10,13 +10,24 @@ import { dirname, resolve } from "node:path";
  * never a silent crash, when the local generated dataset is absent.
  */
 
+/** TASK-048: which data source the real-prediction backend reads from. `local-generated` is today's TASK-047 behavior (raw `services/vlr-ingestion/.local/vlr-data` output); `runtime-package` reads a staged, hash-verified `runtime-package/` directory instead. There is no silent fallback between the two — an invalid/unset value falls back to `local-generated` (the safe default for local dev), never a runtime auto-switch. */
+export type RealPredictionSourceMode = "local-generated" | "runtime-package";
+
 export interface RealPredictionConfig {
   /** Master kill switch for the historical-real-model routes. */
   readonly enabled: boolean;
-  /** Root `vlr-data` directory (contains a `features/` subdirectory) — same convention as `VLR_DATA_DIR` in `services/vlr-ingestion/src/env.ts`. */
+  /** Root `vlr-data` directory (contains a `features/` subdirectory) — same convention as `VLR_DATA_DIR` in `services/vlr-ingestion/src/env.ts`. Only consulted when `sourceMode` is `"local-generated"`. */
   readonly featureDataDir: string;
   /** Upper bound on any single catalog response, regardless of a caller-requested `limit`. */
   readonly catalogLimit: number;
+  /** TASK-048: which data source to read from. */
+  readonly sourceMode: RealPredictionSourceMode;
+  /** TASK-048: only consulted when `sourceMode` is `"runtime-package"`. */
+  readonly runtimePackageDir: string;
+  /** TASK-048: when `true` and `sourceMode` is `"runtime-package"`, a missing/invalid package fails loud at first use instead of surfacing as a normal `runtime_package_missing` unavailable state. */
+  readonly requireRuntimePackage: boolean;
+  /** TASK-048: optional pinned `runtimePackageVersion`; a mismatch reports `runtime_package_version_mismatch`. */
+  readonly expectedRuntimePackageVersion: string | undefined;
 }
 
 function readBool(name: string, fallback: boolean): boolean {
@@ -52,6 +63,21 @@ function defaultFeatureDataDir(): string {
   return resolve(here, "..", "..", "..", "..", "..", "services", "vlr-ingestion", ".local", "vlr-data");
 }
 
+/** Default: `services/model-inference/.local/runtime-package`, resolved relative to this module's own location — same staging directory `pnpm runtime:package:build` writes to by default. */
+function defaultRuntimePackageDir(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return resolve(here, "..", "..", "..", "..", "..", "services", "model-inference", ".local", "runtime-package");
+}
+
+function readSourceMode(): RealPredictionSourceMode {
+  const raw = readOptionalString("REAL_PREDICTION_SOURCE_MODE");
+  // Invalid/unset values fall back to the safe local-dev default rather than
+  // throwing — this mirrors every other config module's "invalid falls back
+  // to default" convention, and there is no silent *runtime* fallback
+  // between modes once a mode is selected (see historicalFeatureRepository.ts).
+  return raw === "runtime-package" ? "runtime-package" : "local-generated";
+}
+
 export function loadRealPredictionConfig(): RealPredictionConfig {
   return {
     enabled: readBool("REAL_PREDICTION_ENABLED", true),
@@ -60,10 +86,14 @@ export function loadRealPredictionConfig(): RealPredictionConfig {
     // 432 rows today, so this bounds a single catalog response well under
     // "the full feature dataset sent to client" (TASK-047 requirement 6).
     catalogLimit: readClampedInt("REAL_PREDICTION_CATALOG_LIMIT", 50, 1, 200),
+    sourceMode: readSourceMode(),
+    runtimePackageDir: readOptionalString("REAL_PREDICTION_RUNTIME_PACKAGE_DIR") ?? defaultRuntimePackageDir(),
+    requireRuntimePackage: readBool("REAL_PREDICTION_REQUIRE_RUNTIME_PACKAGE", false),
+    expectedRuntimePackageVersion: readOptionalString("REAL_PREDICTION_EXPECTED_RUNTIME_PACKAGE_VERSION"),
   };
 }
 
 /** Human-readable, safe-to-print summary — never the resolved directory's absolute path. */
 export function describeRealPredictionConfig(config: RealPredictionConfig): string {
-  return [`enabled: ${config.enabled}`, `catalog limit: ${config.catalogLimit}`].join("\n");
+  return [`enabled: ${config.enabled}`, `catalog limit: ${config.catalogLimit}`, `source mode: ${config.sourceMode}`, `require runtime package: ${config.requireRuntimePackage}`].join("\n");
 }

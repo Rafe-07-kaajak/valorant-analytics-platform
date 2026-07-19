@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolveSafePath, safeFileName } from "@repo/vlr-ingestion/persistence/pathSafety";
 import { PredictionApiError } from "./errors";
 import { loadRealPredictionConfig } from "./config";
+import { getRuntimePackage } from "./runtimePackageSource";
 
 /**
  * Server-only historical feature-row repository — TASK-047 requirement 5.
@@ -33,10 +34,19 @@ export interface RawHistoricalRow {
   readonly featureSchemaVersion: string;
   readonly featureRulesVersion: string;
   readonly sourceDatasetVersion: string;
-  readonly labelTeamAWin: 0 | 1;
-  readonly labelWinnerProviderId: string;
-  readonly labelSeriesScore: string;
-  readonly labelMapCountPlayed: number;
+  /**
+   * Present when `sourceMode` is `"local-generated"` (TASK-044's own export
+   * carries labels as-is, even though they are never copied into a model
+   * request or catalog entry — see `predictionAdapter.ts`). Absent when
+   * `sourceMode` is `"runtime-package"` (TASK-048): the packaged historical
+   * export strips every label field before it ever reaches disk, so there is
+   * nothing here to leak by construction, not by a manually-maintained
+   * exclusion list.
+   */
+  readonly labelTeamAWin?: 0 | 1;
+  readonly labelWinnerProviderId?: string;
+  readonly labelSeriesScore?: string;
+  readonly labelMapCountPlayed?: number;
   readonly [field: string]: unknown;
 }
 
@@ -64,9 +74,23 @@ async function readDatasetJsonFile<T>(featuresDir: string, fileName: string): Pr
   return JSON.parse(raw) as T;
 }
 
-async function loadDataset(): Promise<DatasetCache> {
-  const config = loadRealPredictionConfig();
-  const featuresDir = resolveSafePath(config.featureDataDir, "features");
+function toDatasetCache(manifest: FeatureDatasetManifestSummary, rows: readonly RawHistoricalRow[]): DatasetCache {
+  const rowsById = new Map<string, RawHistoricalRow>();
+  for (const row of rows) {
+    if (typeof row.matchInternalId !== "string" || row.matchInternalId.length === 0) {
+      throw new PredictionApiError("feature_row_invalid", "A historical feature row is missing a valid matchInternalId.");
+    }
+    if (rowsById.has(row.matchInternalId)) {
+      throw new PredictionApiError("feature_row_invalid", "The historical feature dataset contains a duplicate matchInternalId.");
+    }
+    rowsById.set(row.matchInternalId, row);
+  }
+  return { manifest, rowsById, orderedRows: rows };
+}
+
+/** TASK-047 behavior, unchanged: reads TASK-044's own `features/{feature-manifest.json,feature-rows.json}` export directly. */
+async function loadLocalGeneratedDataset(featureDataDir: string): Promise<DatasetCache> {
+  const featuresDir = resolveSafePath(featureDataDir, "features");
 
   let manifest: FeatureDatasetManifestSummary;
   let rows: RawHistoricalRow[];
@@ -82,18 +106,24 @@ async function loadDataset(): Promise<DatasetCache> {
     );
   }
 
-  const rowsById = new Map<string, RawHistoricalRow>();
-  for (const row of rows) {
-    if (typeof row.matchInternalId !== "string" || row.matchInternalId.length === 0) {
-      throw new PredictionApiError("feature_row_invalid", "A historical feature row is missing a valid matchInternalId.");
-    }
-    if (rowsById.has(row.matchInternalId)) {
-      throw new PredictionApiError("feature_row_invalid", "The historical feature dataset contains a duplicate matchInternalId.");
-    }
-    rowsById.set(row.matchInternalId, row);
-  }
+  return toDatasetCache(manifest, rows);
+}
 
-  return { manifest, rowsById, orderedRows: rows };
+/** TASK-048: reads the already-validated, label-stripped historical export from the loaded runtime package instead of the raw generated directory. `getRuntimePackage()` performs its own hash/version-agreement validation once per process; this function only re-shapes the result into the same `DatasetCache` the rest of this file already understands, so `historicalCatalog.ts`/`predictionAdapter.ts` need zero changes for this source mode. */
+async function loadRuntimePackageDataset(): Promise<DatasetCache> {
+  const loaded = await getRuntimePackage();
+  const manifest: FeatureDatasetManifestSummary = {
+    featureDatasetVersion: loaded.historicalManifest.sourceFeatureDatasetVersion,
+    featureSchemaVersion: loaded.historicalManifest.featureSchemaVersion,
+    featureRulesVersion: loaded.historicalManifest.featureRulesVersion,
+    rowCount: loaded.historicalManifest.rowCount,
+  };
+  return toDatasetCache(manifest, loaded.historicalRows as readonly RawHistoricalRow[]);
+}
+
+async function loadDataset(): Promise<DatasetCache> {
+  const config = loadRealPredictionConfig();
+  return config.sourceMode === "runtime-package" ? loadRuntimePackageDataset() : loadLocalGeneratedDataset(config.featureDataDir);
 }
 
 /** Memoized for the lifetime of this process — reloaded only via `resetHistoricalRepositoryCacheForTesting()`. No public route triggers a reload (TASK-047 requirement 17, "no public reload route"). */

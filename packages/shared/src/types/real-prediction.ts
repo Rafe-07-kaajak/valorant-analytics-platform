@@ -95,7 +95,16 @@ export type PredictionErrorCode =
   | "inference_validation_failed"
   | "inference_failed"
   | "request_invalid"
-  | "internal_error";
+  | "internal_error"
+  | "runtime_package_missing"
+  | "runtime_package_manifest_invalid"
+  | "runtime_package_hash_mismatch"
+  | "runtime_package_version_mismatch"
+  | "runtime_package_model_mismatch"
+  | "runtime_package_feature_mismatch"
+  | "runtime_package_row_count_mismatch"
+  | "runtime_package_unsafe_path"
+  | "runtime_package_unsupported_target";
 
 export interface PredictionApiErrorPayload {
   readonly code: PredictionErrorCode;
@@ -106,6 +115,9 @@ export interface PredictionApiErrorPayload {
 
 export type ModelRegistryStatus = "unloaded" | "loading" | "ready" | "degraded" | "failed";
 
+/** TASK-048: which data source the real-prediction backend is currently configured to read from. */
+export type RealPredictionSourceMode = "local-generated" | "runtime-package";
+
 export interface RealPredictionReadiness {
   readonly realPredictionAvailable: boolean;
   readonly modelStatus: ModelRegistryStatus;
@@ -114,4 +126,8 @@ export interface RealPredictionReadiness {
   readonly sourceFeatureDatasetVersion?: string;
   readonly message: string;
   readonly retryable: boolean;
+  /** TASK-048: which source mode served this readiness snapshot. */
+  readonly sourceMode?: RealPredictionSourceMode;
+  /** TASK-048: only present when `sourceMode` is `"runtime-package"`. */
+  readonly runtimePackageVersion?: string;
 }

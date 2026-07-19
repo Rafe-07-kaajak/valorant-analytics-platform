@@ -46,3 +46,20 @@ export type { BatchItemResult, BatchResult } from "./predictionService";
 // Artifact readiness audit
 export { runArtifactAudit } from "./audit";
 export type { AuditReport, AuditFileEntry } from "./audit";
+
+// Runtime packaging (TASK-048)
+export { RUNTIME_PACKAGE_MODEL_FILENAMES, RUNTIME_PACKAGE_HISTORICAL_FILENAMES, RUNTIME_PACKAGE_MANIFEST_FILENAME } from "./runtimePackage/runtimePackageTypes";
+export type { RuntimePackageManifest, RuntimePackageFileEntry, RuntimePackageSizeSummary, RuntimePackageTargetSupport, RuntimeHistoricalIndexEntry, RuntimeHistoricalRow, RuntimeHistoricalManifest } from "./runtimePackage/runtimePackageTypes";
+export { RuntimePackageError, isRuntimePackageError, toSafeRuntimePackageError } from "./runtimePackage/runtimePackageErrors";
+export type { RuntimePackageErrorCode, RuntimePackageErrorDetails, SafeRuntimePackageErrorJSON } from "./runtimePackage/runtimePackageErrors";
+export { computeRuntimePackageVersion, RUNTIME_PACKAGE_RULES_VERSION } from "./runtimePackage/runtimePackageVersion";
+export { loadRuntimePackageBuildConfig, describeRuntimePackageBuildConfig } from "./runtimePackage/config";
+export type { RuntimePackageBuildConfig } from "./runtimePackage/config";
+export { buildRuntimePackage, cleanRuntimePackageOutput, listRuntimePackageOutputContents } from "./runtimePackage/build";
+export type { BuildRuntimePackageResult } from "./runtimePackage/build";
+export { loadRuntimePackage } from "./runtimePackage/loader";
+export type { LoadedRuntimePackage, LoadRuntimePackageOptions } from "./runtimePackage/loader";
+export { validateRuntimePackage } from "./runtimePackage/validate";
+export type { RuntimePackageValidationResult } from "./runtimePackage/validate";
+export { runRuntimePackageAudit } from "./runtimePackage/audit";
+export type { RuntimePackageAuditReport } from "./runtimePackage/audit";

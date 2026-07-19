@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { buildHistoricalCatalog, validateCatalogFilters } from "../../../../../server/prediction/historicalCatalog";
 import { toPredictionApiError } from "../../../../../server/prediction/errors";
 
+/** TASK-048: this route reads a filesystem-backed model/data source (directly or via `@repo/model-inference`) and must never run on the Edge runtime, which has no Node filesystem API. Explicit even though Next already defaults API routes to Node — see docs/36, "Edge rejection". */
+export const runtime = "nodejs";
+
 /**
  * GET-only historical catalog endpoint — TASK-047 requirement 6/15. Exposes
  * only safe selection metadata (never labels, scores, or feature vectors).

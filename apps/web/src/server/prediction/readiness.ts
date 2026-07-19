@@ -1,6 +1,7 @@
 import type { RealPredictionReadiness } from "@repo/shared";
 import { getModelServiceSnapshotSync, getReadyModelService } from "./modelService";
 import { getFeatureDatasetManifestSafe } from "./historicalFeatureRepository";
+import { getRuntimePackage } from "./runtimePackageSource";
 import { loadRealPredictionConfig } from "./config";
 
 /**
@@ -17,12 +18,24 @@ function messageFor(realPredictionAvailable: boolean, modelStatus: string, histo
   return { message: "The prediction model is not currently available.", retryable: true };
 }
 
+/** TASK-048: best-effort runtime package version for display — `undefined` when not in `"runtime-package"` mode or when the package failed to load (that failure already surfaces via `historicalDataAvailable`/`modelStatus` below, so this never throws). */
+async function getRuntimePackageVersionSafe(sourceMode: RealPredictionReadiness["sourceMode"]): Promise<string | undefined> {
+  if (sourceMode !== "runtime-package") return undefined;
+  try {
+    const loaded = await getRuntimePackage();
+    return loaded.manifest.runtimePackageVersion;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Triggers the model's lazy startup load (once per process) and returns a full readiness snapshot. */
 export async function getRealPredictionReadiness(): Promise<RealPredictionReadiness> {
   const config = loadRealPredictionConfig();
   const service = config.enabled ? await getReadyModelService() : getModelServiceSnapshotSync();
   const snapshot = service.readiness();
   const manifest = await getFeatureDatasetManifestSafe();
+  const runtimePackageVersion = await getRuntimePackageVersionSafe(config.sourceMode);
 
   const historicalDataAvailable = manifest !== null;
   const realPredictionAvailable = config.enabled && snapshot.ready && historicalDataAvailable;
@@ -36,5 +49,7 @@ export async function getRealPredictionReadiness(): Promise<RealPredictionReadin
     ...(manifest ? { sourceFeatureDatasetVersion: manifest.featureDatasetVersion } : {}),
     message,
     retryable,
+    sourceMode: config.sourceMode,
+    ...(runtimePackageVersion ? { runtimePackageVersion } : {}),
   };
 }

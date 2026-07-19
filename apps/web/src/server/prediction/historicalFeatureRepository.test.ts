@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { rm } from "node:fs/promises";
+import { buildFixtureRuntimePackage } from "@repo/model-inference/testFixtures/runtimePackage";
 import {
   getFeatureDatasetManifestSafe,
   getHistoricalRowById,
@@ -8,6 +9,7 @@ import {
   validateMatchInternalId,
 } from "./historicalFeatureRepository";
 import { PredictionApiError } from "./errors";
+import { resetRuntimePackageCacheForTesting } from "./runtimePackageSource";
 import { buildFixtureFeatureDataset, FIXTURE_HISTORICAL_ROWS, FIXTURE_FEATURE_DATASET_VERSION } from "./testFixtures/buildFixtureFeatureDataset";
 
 describe("historicalFeatureRepository", () => {
@@ -98,6 +100,51 @@ describe("historicalFeatureRepository", () => {
 
     it.each([undefined, null, 123, "", "   ", "x".repeat(257), {}, []])("rejects invalid input %j", (value) => {
       expect(() => validateMatchInternalId(value)).toThrow(PredictionApiError);
+    });
+  });
+
+  describe("runtime-package source mode (TASK-048)", () => {
+    const dirsToClean: string[] = [];
+
+    beforeEach(() => {
+      resetRuntimePackageCacheForTesting();
+      delete process.env.REAL_PREDICTION_SOURCE_MODE;
+      delete process.env.REAL_PREDICTION_RUNTIME_PACKAGE_DIR;
+    });
+
+    afterEach(async () => {
+      resetRuntimePackageCacheForTesting();
+      delete process.env.REAL_PREDICTION_SOURCE_MODE;
+      delete process.env.REAL_PREDICTION_RUNTIME_PACKAGE_DIR;
+      for (const dir of dirsToClean.splice(0)) await rm(dir, { recursive: true, force: true });
+    });
+
+    it("loads historical rows from a packaged runtime package, with labels absent", async () => {
+      const fixture = await buildFixtureRuntimePackage();
+      dirsToClean.push(fixture.outputDir, fixture.sourceModelDir, fixture.sourceFeatureDataDir);
+      process.env.REAL_PREDICTION_SOURCE_MODE = "runtime-package";
+      process.env.REAL_PREDICTION_RUNTIME_PACKAGE_DIR = fixture.outputDir;
+
+      const manifest = await getFeatureDatasetManifestSafe();
+      expect(manifest?.rowCount).toBe(fixture.buildResult.manifest.historical.rowCount);
+
+      const rows = await listHistoricalRows();
+      expect(rows.length).toBe(fixture.buildResult.manifest.historical.rowCount);
+      for (const row of rows) {
+        expect(row).not.toHaveProperty("labelTeamAWin");
+        expect(row).not.toHaveProperty("labelWinnerProviderId");
+        expect(row).not.toHaveProperty("labelSeriesScore");
+        expect(row).not.toHaveProperty("labelMapCountPlayed");
+      }
+    });
+
+    it("reports historical_data_unavailable (via null manifest) when the runtime package is missing", async () => {
+      process.env.REAL_PREDICTION_SOURCE_MODE = "runtime-package";
+      process.env.REAL_PREDICTION_RUNTIME_PACKAGE_DIR = "/nonexistent-runtime-package-dir-for-tests";
+
+      const manifest = await getFeatureDatasetManifestSafe();
+      expect(manifest).toBeNull();
+      await expect(getHistoricalRowById("vlr:match:fixture-1001")).rejects.toBeInstanceOf(PredictionApiError);
     });
   });
 

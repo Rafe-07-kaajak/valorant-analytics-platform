@@ -7,7 +7,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./testFixtures": "./src/testFixtures/buildFixtureArtifact.ts"
+    "./testFixtures": "./src/testFixtures/buildFixtureArtifact.ts",
+    "./testFixtures/runtimePackage": "./src/testFixtures/buildFixtureRuntimePackage.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -20,7 +21,13 @@
     "inference:model:predict": "tsx src/cli/predict.ts",
     "inference:model:batch": "tsx src/cli/batch.ts",
     "inference:model:reload": "tsx src/cli/reload.ts",
-    "inference:model:benchmark": "tsx src/cli/benchmark.ts"
+    "inference:model:benchmark": "tsx src/cli/benchmark.ts",
+    "runtime:package:audit": "tsx src/cli/runtimePackageAudit.ts",
+    "runtime:package:build": "tsx src/cli/runtimePackageBuild.ts",
+    "runtime:package:validate": "tsx src/cli/runtimePackageValidate.ts",
+    "runtime:package:status": "tsx src/cli/runtimePackageStatus.ts",
+    "runtime:package:clean": "tsx src/cli/runtimePackageClean.ts",
+    "runtime:package:smoke": "tsx src/cli/runtimePackageSmoke.ts"
   },
   "dependencies": {
     "@repo/vlr-ingestion": "workspace:*"
