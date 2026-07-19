@@ -90,6 +90,7 @@ export type { NormalizedMatch, NormalizedEvent, NormalizedTeam } from "./normali
 // Persistence
 export { FilesystemIngestionStore } from "./persistence/filesystemStore";
 export type { IngestionStore } from "./persistence/types";
+export { resolveSafePath, safeFileName } from "./persistence/pathSafety";
 
 // Ingestion coordinator
 export { IngestionService } from "./ingestion/ingestionService";
@@ -116,3 +117,14 @@ export { validateCompleteness } from "./discovery/completenessValidation";
 export type { CompletenessValidationResult } from "./discovery/completenessValidation";
 export { buildDatasetManifest, saveDatasetManifest, loadDatasetManifest } from "./discovery/datasetManifest";
 export type { DatasetManifest } from "./discovery/datasetManifest";
+
+// Model artifact + offline inference (TASK-045) — reused as-is by TASK-046's
+// production inference service so model math (Elo/logistic/tree/calibration)
+// is never duplicated outside this package.
+export { loadModelArtifactForInference, readArtifactFile, writeModelArtifact, MODEL_DIR_SEGMENTS } from "./modeling/artifact";
+export type { LoadedModelArtifact, FeatureContract, ModelManifest, ModelCard, SerializedEstimator, ModelArtifactFiles, EvaluationReport, ReliabilityData, FeatureImportanceReport, RowPrediction, FoldPredictionRecord } from "./modeling/artifact";
+export { predict } from "./modeling/inference";
+export type { ModelInputRow, PredictionOutput } from "./modeling/inference";
+export { ModelingError, exitCodeForModelingError } from "./modeling/errors";
+export type { ModelingErrorCode } from "./modeling/errors";
+export { computeModelVersion, contentHashOf, MODELING_RULES_VERSION } from "./modeling/modelVersion";

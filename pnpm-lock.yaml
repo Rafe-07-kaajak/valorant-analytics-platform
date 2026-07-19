@@ -190,6 +190,34 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  services/model-inference:
+    dependencies:
+      '@repo/vlr-ingestion':
+        specifier: workspace:*
+        version: link:../vlr-ingestion
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../../configs/eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../configs/typescript-config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.4(jiti@2.7.0)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.19.43)(jsdom@25.0.1)(lightningcss@1.32.0)
+
   services/prediction-engine:
     dependencies:
       '@repo/shared':

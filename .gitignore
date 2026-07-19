@@ -25,6 +25,9 @@ playwright/.cache/
 # generated local ingestion data (see services/vlr-ingestion)
 services/vlr-ingestion/.local/
 
+# generated local inference audit/benchmark reports (see services/model-inference)
+services/model-inference/.local/
+
 # logs
 *.log
 npm-debug.log*

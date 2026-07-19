@@ -51,7 +51,15 @@
     "ingest:vlr:model:calibrate": "pnpm --filter @repo/vlr-ingestion run ingest:model:calibrate",
     "ingest:vlr:model:select": "pnpm --filter @repo/vlr-ingestion run ingest:model:select",
     "ingest:vlr:model:status": "pnpm --filter @repo/vlr-ingestion run ingest:model:status",
-    "ingest:vlr:model:predict": "pnpm --filter @repo/vlr-ingestion run ingest:model:predict --"
+    "ingest:vlr:model:predict": "pnpm --filter @repo/vlr-ingestion run ingest:model:predict --",
+    "inference:model:audit": "pnpm --filter @repo/model-inference run inference:model:audit",
+    "inference:model:load": "pnpm --filter @repo/model-inference run inference:model:load",
+    "inference:model:status": "pnpm --filter @repo/model-inference run inference:model:status",
+    "inference:model:self-test": "pnpm --filter @repo/model-inference run inference:model:self-test",
+    "inference:model:predict": "pnpm --filter @repo/model-inference run inference:model:predict --",
+    "inference:model:batch": "pnpm --filter @repo/model-inference run inference:model:batch --",
+    "inference:model:reload": "pnpm --filter @repo/model-inference run inference:model:reload",
+    "inference:model:benchmark": "pnpm --filter @repo/model-inference run inference:model:benchmark"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
