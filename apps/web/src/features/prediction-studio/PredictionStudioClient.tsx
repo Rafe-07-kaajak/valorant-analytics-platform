@@ -5,6 +5,7 @@ import type { GameMap } from "@repo/shared";
 import { Container, Section } from "@repo/ui";
 import { ScenarioBuilder } from "./ScenarioBuilder";
 import { PredictionResultExperience } from "./PredictionResultExperience";
+import { HistoricalReplaySection } from "./historical/HistoricalReplaySection";
 import { usePrediction } from "../../hooks/usePrediction";
 import { getTeamById, type VctRegion, type VctTeam, type VctTeamId } from "../../constants/vct";
 import { toPredictionTeam } from "../../lib/toPredictionTeam";
@@ -75,6 +76,8 @@ export function PredictionStudioClient({
             />
           </>
         ) : null}
+
+        <HistoricalReplaySection />
       </Container>
     </Section>
   );

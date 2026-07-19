@@ -4,3 +4,4 @@ export * from "./types/team-dna";
 export * from "./types/insight";
 export * from "./types/prediction";
 export * from "./types/simulation";
+export * from "./types/real-prediction";

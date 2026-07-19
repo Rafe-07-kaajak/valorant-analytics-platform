@@ -11,9 +11,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@repo/model-inference": "workspace:*",
     "@repo/prediction-engine": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@repo/vlr-ingestion": "workspace:*",
     "framer-motion": "^11.15.0",
     "lucide-react": "^0.468.0",
     "react": "19.1.0",

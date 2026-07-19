@@ -6,6 +6,15 @@ import { IngestionError } from "../errors";
  * ("Persistence Policy") and TASK-041 requirement 19/29. Every path the
  * filesystem store touches is built here, so path traversal and unsafe
  * filenames are rejected in exactly one place.
+ *
+ * Also reachable via the `@repo/vlr-ingestion/persistence/pathSafety`
+ * subpath export (see `package.json`) — TASK-047's `apps/web` server-only
+ * code imports this file directly rather than the package's main barrel
+ * (`.`), because that barrel transitively reaches
+ * `vlr/fixtureLoader.ts`'s `new URL("../../fixtures", import.meta.url)`,
+ * which Next.js's webpack build statically tries (and fails) to resolve as
+ * a bundled asset the moment anything in `apps/web` imports the main
+ * export. Importing this module's own subpath avoids that entirely.
  */
 
 // `:` is deliberately excluded from the "safe" set even though it's valid in
