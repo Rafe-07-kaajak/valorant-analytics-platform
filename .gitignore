@@ -28,6 +28,9 @@ services/vlr-ingestion/.local/
 # generated local inference audit/benchmark reports (see services/model-inference)
 services/model-inference/.local/
 
+# generated local release bundles/promotion state (see services/release-pipeline)
+services/release-pipeline/.local/
+
 # logs
 *.log
 npm-debug.log*

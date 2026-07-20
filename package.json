@@ -65,7 +65,18 @@
     "runtime:package:validate": "pnpm --filter @repo/model-inference run runtime:package:validate",
     "runtime:package:status": "pnpm --filter @repo/model-inference run runtime:package:status",
     "runtime:package:clean": "pnpm --filter @repo/model-inference run runtime:package:clean",
-    "runtime:package:smoke": "pnpm --filter @repo/model-inference run runtime:package:smoke"
+    "runtime:package:smoke": "pnpm --filter @repo/model-inference run runtime:package:smoke",
+    "release:audit": "pnpm --filter @repo/release-pipeline run release:audit",
+    "release:preflight": "pnpm --filter @repo/release-pipeline run release:preflight",
+    "release:bundle:build": "pnpm --filter @repo/release-pipeline run release:bundle:build",
+    "release:bundle:validate": "pnpm --filter @repo/release-pipeline run release:bundle:validate",
+    "release:bundle:status": "pnpm --filter @repo/release-pipeline run release:bundle:status",
+    "release:bundle:inspect": "pnpm --filter @repo/release-pipeline run release:bundle:inspect",
+    "release:bundle:clean": "pnpm --filter @repo/release-pipeline run release:bundle:clean",
+    "release:deploy:dry-run": "pnpm --filter @repo/release-pipeline run release:deploy:dry-run",
+    "release:promote": "pnpm --filter @repo/release-pipeline run release:promote --",
+    "release:rollback:manifest": "pnpm --filter @repo/release-pipeline run release:rollback:manifest",
+    "release:smoke:local": "pnpm --filter web run release:smoke"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

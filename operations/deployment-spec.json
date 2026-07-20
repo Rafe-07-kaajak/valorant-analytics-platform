@@ -1,0 +1,55 @@
+{
+  "specRulesVersion": "deployment-spec@1.0.0",
+  "purpose": "Provider-neutral deployment specification for the Valorant Analytics Platform (apps/web) — TASK-049 section 20. This is a description of how a release bundle is intended to be deployed by a future provider-specific task. It is not itself a provider deployment config and triggers no deployment on its own.",
+  "application": {
+    "framework": "next.js",
+    "startCommand": "pnpm --filter web start",
+    "buildCommand": "pnpm --filter web build",
+    "installCommand": "pnpm install --frozen-lockfile",
+    "requiredNodeVersion": ">=20.0.0",
+    "requiredPnpmVersion": "pnpm@11.10.0",
+    "workingDirectory": "repository root (application lives at apps/web, run via pnpm --filter)",
+    "portEnvVar": "PORT",
+    "defaultPort": 3000,
+    "hostnameEnvVar": "HOSTNAME",
+    "defaultHostname": "0.0.0.0"
+  },
+  "runtimePackage": {
+    "mountPath": "/app/runtime-package",
+    "mountMode": "read-only",
+    "refreshPolicy": "Refreshed independently of an application deploy/rebuild — never baked into the application image or build output.",
+    "requiredEnvVars": {
+      "REAL_PREDICTION_SOURCE_MODE": "runtime-package",
+      "REAL_PREDICTION_RUNTIME_PACKAGE_DIR": "/app/runtime-package",
+      "REAL_PREDICTION_REQUIRE_RUNTIME_PACKAGE": "true"
+    },
+    "recommendedEnvVars": {
+      "REAL_PREDICTION_EXPECTED_RUNTIME_PACKAGE_VERSION": "<the release manifest's own runtimePackageVersion>"
+    }
+  },
+  "healthAndReadiness": {
+    "readinessUrl": "/api/internal/prediction/readiness",
+    "healthUrl": "/api/internal/prediction/readiness",
+    "readinessTimeoutMs": 5000
+  },
+  "shutdownBehavior": "Standard Next.js/Node SIGTERM handling: the process should be given a grace period to finish in-flight requests before a forced kill. No background jobs, timers, schedulers, or open database connections exist in this stack that require special drain handling.",
+  "releaseVersionReporting": "The readiness endpoint's sourceMode/runtimePackageVersion/currentModelVersion fields, combined with the release bundle's own release-manifest.json, are the source of truth for which release/runtime-package pair is actually running.",
+  "rollbackInputs": {
+    "previousReleaseManifestPath": "A saved copy of a prior release's own release-manifest.json (see operations/rollback-runbook.md).",
+    "rollbackManifestPath": "<release bundle>/operations/rollback-manifest.json"
+  },
+  "runtimeTargetSupport": {
+    "supported": ["local-node-server", "generic-linux-vm", "container-docker", "ci-artifact-handoff", "manual-operator-deployment"],
+    "conditional": ["serverless-function", "nextjs-standalone"],
+    "unsupported": ["edge-runtime", "static-hosting"]
+  },
+  "edgeRuntime": {
+    "supported": false,
+    "reason": "Every route under apps/web/src/app/api/internal/prediction/** declares `export const runtime = \"nodejs\"` and depends on node:fs/promises, node:crypto, node:path — none of which exist on the Edge runtime. Statically audited by apps/web/src/app/api/internal/prediction/nodeRuntime.test.ts."
+  },
+  "notes": [
+    "This file is a specification, not an executable deployment config — it makes no network request and triggers no deployment.",
+    "No credentials, secrets, or provider-specific tokens are referenced anywhere in this file.",
+    "Provider-specific integration (a Dockerfile build, a serverless function packaging step, an actual hosting target) remains future work — see docs/37, 'Known limitations'."
+  ]
+}

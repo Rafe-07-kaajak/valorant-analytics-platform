@@ -67,3 +67,45 @@ jobs:
 
       - name: Run end-to-end tests
         run: pnpm test:e2e
+
+  release-pipeline:
+    name: Release Pipeline (fixture)
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # TASK-049: every step below uses `--fixture` — a self-contained
+      # fixture runtime package + fixture application source tree, built
+      # on the fly (see @repo/release-pipeline's testFixtures). No real
+      # `.local/` generated data is required or read; CI never has any.
+      # No deployment, no artifact upload, no external network, no
+      # credentials — see docs/37-release-pipeline-and-operational-readiness.md.
+      - name: Build a fixture release bundle
+        run: pnpm --filter @repo/release-pipeline run release:bundle:build -- --fixture
+
+      - name: Validate a fixture release bundle
+        run: pnpm --filter @repo/release-pipeline run release:bundle:validate -- --fixture
+
+      - name: Deployment dry-run against a fixture release bundle
+        run: pnpm --filter @repo/release-pipeline run release:deploy:dry-run -- --fixture
+
+      # Artifact upload intentionally omitted — provider-specific deployment
+      # is future work (see docs/37, "Known limitations"). When a provider
+      # integration task lands, a real (non-fixture) bundle would be
+      # uploaded here via `actions/upload-artifact`.
