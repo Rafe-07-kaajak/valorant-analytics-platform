@@ -1,1 +1,1 @@
-export { ScrollReveal, type ScrollRevealProps } from "./ScrollReveal";
+export { ScrollReveal, type ScrollRevealProps, type ScrollRevealDirection } from "./ScrollReveal";

@@ -77,7 +77,8 @@
     "release:promote": "pnpm --filter @repo/release-pipeline run release:promote --",
     "release:rollback:manifest": "pnpm --filter @repo/release-pipeline run release:rollback:manifest",
     "release:smoke:local": "pnpm --filter web run release:smoke",
-    "copy-hygiene": "pnpm --filter web run copy-hygiene"
+    "copy-hygiene": "pnpm --filter web run copy-hygiene",
+    "motion-audit": "pnpm --filter web run motion-audit"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

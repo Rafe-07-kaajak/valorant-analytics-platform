@@ -1,6 +1,18 @@
 import { createElement } from "react";
 import { vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
+import { installIntersectionObserverMock } from "./src/test/intersectionObserverMock";
+
+// TASK-051 — every viewport-entry motion primitive (ScrollReveal,
+// StaggerGroup, TextLineReveal, ImageMaskReveal) depends on Framer Motion's
+// `useInView`, which calls `new IntersectionObserver(...)` with no
+// existence guard. jsdom has no native implementation, so any test
+// rendering one of those components would otherwise throw. See
+// src/test/intersectionObserverMock.ts for the controllable mock this
+// installs.
+if (typeof window !== "undefined") {
+  installIntersectionObserverMock();
+}
 
 // jsdom has no PointerEvent constructor (as of the version this repo pins),
 // which breaks both `new PointerEvent(...)` in tests and

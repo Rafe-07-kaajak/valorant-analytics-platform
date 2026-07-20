@@ -137,3 +137,26 @@
     );
   }
 }
+
+/* TASK-051 — AnimatedGradient (packages/ui). A restrained, slow
+   background-position drift, CSS-driven rather than a Framer Motion
+   `animate` loop, since a plain @keyframes animation is already fully
+   covered by the existing global `prefers-reduced-motion` safety net in
+   tokens.css (`animation-duration: 0.01ms !important`) — no separate
+   reduced-motion rule is needed here, unlike the JS-driven primitives
+   elsewhere in this module. 18s is deliberately slow: this is ambient
+   background motion, not a focal element. */
+@keyframes gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.motion-gradient-drift {
+  background-size: 200% 200%;
+  animation: gradient-drift 18s ease-in-out infinite;
+}

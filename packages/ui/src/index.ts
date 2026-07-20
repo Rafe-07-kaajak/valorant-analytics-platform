@@ -11,6 +11,14 @@ export * from "./components/Meter";
 export * from "./components/SplitBar";
 export * from "./components/Badge";
 export * from "./components/ScrollReveal";
+export * from "./components/StaggerGroup";
+export * from "./components/ParallaxLayer";
+export * from "./components/StickyStory";
+export * from "./components/TextLineReveal";
+export * from "./components/ImageMaskReveal";
+export * from "./components/AnimatedGradient";
+export * from "./components/MotionNumber";
+export * from "./components/ScrollProgress";
 export * from "./components/Icon";
 export * from "./components/Label";
 export * from "./components/Avatar";
@@ -26,4 +34,14 @@ export * from "./components/Tooltip";
 export * from "./components/Tabs";
 export * from "./charts/RadarChart";
 export { cn } from "./lib/cn";
-export { focusRing, linkInteraction, iconButtonInteraction, EASE_EMPHASIZED } from "./lib/motion";
+export {
+  focusRing,
+  linkInteraction,
+  iconButtonInteraction,
+  EASE_EMPHASIZED,
+  EASE_EXIT,
+  DURATION_SLOW,
+  REVEAL_DISTANCE,
+} from "./lib/motion";
+export { buildRevealVariants, type RevealDirection } from "./lib/revealVariants";
+export * from "./hooks";

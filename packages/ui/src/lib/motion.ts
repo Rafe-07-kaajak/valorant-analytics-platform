@@ -29,3 +29,14 @@ export const iconButtonInteraction = cn(
  * per component.
  */
 export const EASE_EMPHASIZED = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * TASK-051 — mirrors of the remaining tokens.css motion primitives that
+ * Framer Motion consumers need as raw values (a `transition.ease`/`duration`
+ * prop can't read a CSS custom property). Kept alongside EASE_EMPHASIZED so
+ * every motion-library constant lives in one place instead of being
+ * redeclared per component.
+ */
+export const EASE_EXIT = [0.7, 0, 0.84, 0] as const;
+export const DURATION_SLOW = 0.48;
+export const REVEAL_DISTANCE = 24;
