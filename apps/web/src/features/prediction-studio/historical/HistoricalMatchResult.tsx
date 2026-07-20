@@ -26,7 +26,7 @@ export function HistoricalMatchResult({ result }: HistoricalMatchResultProps) {
           <Badge tone="brand">Real trained model</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Prediction generated from information available before this match — not a live or future forecast.
+          Prediction generated from information available before this match. Not a live or future forecast.
         </p>
 
         <div className="flex items-center gap-md">

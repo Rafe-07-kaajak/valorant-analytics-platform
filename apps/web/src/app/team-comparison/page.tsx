@@ -8,11 +8,11 @@ import { parseUrlState, toUrlSearchParams } from "../../lib/urlState";
 export const metadata: Metadata = {
   title: "Team Comparison Lab | Valorant Analytics Platform",
   description:
-    "Compare any two of the 32 VCT Stage 1 teams' modeled profiles — ratings, Team DNA, map strength, and the biggest differences between them — without generating a match prediction.",
+    "Compare any two of the 32 VCT Stage 1 teams' modeled profiles: ratings, Team DNA, map strength, and the biggest differences between them, without generating a match prediction.",
   openGraph: {
     title: "Team Comparison Lab | Valorant Analytics Platform",
     description:
-      "Compare any two of the 32 VCT Stage 1 teams' modeled profiles side by side — no match prediction required.",
+      "Compare any two of the 32 VCT Stage 1 teams' modeled profiles side by side, no match prediction required.",
     type: "website",
     images: [
       {

@@ -45,7 +45,7 @@ export function ControlsTab({
     <div className="flex flex-col gap-lg">
       <p className="text-sm text-muted-foreground">
         Adjust any attribute below to build a hypothetical profile, then press Run Simulation to see how it would
-        change this matchup&apos;s modeled prediction. Moving a slider only updates your draft here — nothing is
+        change this matchup&apos;s modeled prediction. Moving a slider only updates your draft here. Nothing is
         sent, and the baseline result above never changes, until you press Run Simulation.
       </p>
 
@@ -87,7 +87,7 @@ export function ControlsTab({
 
       {controller.error ? (
         <p role="alert" className="text-sm text-danger">
-          {controller.error} Your adjustments and any previous simulation are unchanged — you can retry.
+          {controller.error} Your adjustments and any previous simulation are unchanged. You can retry.
         </p>
       ) : null}
 

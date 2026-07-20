@@ -42,13 +42,13 @@ export function MapsTab({
         <div className="rounded-md border border-surface-border bg-surface p-sm text-sm">
           <span className="font-medium text-foreground">Most evenly matched map</span>
           <p className="text-muted-foreground">
-            {mostEvenMap ? `${mostEvenMap.mapName} — modeled gap of ${mostEvenMap.magnitude}` : "Not available"}
+            {mostEvenMap ? `${mostEvenMap.mapName}: modeled gap of ${mostEvenMap.magnitude}` : "Not available"}
           </p>
         </div>
         <div className="rounded-md border border-surface-border bg-surface p-sm text-sm">
           <span className="font-medium text-foreground">Largest modeled gap</span>
           <p className="text-muted-foreground">
-            {largestGapMap ? `${largestGapMap.mapName} — modeled gap of ${largestGapMap.magnitude}` : "Not available"}
+            {largestGapMap ? `${largestGapMap.mapName}: modeled gap of ${largestGapMap.magnitude}` : "Not available"}
           </p>
         </div>
       </div>

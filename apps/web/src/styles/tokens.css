@@ -22,6 +22,20 @@
      "violet only as a restrained secondary accent". */
   --color-accent-violet: #8b7cf6;
 
+  /* TASK-050 — Cinematic Multicolor accent palette. Additive: these do not
+     replace --color-brand-* (the "primary intelligence" interactive color)
+     or the pre-existing --color-accent-violet above. They are the expanded
+     vocabulary the visual-redesign roadmap (TASK-051+) draws from for
+     gradients, region identity, and data visualization — deliberately not
+     wired into any page composition by this task. "Accents must not be
+     used randomly" per docs/38: each has one documented purpose. */
+  --color-accent-cyan: #22d3ee;
+  --color-accent-blue: #3b82f6;
+  --color-accent-magenta: #d946ef;
+  --color-accent-coral: #ff6f59;
+  --color-accent-amber: #f59e0b;
+  --color-accent-lime: #a3e635;
+
   /* Spacing scale */
   --spacing-3xs: 0.25rem;
   --spacing-2xs: 0.5rem;
@@ -39,11 +53,20 @@
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
   --radius-full: 9999px;
+  /* Semantically distinct from --radius-full: --radius-full is "make this
+     element a circle/stadium" (avatars, dots); --radius-pill names the same
+     9999px value for capsule-shaped controls (nav items, filter chips, the
+     future tactical capsule navigation) so intent reads from the token name
+     at the call site. */
+  --radius-pill: 9999px;
 
-  /* Shadow */
+  /* Shadow — restrained depth for both themes. */
   --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
   --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.1);
   --shadow-lg: 0 12px 32px -8px rgb(15 23 42 / 0.16);
+  /* Reserved for a future floating/sticky header (TASK-051+); not applied
+     to any component by this task. */
+  --shadow-floating: 0 16px 40px -12px rgb(5 7 10 / 0.45);
 
   /* Breakpoints */
   --breakpoint-sm: 40rem;
@@ -63,8 +86,17 @@
   --duration-fast: 160ms;
   --duration-base: 200ms;
   --duration-panel: 280ms;
+  /* TASK-050: reserved for the future scroll-driven motion engine
+     (TASK-051+) — scene transitions, reveal sequences — longer than any
+     existing hover/press/panel interaction. Not consumed by this task. */
+  --duration-slow: 480ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Reserved for exit/dismiss transitions (modal close, drawer close,
+     scroll-away) — a mirror of --ease-emphasized's entrance curve. Not
+     consumed by this task; existing exit transitions keep using
+     --ease-standard. */
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
 
   /* Movement limits — kept small and restrained. Referenced via arbitrary-
      value syntax, e.g. `-translate-y-(--lift-button)`, `scale-(--scale-press)`. */
@@ -75,7 +107,20 @@
   --travel-icon: 3px;
   --scale-logo-hover: 1.03;
   --scale-press: 0.98;
+  /* Reserved for TASK-051's scroll-reveal system (distance a section
+     travels into place). Not consumed by this task — ScrollReveal.tsx
+     keeps its own current values. */
+  --reveal-distance: 24px;
 }
+
+/* Reduced-motion policy: the global safety net below (prefers-reduced-
+   motion) already collapses all animation/transition durations to ~0 and
+   disables smooth scrolling site-wide. Any future consumer of
+   --duration-slow, --ease-exit, or --reveal-distance must still gate its
+   own transform-based motion behind motion-safe: (as every existing
+   TASK-033/034 interaction does) — the blanket duration override here does
+   not by itself remove transform/opacity keyframe animations declared with
+   raw @keyframes (see motion.css, effects.css), which gate individually. */
 
 /* Global reduced-motion safety net. Individual components gate their own
    transforms behind motion-safe:, but this catch-all guarantees near-instant
@@ -95,7 +140,13 @@
 
 /* Semantic surface tokens — light theme (default) */
 :root {
-  --background: #ffffff;
+  /* TASK-050: subtle cool off-white rather than pure #ffffff, per the
+     dark-first direction's light-theme requirement to avoid a stark white
+     page. Deliberately a 1-step tint — text/foreground contrast is
+     unaffected (still >20:1) and no other token below changes, so existing
+     pages repaint with an imperceptible warmth shift rather than a visible
+     redesign. */
+  --background: #fafbfd;
   --foreground: #10151c;
   --surface: #f7f9fb;
   --surface-border: #e2e6ec;
@@ -113,6 +164,14 @@
   --success: #15803d;
   --warning: #b45309;
   --danger: #b91c1c;
+  /* TASK-050: rounding out success/warning/danger into the full semantic
+     set the design system calls for. info mirrors --color-accent-blue's
+     hue family; neutral is a distinct slot from --muted-foreground (that
+     token styles secondary text everywhere; --neutral styles neutral
+     status badges/indicators specifically, e.g. "pending", "no data"). Both
+     validated ≥4.5:1 against white. */
+  --info: #1d4ed8;
+  --neutral: #475569;
 
   /* Team identity (comparison charts) — cyan/coral categorical pair,
      validated with the dataviz skill's palette validator against the surface
@@ -122,6 +181,22 @@
      team. */
   --team-a: #0891b2;
   --team-b: #dc4a3a;
+
+  /* TASK-050 — VCT region identity. Each region gets a primary (text/icon/
+     border safe, ≥4.5:1 validated against the theme background) and an alt
+     (decorative only — gradients, chip fills alongside white/dark text,
+     never used as text-on-background by itself, same convention as
+     --color-accent-violet). Hue pairs follow the approved direction:
+     Americas orange/coral, EMEA silver/cobalt, Pacific cyan/aqua, China
+     crimson/pink. */
+  --region-americas: #c2410c;
+  --region-americas-alt: #ff6f59;
+  --region-emea: #4338ca;
+  --region-emea-alt: #94a3b8;
+  --region-pacific: #0e7490;
+  --region-pacific-alt: #2dd4bf;
+  --region-china: #be123c;
+  --region-china-alt: #f472b6;
 
   /* Badge background/text pairs — explicit solid colors, not opacity-blended
      semantic hues. An alpha-blended background's effective color depends on
@@ -134,6 +209,27 @@
   --badge-danger-text: #b91c1c;
   --badge-brand-bg: #e0f2fe;
   --badge-brand-text: #075985;
+  --badge-info-bg: #dbeafe;
+  --badge-info-text: #1d4ed8;
+  --badge-neutral-bg: #e2e8f0;
+  --badge-neutral-text: #334155;
+  --badge-region-americas-bg: #ffedd5;
+  --badge-region-americas-text: #c2410c;
+  --badge-region-emea-bg: #e0e7ff;
+  --badge-region-emea-text: #4338ca;
+  --badge-region-pacific-bg: #cffafe;
+  --badge-region-pacific-text: #0e7490;
+  --badge-region-china-bg: #ffe4e6;
+  --badge-region-china-text: #be123c;
+
+  /* Surface elevation — additive to --surface (the existing "card" level).
+     --surface-raised is a second, more separated step for elevated cards/
+     sections; --surface-glass and --overlay-scrim back the future glass and
+     modal/drawer surfaces. None are wired into an existing component by
+     this task. */
+  --surface-raised: #eef1f6;
+  --surface-glass: color-mix(in oklab, var(--surface) 72%, transparent);
+  --overlay-scrim: rgb(10 14 20 / 0.45);
 }
 
 /* Semantic surface tokens — dark theme (explicit toggle). Graphite/near-black
@@ -147,17 +243,42 @@
   --success: #4ade80;
   --warning: #fbbf24;
   --danger: #f87171;
+  --info: #60a5fa;
+  --neutral: #94a3b8;
   /* Team identity — validated against this theme's surface (lightness band,
      chroma floor, CVD separation, contrast all pass; protan ΔE 49.9 / tritan
      115.2 / normal 99.8). */
   --team-a: #1a9bb0;
   --team-b: #e0553d;
+  --region-americas: #fb923c;
+  --region-americas-alt: #ff6f59;
+  --region-emea: #818cf8;
+  --region-emea-alt: #cbd5e1;
+  --region-pacific: #22d3ee;
+  --region-pacific-alt: #5eead4;
+  --region-china: #fb7185;
+  --region-china-alt: #f9a8d4;
   --badge-success-bg: #0f2e1c;
   --badge-success-text: #4ade80;
   --badge-danger-bg: #3a1414;
   --badge-danger-text: #f87171;
   --badge-brand-bg: #0c313f;
   --badge-brand-text: #67e8f9;
+  --badge-info-bg: #0f2547;
+  --badge-info-text: #93c5fd;
+  --badge-neutral-bg: #1e2532;
+  --badge-neutral-text: #cbd5e1;
+  --badge-region-americas-bg: #3a1f0a;
+  --badge-region-americas-text: #fdba74;
+  --badge-region-emea-bg: #1e1b4b;
+  --badge-region-emea-text: #a5b4fc;
+  --badge-region-pacific-bg: #072a28;
+  --badge-region-pacific-text: #5eead4;
+  --badge-region-china-bg: #3a0f1a;
+  --badge-region-china-text: #fda4af;
+  --surface-raised: #171d28;
+  --surface-glass: color-mix(in oklab, var(--surface) 55%, transparent);
+  --overlay-scrim: rgb(2 3 5 / 0.72);
 }
 
 /* Semantic surface tokens — dark theme (system preference, unless overridden) */
@@ -171,14 +292,77 @@
     --success: #4ade80;
     --warning: #fbbf24;
     --danger: #f87171;
+    --info: #60a5fa;
+    --neutral: #94a3b8;
     --team-a: #1a9bb0;
     --team-b: #e0553d;
+    --region-americas: #fb923c;
+    --region-americas-alt: #ff6f59;
+    --region-emea: #818cf8;
+    --region-emea-alt: #cbd5e1;
+    --region-pacific: #22d3ee;
+    --region-pacific-alt: #5eead4;
+    --region-china: #fb7185;
+    --region-china-alt: #f9a8d4;
     --badge-success-bg: #0f2e1c;
     --badge-success-text: #4ade80;
     --badge-danger-bg: #3a1414;
     --badge-danger-text: #f87171;
     --badge-brand-bg: #0c313f;
     --badge-brand-text: #67e8f9;
+    --badge-info-bg: #0f2547;
+    --badge-info-text: #93c5fd;
+    --badge-neutral-bg: #1e2532;
+    --badge-neutral-text: #cbd5e1;
+    --badge-region-americas-bg: #3a1f0a;
+    --badge-region-americas-text: #fdba74;
+    --badge-region-emea-bg: #1e1b4b;
+    --badge-region-emea-text: #a5b4fc;
+    --badge-region-pacific-bg: #072a28;
+    --badge-region-pacific-text: #5eead4;
+    --badge-region-china-bg: #3a0f1a;
+    --badge-region-china-text: #fda4af;
+    --surface-raised: #171d28;
+    --surface-glass: color-mix(in oklab, var(--surface) 55%, transparent);
+    --overlay-scrim: rgb(2 3 5 / 0.72);
+  }
+}
+
+/* Restrained depth — glow, hairline border, and inset-highlight tokens.
+   Not theme-blocked: --border-hairline derives from --foreground (already
+   theme-swapped above) and the glow/highlight strings reference
+   --color-brand-400 (not theme-swapped, per the brand-color comment at the
+   top of this file), so a single declaration tracks both themes correctly.
+   Kept restrained per docs/38 — glows are for hover/selected/focus moments,
+   not ambient decoration, and stay subtle in light theme to avoid a "dirty"
+   look. Not applied to any component by this task. */
+:root {
+  --glow-cyan: 0 0 24px -6px color-mix(in oklab, var(--color-accent-cyan) 55%, transparent);
+  --glow-violet: 0 0 24px -6px color-mix(in oklab, var(--color-accent-violet) 55%, transparent);
+  --glow-coral: 0 0 24px -6px color-mix(in oklab, var(--color-accent-coral) 55%, transparent);
+  --glow-focus: 0 0 0 4px color-mix(in oklab, var(--color-brand-400) 30%, transparent);
+  /* Matches the selected-state shadow already hand-written in RegionCard —
+     extracted here as the reusable token future selectable-card variants
+     should reference instead of repeating the arbitrary-value string. */
+  --glow-selected: 0 0 0 1px var(--color-brand-400), 0 0 16px -6px var(--color-brand-400);
+  --shadow-inset-highlight: inset 0 1px 0 0 color-mix(in oklab, white 8%, transparent);
+  --border-hairline: color-mix(in oklab, var(--foreground) 12%, transparent);
+  --border-accent: var(--color-brand-400);
+}
+
+[data-theme="dark"] {
+  --glow-cyan: 0 0 28px -6px color-mix(in oklab, var(--color-accent-cyan) 70%, transparent);
+  --glow-violet: 0 0 28px -6px color-mix(in oklab, var(--color-accent-violet) 70%, transparent);
+  --glow-coral: 0 0 28px -6px color-mix(in oklab, var(--color-accent-coral) 70%, transparent);
+  --glow-focus: 0 0 0 4px color-mix(in oklab, var(--color-brand-400) 40%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glow-cyan: 0 0 28px -6px color-mix(in oklab, var(--color-accent-cyan) 70%, transparent);
+    --glow-violet: 0 0 28px -6px color-mix(in oklab, var(--color-accent-violet) 70%, transparent);
+    --glow-coral: 0 0 28px -6px color-mix(in oklab, var(--color-accent-coral) 70%, transparent);
+    --glow-focus: 0 0 0 4px color-mix(in oklab, var(--color-brand-400) 40%, transparent);
   }
 }
 
@@ -191,16 +375,44 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-neutral: var(--neutral);
   --color-team-a: var(--team-a);
   --color-team-b: var(--team-b);
+  --color-region-americas: var(--region-americas);
+  --color-region-americas-alt: var(--region-americas-alt);
+  --color-region-emea: var(--region-emea);
+  --color-region-emea-alt: var(--region-emea-alt);
+  --color-region-pacific: var(--region-pacific);
+  --color-region-pacific-alt: var(--region-pacific-alt);
+  --color-region-china: var(--region-china);
+  --color-region-china-alt: var(--region-china-alt);
   --color-badge-success-bg: var(--badge-success-bg);
   --color-badge-success-text: var(--badge-success-text);
   --color-badge-danger-bg: var(--badge-danger-bg);
   --color-badge-danger-text: var(--badge-danger-text);
   --color-badge-brand-bg: var(--badge-brand-bg);
   --color-badge-brand-text: var(--badge-brand-text);
+  --color-badge-info-bg: var(--badge-info-bg);
+  --color-badge-info-text: var(--badge-info-text);
+  --color-badge-neutral-bg: var(--badge-neutral-bg);
+  --color-badge-neutral-text: var(--badge-neutral-text);
+  --color-badge-region-americas-bg: var(--badge-region-americas-bg);
+  --color-badge-region-americas-text: var(--badge-region-americas-text);
+  --color-badge-region-emea-bg: var(--badge-region-emea-bg);
+  --color-badge-region-emea-text: var(--badge-region-emea-text);
+  --color-badge-region-pacific-bg: var(--badge-region-pacific-bg);
+  --color-badge-region-pacific-text: var(--badge-region-pacific-text);
+  --color-badge-region-china-bg: var(--badge-region-china-bg);
+  --color-badge-region-china-text: var(--badge-region-china-text);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-glass: var(--surface-glass);
+  --color-overlay-scrim: var(--overlay-scrim);
+  --color-border-hairline: var(--border-hairline);
+  --color-border-accent: var(--border-accent);
 }
 
-/* --color-accent-violet is declared directly in the static @theme block
-   above (like --color-brand-*) since it is not theme-swapped — no entry
-   needed here, Tailwind already resolves it as `bg-accent-violet` etc. */
+/* --color-accent-violet and the TASK-050 --color-accent-* palette are
+   declared directly in the static @theme block above (like --color-brand-*)
+   since they are not theme-swapped — no entry needed here, Tailwind already
+   resolves them as `bg-accent-cyan`, `text-accent-coral`, etc. */

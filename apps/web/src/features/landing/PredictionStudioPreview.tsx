@@ -14,7 +14,7 @@ export function PredictionStudioPreview() {
         <ScrollReveal className="flex max-w-(--breakpoint-md) flex-col gap-sm">
           <h2>Every prediction comes with its reasoning attached.</h2>
           <p className="text-lg text-muted-foreground">
-            Pick two teams in Prediction Studio and get more than a probability — win chance,
+            Pick two teams in Prediction Studio and get more than a probability: win chance,
             confidence, and the factors that shaped the result.
           </p>
         </ScrollReveal>

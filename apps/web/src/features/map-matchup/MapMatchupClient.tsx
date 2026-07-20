@@ -247,7 +247,7 @@ export function MapMatchupClient({
             stage={selectedTeamA || selectedTeamB ? "partial" : "none"}
             selectedTeamName={selectedTeamA?.name ?? selectedTeamB?.name}
             selectedSide={selectedTeamA ? "A" : selectedTeamB ? "B" : undefined}
-            description="The Map Matchup Explorer compares two teams' modeled strength across every supported map — which maps favor which side, which are close, and why — without generating a match prediction first."
+            description="The Map Matchup Explorer compares two teams' modeled strength across every supported map. See which maps favor which side, which are close, and why, without generating a match prediction first."
           />
         )}
       </Container>

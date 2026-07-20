@@ -1,0 +1,139 @@
+/* TASK-050 — Gradient tokens for the Cinematic Multicolor direction.
+   Reusable linear/radial-gradient values, not Tailwind's `--color-*`
+   namespace (gradients aren't solid colors), so they're consumed via
+   arbitrary-value syntax against these custom properties, e.g.:
+     className="bg-[image:var(--gradient-cyan-blue)]"
+   the same pattern already used for motion tokens (duration-(--duration-fast))
+   elsewhere in this codebase.
+
+   Not applied to any component or page by this task — see
+   docs/38-visual-foundation-and-design-tokens.md for intended usage and the
+   text-contrast rule (gradients are decorative surfaces; text placed over
+   one must use a solid, theme-appropriate foreground color chosen for that
+   gradient's darkest/lightest stop, never assumed white-on-everything). */
+
+:root {
+  /* Two-hue accent gradients — direct pairings from the accent palette. */
+  --gradient-cyan-blue: linear-gradient(
+    135deg,
+    var(--color-accent-cyan) 0%,
+    var(--color-accent-blue) 100%
+  );
+  --gradient-blue-violet: linear-gradient(
+    135deg,
+    var(--color-accent-blue) 0%,
+    var(--color-accent-violet) 100%
+  );
+  --gradient-violet-magenta: linear-gradient(
+    135deg,
+    var(--color-accent-violet) 0%,
+    var(--color-accent-magenta) 100%
+  );
+  --gradient-coral-amber: linear-gradient(
+    135deg,
+    var(--color-accent-coral) 0%,
+    var(--color-accent-amber) 100%
+  );
+
+  /* Region identity gradients — primary to alt, matching each region's
+     token pair in tokens.css. */
+  --gradient-region-americas: linear-gradient(
+    135deg,
+    var(--color-region-americas) 0%,
+    var(--color-region-americas-alt) 100%
+  );
+  --gradient-region-emea: linear-gradient(
+    135deg,
+    var(--color-region-emea) 0%,
+    var(--color-region-emea-alt) 100%
+  );
+  --gradient-region-pacific: linear-gradient(
+    135deg,
+    var(--color-region-pacific) 0%,
+    var(--color-region-pacific-alt) 100%
+  );
+  --gradient-region-china: linear-gradient(
+    135deg,
+    var(--color-region-china) 0%,
+    var(--color-region-china-alt) 100%
+  );
+
+  /* Button gradient — brand-hue two-stop, for a future high-emphasis CTA
+     variant. Kept restrained (single hue family, not multicolor) so it
+     reads as "the interactive brand action" rather than competing with
+     region/accent color meaning. */
+  --gradient-button: linear-gradient(
+    135deg,
+    var(--color-brand-400) 0%,
+    var(--color-brand-600) 100%
+  );
+
+  /* Selected-state gradient — a soft cyan wash for a selected card/row
+     background, meant to sit under content at low opacity, not as a solid
+     fill (see --glow-selected in tokens.css for the border/glow half of
+     the selected treatment). */
+  --gradient-selected: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--color-brand-400) 16%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-violet) 10%, transparent) 100%
+  );
+
+  /* Subtle mesh gradient — three soft radial washes over a transparent
+     base, for large ambient panels (hero backgrounds, section dividers).
+     Deliberately low-alpha: a mesh at full saturation is the "uncontrolled
+     rainbow gradient" this system explicitly avoids. */
+  --gradient-mesh-subtle: radial-gradient(
+      at 20% 20%,
+      color-mix(in oklab, var(--color-accent-cyan) 14%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      at 80% 30%,
+      color-mix(in oklab, var(--color-accent-violet) 12%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      at 50% 85%,
+      color-mix(in oklab, var(--color-accent-coral) 10%, transparent) 0%,
+      transparent 55%
+    );
+
+  /* Spotlight gradient — the radial falloff already used by
+     .cursor-spotlight (cursor-effects.css), extracted as a reusable token
+     for future non-cursor-driven spotlight surfaces (e.g. a static hero
+     focal point). cursor-effects.css keeps its own inline radial-gradient
+     for now to avoid touching working TASK-034 behavior in this task. */
+  --gradient-spotlight: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-brand-400) 16%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+/* Dark ambient gradient — a page-level backdrop wash, authored for the
+   dark theme's near-black surfaces (per the dark-first direction, this is
+   the primary authored experience). Falls back to the mesh-subtle token in
+   light theme, where a near-black vignette would read as dirty/muddy. */
+:root {
+  --gradient-ambient: var(--gradient-mesh-subtle);
+}
+
+[data-theme="dark"] {
+  --gradient-ambient: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-blue) 8%, transparent) 0%,
+    transparent 40%,
+    transparent 100%
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --gradient-ambient: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-accent-blue) 8%, transparent) 0%,
+      transparent 40%,
+      transparent 100%
+    );
+  }
+}

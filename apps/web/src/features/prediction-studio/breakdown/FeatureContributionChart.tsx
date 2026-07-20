@@ -25,7 +25,7 @@ export function FeatureContributionChart({ rows, teamAName, teamBName, breakdown
     return (
       <p className="text-sm text-muted-foreground">
         No single tracked dimension differs enough between these teams to stand out as a distinct
-        contribution — the prediction leans on the aggregate profile instead.
+        contribution. The prediction leans on the aggregate profile instead.
       </p>
     );
   }

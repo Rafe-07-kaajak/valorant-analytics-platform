@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import Link from "next/link";
 import { cn, focusRing, Footer } from "@repo/ui";
 import { SiteNavbar } from "../components/SiteNavbar";
@@ -10,9 +10,26 @@ import { MediaBackground } from "../components/media/MediaBackground";
 import { MEDIA_ASSETS } from "../constants/media";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// TASK-050 — body/UI face (--font-body). `display: "swap"` avoids invisible
+// text while loading; next/font self-hosts the file at build time (no
+// runtime request to fonts.googleapis.com) and reserves layout space via a
+// fallback-metrics adjustment, so there's no layout shift on load.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// TASK-050 — heading/statement face (--font-display). Clash Display and its
+// approved fallbacks (Cabinet Grotesk, Satoshi, General Sans) are Fontshare-
+// exclusive fonts with no next/font/google source and no licensed local
+// file in this repo; per user decision this task substitutes Space
+// Grotesk, a geometric Google Font in the same expressive-display register,
+// until licensed files are available. See docs/38.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -54,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}>
       <body className="antialiased">
         <CursorTracker />
         <CursorSpotlight />

@@ -44,5 +44,5 @@ export function explainLargestGaps(rows: readonly DnaGapRow[], teamAName: string
       : `${team} leads ${qualifierFor(dims[0]!.tier)} in ${dims.map((row) => row.label.toLowerCase()).join(" and ")}`;
 
   const clauses = [clause(teamAName, forA), clause(teamBName, forB)].filter((value): value is string => Boolean(value));
-  return `${clauses.join(", while ")} — the largest modeled differences between these two teams.`;
+  return `${clauses.join(", while ")}. These are the largest modeled differences between these two teams.`;
 }

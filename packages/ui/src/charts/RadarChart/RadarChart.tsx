@@ -103,7 +103,7 @@ export function RadarChart({ axes, series, max = 100, size = 320, className }: R
             return (
               <circle key={`${s.id}-${axis.key}`} cx={x} cy={y} r={4} fill={s.color} stroke="var(--surface)" strokeWidth={2}>
                 <title>
-                  {s.label} — {axis.label}: {Math.round(s.values[axis.key] ?? 0)}
+                  {s.label}, {axis.label}: {Math.round(s.values[axis.key] ?? 0)}
                 </title>
               </circle>
             );

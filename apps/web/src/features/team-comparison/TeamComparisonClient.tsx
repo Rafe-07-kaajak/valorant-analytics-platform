@@ -79,7 +79,7 @@ export function TeamComparisonClient({
         <div>
           <h1>Team Comparison Lab</h1>
           <p className="text-muted-foreground">
-            Select any two of the 32 VCT Stage 1 teams to compare their modeled profiles side by side —
+            Select any two of the 32 VCT Stage 1 teams to compare their modeled profiles side by side,
             no match prediction required.
           </p>
         </div>

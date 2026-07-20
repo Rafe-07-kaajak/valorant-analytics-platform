@@ -42,7 +42,7 @@ export function MatchDnaTab({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[22rem] border-collapse text-sm">
             <caption className="sr-only">
-              Team DNA dimension comparison for {teamA.name} and {teamB.name} — a text alternative to the
+              Team DNA dimension comparison for {teamA.name} and {teamB.name}, a text alternative to the
               radar chart, and the interactive surface for highlighting a dimension.
             </caption>
             <thead>

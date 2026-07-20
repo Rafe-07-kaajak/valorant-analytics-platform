@@ -8,11 +8,11 @@ import { parseUrlState, toUrlSearchParams } from "../../lib/urlState";
 export const metadata: Metadata = {
   title: "Map Matchup Explorer | Valorant Analytics Platform",
   description:
-    "Compare any two of the 32 VCT Stage 1 teams' modeled strength across every supported map — which maps favor which side, which are close, and why.",
+    "Compare any two of the 32 VCT Stage 1 teams' modeled strength across every supported map. See which maps favor which side, which are close, and why.",
   openGraph: {
     title: "Map Matchup Explorer | Valorant Analytics Platform",
     description:
-      "Inspect a modeled map-by-map matchup for any two VCT Stage 1 teams — ranking, aggregate pool view, and per-map explanations.",
+      "Inspect a modeled map-by-map matchup for any two VCT Stage 1 teams: ranking, aggregate pool view, and per-map explanations.",
     type: "website",
     images: [
       {

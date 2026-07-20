@@ -1,4 +1,16 @@
-/* Typography System — font family, type scale, heading/paragraph/code styles */
+/* Typography System — font family, type scale, heading/paragraph/code styles
+
+   TASK-050: two-font hierarchy per the approved Cinematic Multicolor
+   direction. Body/UI copy uses Inter (--font-body); headings and large
+   statement text use a display face (--font-display). Clash Display and its
+   named fallbacks (Cabinet Grotesk, Satoshi, General Sans) are Fontshare-
+   exclusive — not available via next/font/google and not present as
+   licensed local files in this repo — so per user decision this task wires
+   --font-display to Space Grotesk (next/font/google) as a same-family
+   geometric-display substitute. Swapping in a licensed Clash Display/
+   Cabinet Grotesk file later only requires changing the next/font import in
+   layout.tsx; no token consumer needs to change. See
+   docs/38-visual-foundation-and-design-tokens.md. */
 
 @theme {
   --text-xs: 0.75rem;
@@ -10,14 +22,54 @@
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
+
+  /* Semantic type scale — additive to the numeric scale above (which
+     existing components keep using). Named entries pair a size with its
+     line-height via Tailwind v4's `--text-{name}--line-height` convention,
+     so `text-heading-lg` etc. carries correct leading automatically. Not
+     applied to any component by this task; see docs/38 for which face
+     (--font-body vs --font-display) each step is intended for. */
+  --text-display-xl: 4.5rem;
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-lg: 3.5rem;
+  --text-display-lg--line-height: 1.08;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-heading-xl: 2.75rem;
+  --text-heading-xl--line-height: 1.12;
+  --text-heading-xl--letter-spacing: -0.01em;
+  --text-heading-lg: 2.25rem;
+  --text-heading-lg--line-height: 1.15;
+  --text-heading-lg--letter-spacing: -0.01em;
+  --text-heading-md: 1.75rem;
+  --text-heading-md--line-height: 1.2;
+  --text-heading-md--letter-spacing: -0.01em;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.6;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.6;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.55;
+  --text-label-md: 0.875rem;
+  --text-label-md--line-height: 1.3;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-sm: 0.75rem;
+  --text-label-sm--line-height: 1.3;
+  --text-label-sm--letter-spacing: 0.02em;
+  --text-caption: 0.6875rem;
+  --text-caption--line-height: 1.35;
+  --text-caption--letter-spacing: 0.02em;
 }
 
 /* Font family depends on the hashed variable next/font injects on <body> at
    runtime, so it must stay a var() reference rather than a literal value —
-   hence @theme inline. The target name (--font-geist-sans) is distinct from
-   the key (--font-sans) to avoid a self-reference cycle. */
+   hence @theme inline. The target names (--font-inter, --font-space-grotesk)
+   are distinct from the keys (--font-sans, --font-body, --font-display) to
+   avoid a self-reference cycle. */
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -25,10 +77,18 @@
   --line-height-tight: 1.2;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.7;
+
+  /* Letter-spacing scale — named additions beyond Tailwind's default
+     tracking-* utilities (tighter/tight/normal/wide/wider/widest), which
+     already cover the general case and are used as-is elsewhere in this
+     repo. These two are specific, documented use cases from the approved
+     direction. */
+  --tracking-display: -0.02em;
+  --tracking-label: 0.02em;
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: var(--line-height-normal);
 }
@@ -37,7 +97,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   line-height: var(--line-height-tight);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -68,3 +128,10 @@ pre {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
 }
+
+/* Tabular numerals — for probability, model score, and metric displays
+   where digits must not shift width as they change (prediction confidence
+   percentages, live-updating stat rows). Tailwind's built-in `tabular-nums`
+   utility (font-variant-numeric core plugin) already covers this; documented
+   here as the established convention rather than reintroduced as a new
+   token. See docs/38 for usage guidance. */

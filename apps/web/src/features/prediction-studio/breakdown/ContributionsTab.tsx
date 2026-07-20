@@ -14,7 +14,7 @@ export function ContributionsTab({ rows, teamAName, teamBName, breakdown }: Cont
     <div className="flex flex-col gap-md">
       <p className="text-sm text-muted-foreground">
         Each bar is one tracked Team DNA dimension&apos;s share of the total modeled gap between these
-        teams — not a share of the win probability itself. Select a bar to see it highlighted throughout
+        teams, not a share of the win probability itself. Select a bar to see it highlighted throughout
         this breakdown.
       </p>
       <FeatureContributionChart rows={rows} teamAName={teamAName} teamBName={teamBName} breakdown={breakdown} />

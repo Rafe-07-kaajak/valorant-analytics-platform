@@ -23,7 +23,7 @@ export function ProductStory() {
             <p className="text-lg text-muted-foreground">
               Most platforms tell you who won. Few explain why one team was favored, which factors
               mattered most, or how confident you should be in the result. This platform connects
-              raw competitive data to a prediction through a transparent chain of reasoning — so
+              raw competitive data to a prediction through a transparent chain of reasoning, so
               every number comes with an explanation attached.
             </p>
           </ScrollReveal>

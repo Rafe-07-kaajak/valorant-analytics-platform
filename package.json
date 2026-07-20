@@ -76,7 +76,8 @@
     "release:deploy:dry-run": "pnpm --filter @repo/release-pipeline run release:deploy:dry-run",
     "release:promote": "pnpm --filter @repo/release-pipeline run release:promote --",
     "release:rollback:manifest": "pnpm --filter @repo/release-pipeline run release:rollback:manifest",
-    "release:smoke:local": "pnpm --filter web run release:smoke"
+    "release:smoke:local": "pnpm --filter web run release:smoke",
+    "copy-hygiene": "pnpm --filter web run copy-hygiene"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

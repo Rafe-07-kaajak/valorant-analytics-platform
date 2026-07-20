@@ -5,6 +5,7 @@
 
 @import "../styles/tokens.css";
 @import "../styles/typography.css";
+@import "../styles/gradients.css";
 @import "../styles/motion.css";
 @import "../styles/effects.css";
 @import "../styles/cursor-effects.css";

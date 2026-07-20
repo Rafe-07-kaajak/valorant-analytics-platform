@@ -19,7 +19,7 @@ export function ResultHeader({ winner, loser, confidence }: ResultHeaderProps) {
       </div>
       <h2 className="relative text-foreground">{winner.name}</h2>
       <p className="relative text-muted-foreground">
-        favored over {loser.name} — {winner.region} vs {loser.region}
+        favored over {loser.name}, {winner.region} vs {loser.region}
       </p>
     </div>
   );

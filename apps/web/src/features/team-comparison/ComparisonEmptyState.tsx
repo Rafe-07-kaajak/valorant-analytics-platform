@@ -1,8 +1,8 @@
 import { Card } from "@repo/ui";
 
 const DEFAULT_DESCRIPTION =
-  "The Comparison Lab compares two teams' modeled profiles directly — overall rating, Team DNA, " +
-  "map strength, and the biggest differences between them — without generating a match prediction first.";
+  "The Comparison Lab compares two teams' modeled profiles directly: overall rating, Team DNA, " +
+  "map strength, and the biggest differences between them, without generating a match prediction first.";
 
 export interface ComparisonEmptyStateProps {
   /** "none" — neither side selected yet. "partial" — exactly one side selected. */

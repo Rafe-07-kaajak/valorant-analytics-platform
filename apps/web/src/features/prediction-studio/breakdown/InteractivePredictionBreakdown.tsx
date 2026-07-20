@@ -54,8 +54,8 @@ export function InteractivePredictionBreakdown({ result, teamA, teamB, breakdown
     <Card className="flex flex-col gap-md">
       <h3>Interactive Prediction Breakdown</h3>
       <p className="text-sm text-muted-foreground">
-        Explore how each modeled factor shaped this prediction. Nothing here changes the prediction itself —
-        it&apos;s the same result, viewed from four angles.
+        Explore how each modeled factor shaped this prediction. Nothing here changes the prediction itself.
+        It&apos;s the same result, viewed from four angles.
       </p>
 
       <Tabs defaultValue="contributions">

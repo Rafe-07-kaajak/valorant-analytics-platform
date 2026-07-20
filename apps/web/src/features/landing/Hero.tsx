@@ -41,7 +41,7 @@ export function Hero() {
             Understand professional VALORANT matches before they happen.
           </motion.h1>
           <motion.p variants={item} className="max-w-(--breakpoint-sm) text-lg text-muted-foreground">
-            Explainable predictions for Tier-1 VALORANT — built on Team DNA, Match DNA, and
+            Explainable predictions for Tier-1 VALORANT, built on Team DNA, Match DNA, and
             transparent reasoning instead of a single opaque probability.
           </motion.p>
           <motion.div variants={item}>

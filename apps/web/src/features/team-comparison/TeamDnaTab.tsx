@@ -30,7 +30,7 @@ export function TeamDnaTab({ teamA, teamADna, teamB, teamBDna, dimensionRows }: 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[24rem] border-collapse text-sm">
           <caption className="sr-only">
-            Team DNA dimension values for {teamA.name} and {teamB.name} — a text alternative to the radar
+            Team DNA dimension values for {teamA.name} and {teamB.name}, a text alternative to the radar
             chart above.
           </caption>
           <thead>

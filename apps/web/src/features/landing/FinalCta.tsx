@@ -27,7 +27,7 @@ export function FinalCta() {
               Pick two teams. See the reasoning, not just the result.
             </h2>
             <p className="relative max-w-(--breakpoint-sm) text-lg text-muted-foreground">
-              Prediction Studio is free to explore — no account required.
+              Prediction Studio is free to explore. No account required.
             </p>
             <Link href="/prediction-studio" className={cn(buttonVariants({ size: "lg" }), "relative")}>
               Open Prediction Studio

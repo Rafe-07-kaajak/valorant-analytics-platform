@@ -16,7 +16,7 @@ const FEATURES = [
     icon: Dna,
     title: "Team DNA",
     description:
-      "Long-term team characteristics — aggression, consistency, adaptability, clutch performance — compressed into a single identity.",
+      "Long-term team characteristics: aggression, consistency, adaptability, and clutch performance, compressed into a single identity.",
   },
   {
     icon: MessageSquareText,

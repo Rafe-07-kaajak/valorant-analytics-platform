@@ -79,7 +79,7 @@ export function TeamControlsPanel({
         </span>
         <p className="text-xs text-muted-foreground">
           Tracked on the simulated profile and visible in the Change Breakdown, but the current model doesn&apos;t
-          weigh these five directly — adjusting them won&apos;t move the headline probability below.
+          weigh these five directly. Adjusting them won&apos;t move the headline probability below.
         </p>
         {ADDITIONAL_CONTROLS.map((control) => (
           <AttributeSlider
