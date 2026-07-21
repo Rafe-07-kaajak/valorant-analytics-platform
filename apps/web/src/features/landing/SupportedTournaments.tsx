@@ -1,13 +1,14 @@
 import { Badge, Container, ScrollReveal, Section } from "@repo/ui";
-import { MediaBackground } from "../../components/media/MediaBackground";
-import { MEDIA_ASSETS } from "../../constants/media";
 
 const TOURNAMENTS = ["VCT Americas", "VCT EMEA", "VCT Pacific", "VCT China", "Masters", "Champions"];
 
 export function SupportedTournaments() {
   return (
     <Section className="relative overflow-hidden py-xl sm:py-2xl">
-      <MediaBackground asset={MEDIA_ASSETS.dataStreamBackground} className="opacity-[0.06]" />
+      <div
+        className="pointer-events-none absolute inset-0 bg-[url('/assets/redesign/textures/data-streams.png')] bg-cover bg-center opacity-[0.06]"
+        aria-hidden="true"
+      />
       <Container className="relative flex flex-col items-center gap-md text-center">
         <ScrollReveal>
           <p className="text-sm font-medium text-muted-foreground">

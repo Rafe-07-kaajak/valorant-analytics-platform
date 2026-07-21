@@ -23,12 +23,16 @@ test("direct navigation to /team-comparison renders the page on refresh", async 
 
 test("nav includes a Comparison Lab entry with correct active state", async ({ page }) => {
   await page.goto("/");
-  const navLink = page.getByRole("navigation").getByRole("link", { name: "Comparison Lab" });
+  // Scoped to the header's "Primary" nav landmark: the footer also has its
+  // own labeled nav with the same link names, which makes a bare
+  // getByRole("navigation") ambiguous (two landmarks match).
+  const primaryNav = page.getByRole("navigation", { name: "Primary" });
+  const navLink = primaryNav.getByRole("link", { name: "Comparison Lab" });
   await expect(navLink).toBeVisible();
 
   await navLink.click();
   await expect(page).toHaveURL(/team-comparison/, { timeout: 15_000 });
-  await expect(page.getByRole("navigation").getByRole("link", { name: "Comparison Lab" })).toHaveAttribute(
+  await expect(primaryNav.getByRole("link", { name: "Comparison Lab" })).toHaveAttribute(
     "aria-current",
     "page",
   );
@@ -129,7 +133,7 @@ test("mobile layout stacks selectors and tabs without horizontal overflow", asyn
   expect(scrollWidthAfter).toBeLessThanOrEqual(clientWidth + 1);
 });
 
-test("light and dark themes are accessible with a full comparison rendered", async ({ page }) => {
+test("the page is accessible with a full comparison rendered", async ({ page }) => {
   await page.goto("/team-comparison");
   await selectTeam(page, "A", "Pacific", "Paper Rex");
   await selectTeam(page, "B", "Americas", "G2 Esports");
@@ -139,11 +143,6 @@ test("light and dark themes are accessible with a full comparison rendered", asy
   // lower-opacity, which reads as a false-positive contrast violation.
   await page.waitForTimeout(400);
 
-  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-
-  await page.getByRole("button", { name: "Toggle color theme" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
-  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 

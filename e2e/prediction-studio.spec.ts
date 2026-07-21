@@ -191,29 +191,6 @@ test("full scenario submission works using only the keyboard", async ({ page }) 
   await expect(page.getByRole("heading", { name: "Match DNA" })).toBeVisible();
 });
 
-test("full scenario submission works and is accessible in dark mode", async ({ page }) => {
-  await page.goto("/prediction-studio");
-  await page.getByRole("button", { name: "Toggle color theme" }).click();
-
-  await selectTeam(page, "A", "Pacific", "Paper Rex");
-  await selectTeam(page, "B", "Americas", "G2 Esports");
-  await page.getByRole("button", { name: "Ascent" }).click();
-  await page.getByRole("button", { name: "Haven" }).click();
-  await page.getByRole("button", { name: "Bind" }).click();
-  await page.getByRole("button", { name: "Generate Prediction" }).click();
-
-  // A generous timeout absorbs Next.js dev-mode compile/request latency
-  // under concurrent e2e load (same rationale as landing.spec.ts's
-  // navigation timeouts) — not a UI regression.
-  await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
-
-  // Same rationale as the light-mode scan above.
-  await page.waitForTimeout(400);
-
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-});
-
 test("mobile layout stacks Team A, VS, and Team B without horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/prediction-studio");

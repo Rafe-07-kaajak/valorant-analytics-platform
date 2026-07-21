@@ -152,18 +152,13 @@ test("mobile layout renders the breakdown tabs without horizontal overflow", asy
   expect(scrollWidthAfter).toBeLessThanOrEqual(clientWidth + 1);
 });
 
-test("light and dark themes are accessible with the breakdown rendered", async ({ page }) => {
+test("the page is accessible with the breakdown rendered", async ({ page }) => {
   await generatePrediction(page);
   // Let the result's motion-safe entrance transition settle before scanning
   // — mid-transition text is briefly lower-opacity, which reads as a
   // false-positive contrast violation (same rationale as team-comparison.spec.ts).
   await page.waitForTimeout(400);
 
-  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-
-  await page.getByRole("button", { name: "Toggle color theme" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
-  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 

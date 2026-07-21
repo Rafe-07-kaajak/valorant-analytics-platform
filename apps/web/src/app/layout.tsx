@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
-import Link from "next/link";
-import { cn, focusRing, Footer } from "@repo/ui";
 import { SiteNavbar } from "../components/SiteNavbar";
+import { SiteFooter } from "../components/SiteFooter";
 import { MotionProvider } from "../components/MotionProvider";
 import { CursorTracker } from "../components/effects/CursorTracker";
 import { CursorSpotlight } from "../components/effects/CursorSpotlight";
-import { MediaBackground } from "../components/media/MediaBackground";
 import { MEDIA_ASSETS } from "../constants/media";
 import "./globals.css";
 
@@ -71,33 +69,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}>
+    // Dark is the only theme the application supports. `data-theme="dark"`
+    // is set here, in the server-rendered markup, rather than by a client
+    // effect after mount (the previous `useTheme` mechanism) — the CSS
+    // system (tokens.css's `[data-theme="dark"]` block) already expects
+    // this exact attribute, and setting it here means server HTML and the
+    // first client render are byte-for-byte identical from the start: no
+    // "light by default, then flip to dark after hydration" step exists to
+    // ever produce a flash. `colorScheme: "dark"` hints native form
+    // controls/scrollbars to render dark without waiting on any CSS load.
+    <html
+      lang="en"
+      data-theme="dark"
+      style={{ colorScheme: "dark" }}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}
+    >
       <body className="antialiased">
         <CursorTracker />
         <CursorSpotlight />
         <MotionProvider>
           <SiteNavbar links={navLinks} />
           <main>{children}</main>
-          <div className="relative overflow-hidden">
-            <MediaBackground asset={MEDIA_ASSETS.footerBackground} className="opacity-[0.1]" scrim="bottom" />
-            <div className="relative">
-              <Footer
-                logo={
-                  <Link
-                    href="/"
-                    className={cn(
-                      "rounded-sm text-sm font-semibold text-foreground transition-opacity duration-(--duration-fast) ease-(--ease-standard) hover:opacity-80 focus-visible:opacity-80",
-                      focusRing,
-                    )}
-                  >
-                    Valorant Analytics
-                  </Link>
-                }
-                tagline="Explainable predictions for professional VALORANT matches."
-                links={navLinks}
-              />
-            </div>
-          </div>
+          <SiteFooter links={navLinks} />
         </MotionProvider>
       </body>
     </html>

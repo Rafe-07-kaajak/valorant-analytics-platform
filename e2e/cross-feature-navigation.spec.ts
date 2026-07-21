@@ -197,17 +197,12 @@ test("mobile layout renders cross-feature links without horizontal overflow", as
   expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
 });
 
-test("light and dark themes are accessible with cross-feature links rendered", async ({ page }) => {
+test("the page is accessible with cross-feature links rendered", async ({ page }) => {
   await page.goto("/team-comparison");
   await selectTeam(page, "A", "Pacific", "Paper Rex");
   await selectTeam(page, "B", "Americas", "G2 Esports");
   await page.waitForTimeout(400);
 
-  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-
-  await page.getByRole("button", { name: "Toggle color theme" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
-  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 

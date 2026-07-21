@@ -155,15 +155,10 @@ test("mobile layout renders the simulator without horizontal overflow", async ({
   expect(scrollWidthAfter).toBeLessThanOrEqual(clientWidth + 1);
 });
 
-test("light and dark themes are accessible with the simulator rendered", async ({ page }) => {
+test("the page is accessible with the simulator rendered", async ({ page }) => {
   await generatePrediction(page);
   await page.waitForTimeout(400);
 
-  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-
-  await page.getByRole("button", { name: "Toggle color theme" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 15_000 });
-  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 

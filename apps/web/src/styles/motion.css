@@ -25,3 +25,84 @@
     animation: none;
   }
 }
+
+/* TASK-052 — Hero layer motion. A short, seamless, restrained loop applied
+   to the desktop hero's Jett/Omen/map-core/HUD/foreground layers (never the
+   background layer, which stays static). Transform/opacity/filter only
+   (GPU-cheap), small enough movement (a few px, ~1% scale) that no layer
+   ever exposes its canvas edge, and independent durations/easings so the
+   loop never reads as mechanical. Already fully covered by the global
+   prefers-reduced-motion rule above (near-zero duration, single iteration
+   settles every layer back to its 0%/100% resting position) — no separate
+   component-level branch needed, matching the AnimatedGradient pattern in
+   gradients.css. */
+
+@theme {
+  --animate-hero-jett: hero-drift-jett 13s ease-in-out infinite;
+  --animate-hero-omen: hero-drift-omen 16s ease-in-out infinite;
+  --animate-hero-core: hero-pulse-core 9s ease-in-out infinite;
+  --animate-hero-hud: hero-pulse-hud 7s ease-in-out infinite;
+  --animate-hero-foreground: hero-drift-foreground 20s ease-in-out infinite;
+}
+
+@keyframes hero-drift-jett {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-3px, 2px, 0) scale(1.006);
+  }
+}
+
+@keyframes hero-drift-omen {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4px, -3px, 0) scale(1.005);
+  }
+}
+
+@keyframes hero-pulse-core {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.012);
+    opacity: 0.96;
+  }
+}
+
+@keyframes hero-pulse-hud {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-drift-foreground {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(2px, -2px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-jett,
+  .animate-hero-omen,
+  .animate-hero-core,
+  .animate-hero-hud,
+  .animate-hero-foreground {
+    animation: none;
+  }
+}

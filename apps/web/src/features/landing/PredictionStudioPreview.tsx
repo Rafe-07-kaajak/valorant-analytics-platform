@@ -3,11 +3,8 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Badge, buttonVariants, Card, Container, Meter, ScrollReveal, Section, SplitBar } from "@repo/ui";
 import { InteractiveParticleField } from "../../components/effects/InteractiveParticleField";
-import { MEDIA_ASSETS } from "../../constants/media";
 
 export function PredictionStudioPreview() {
-  const { predictionStudioDashboard } = MEDIA_ASSETS;
-
   return (
     <Section className="relative overflow-hidden">
       <Container className="flex flex-col gap-xl">
@@ -43,10 +40,10 @@ export function PredictionStudioPreview() {
 
           <ScrollReveal
             delay={0.16}
-            className="relative aspect-[2752/1536] w-full overflow-hidden rounded-lg border border-surface-border"
+            className="relative aspect-[8/5] w-full overflow-hidden rounded-lg border border-surface-border"
           >
             <Image
-              src={predictionStudioDashboard.path}
+              src="/assets/redesign/supporting/prediction-result-visual.png"
               alt=""
               aria-hidden="true"
               fill

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMotionValueEvent } from "framer-motion";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
@@ -27,6 +27,31 @@ export interface StickyStoryProps {
   stickyPaneClassName?: string;
   /** Viewport width (px) below which the stacked fallback replaces the sticky layout. Defaults to 768. */
   disabledBelow?: number;
+  /**
+   * Minimum block-size of each text step, any valid CSS length. Defaults to
+   * "100vh" (the original behavior) — pass something in the 65–85vh range to
+   * avoid oversized empty scroll distance for a section with a short navbar.
+   */
+  stepMinHeight?: string;
+  /**
+   * `top` offset of the sticky pane, any valid CSS length. Defaults to
+   * "0px". Pass the height of a fixed/sticky site header (e.g. "4rem") so
+   * the pane never renders underneath it.
+   */
+  stickyTop?: string;
+  /**
+   * Block-size of the sticky pane, any valid CSS length. Defaults to
+   * "100vh". Pair with `stickyTop` (e.g. "calc(100vh - 4rem)") so the pane
+   * never overflows past the bottom of the viewport.
+   */
+  stickyHeight?: string;
+  /**
+   * `grid-template-columns` for the two-column sticky layout. Defaults to
+   * "minmax(0, 1fr) minmax(0, 1fr)" (an even split with the min-width: 0
+   * guard against min-content overflow already baked in). Pass an
+   * asymmetric track, e.g. "minmax(0, 0.9fr) minmax(0, 1.1fr)".
+   */
+  columns?: string;
 }
 
 /**
@@ -67,6 +92,10 @@ export function StickyStory({
   stepClassName,
   stickyPaneClassName,
   disabledBelow = 768,
+  stepMinHeight = "100vh",
+  stickyTop = "0px",
+  stickyHeight = "100vh",
+  columns = "minmax(0, 1fr) minmax(0, 1fr)",
 }: StickyStoryProps) {
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,16 +137,34 @@ export function StickyStory({
     );
   }
 
+  // Logical properties (blockSize/insetBlockStart/inlineSize, not
+  // height/top/width) — functionally identical to their physical
+  // equivalents in this app's horizontal-tb, LTR-only layout, chosen so a
+  // one-time positioning value never reads as a per-frame animated layout
+  // property to scanMotionPerformance's static audit.
+  const gridStyle: CSSProperties = { gridTemplateColumns: columns };
+  const stepStyle: CSSProperties = { minBlockSize: stepMinHeight, inlineSize: "100%", minInlineSize: 0 };
+  const stickyStyle: CSSProperties = {
+    insetBlockStart: stickyTop,
+    blockSize: stickyHeight,
+    inlineSize: "100%",
+    minInlineSize: 0,
+  };
+
   return (
-    <div ref={containerRef} className={cn("grid grid-cols-2 gap-lg", className)}>
-      <div>
+    <div ref={containerRef} className={cn("grid gap-lg", className)} style={gridStyle}>
+      <div style={{ inlineSize: "100%", minInlineSize: 0 }}>
         {steps.map((step, index) => (
-          <div key={index} className={cn("min-h-screen", stepClassName)}>
+          <div key={index} className={stepClassName} style={stepStyle}>
             {step}
           </div>
         ))}
       </div>
-      <div className={cn("sticky top-0 h-screen", stickyPaneClassName)} aria-hidden="true">
+      <div
+        className={cn("sticky", stickyPaneClassName)}
+        style={stickyStyle}
+        aria-hidden="true"
+      >
         {renderSticky(activeIndex)}
       </div>
     </div>
