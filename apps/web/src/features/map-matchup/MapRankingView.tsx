@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { Label, Select, SplitBar, cn } from "@repo/ui";
 import { usePointerGlow } from "../../hooks/usePointerGlow";
 import { AdvantageBadge } from "../team-comparison/AdvantageBadge";
+import { MapThumbnail } from "../team-comparison/MapThumbnail";
 import { SORT_MODES, type MapRankingRow, type SortMode } from "../../lib/mapMatchup";
 
 export interface MapRankingViewProps {
@@ -115,6 +116,7 @@ function MapRankingRowCard({
       >
         <div className="flex flex-wrap items-center justify-between gap-2xs">
           <span className="flex items-center gap-2xs font-medium text-foreground">
+            <MapThumbnail mapId={row.mapId} size="sm" />
             {row.mapName}
             {row.selected ? (
               // Icon carries the accent color (non-text, only needs 3:1); the

@@ -3,9 +3,12 @@
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
 import type { GameMap } from "@repo/shared";
 import { Card, Container, Section, Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 import type { VctRegion, VctTeam } from "../../constants/vct";
 import { VctTeamSideSelector, type SideSelection } from "../prediction-studio/VctTeamSideSelector";
+import { SyntheticScenarioBadge } from "../prediction-studio/SyntheticScenarioBadge";
 import { ComparisonEmptyState } from "../team-comparison/ComparisonEmptyState";
+import { MapExplorerHeader } from "./MapExplorerHeader";
 import {
   adaptDisclosureForComparison,
   compareMaps,
@@ -138,17 +141,20 @@ export function MapMatchupClient({
   const hasBothTeams = Boolean(selectedTeamA && selectedTeamB && profileA && profileB && mapRows && rankedRows);
 
   return (
-    <Section>
-      <Container className="flex flex-col gap-lg">
-        <div>
-          <h1>Map Matchup Explorer</h1>
-          <p className="text-muted-foreground">
-            Select any two of the 32 VCT Stage 1 teams and inspect their modeled matchup across every
-            supported map.
-          </p>
-        </div>
+    <Section className="relative overflow-hidden">
+      <AmbientSectionBackground
+        wash="var(--gradient-map-explorer-ambient)"
+        texture={{ src: "/assets/redesign/textures/tactical-grid.png", opacity: 0.05 }}
+      />
 
-        <Card className="flex flex-col gap-lg">
+      <Container className="relative flex flex-col gap-lg">
+        <MapExplorerHeader />
+
+        <Card variant="result" className="flex flex-col gap-lg">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Competitive context
+          </span>
+
           <div className="flex flex-col gap-lg lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:gap-md">
             <VctTeamSideSelector
               side="A"
@@ -180,7 +186,7 @@ export function MapMatchupClient({
             />
           </div>
 
-          <p className="text-xs text-muted-foreground">{explorerDisclosure}</p>
+          <SyntheticScenarioBadge disclosure={explorerDisclosure} />
         </Card>
 
         <AnalyticsContextLinks currentFeature="map-matchup" state={urlState} placement="compact" />
@@ -192,15 +198,18 @@ export function MapMatchupClient({
           </p>
         ) : hasBothTeams && rankedRows && selectedTeamA && selectedTeamB ? (
           <div className="flex flex-col gap-lg motion-safe:transition-[opacity,transform] motion-safe:duration-(--duration-panel) motion-safe:ease-(--ease-standard) motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0">
-            <MapPoolControls
-              maps={maps}
-              selectedMapIds={selectedMapIds}
-              closeMapCount={closeMapIds.length}
-              onToggle={(mapId) => setSelectedMapIds((current) => toggleMapSelection(current, mapId))}
-              onSelectAll={() => setSelectedMapIds(selectAllMaps(maps))}
-              onClear={() => setSelectedMapIds(clearMapSelection())}
-              onSelectClose={() => setSelectedMapIds(closeMapIds)}
-            />
+            <Card variant="result" className="flex flex-col gap-md">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Map pool</span>
+              <MapPoolControls
+                maps={maps}
+                selectedMapIds={selectedMapIds}
+                closeMapCount={closeMapIds.length}
+                onToggle={(mapId) => setSelectedMapIds((current) => toggleMapSelection(current, mapId))}
+                onSelectAll={() => setSelectedMapIds(selectAllMaps(maps))}
+                onClear={() => setSelectedMapIds(clearMapSelection())}
+                onSelectClose={() => setSelectedMapIds(closeMapIds)}
+              />
+            </Card>
 
             <Tabs defaultValue="ranking">
               <TabsList aria-label="Map matchup views">

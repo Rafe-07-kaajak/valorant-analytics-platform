@@ -188,6 +188,34 @@
       color-mix(in oklab, var(--color-accent-blue) 10%, transparent) 0%,
       transparent 60%
     );
+
+  /* TASK-058 — Map Explorer's page-level ambient identity: a "spatial
+     console" wash distinct from Prediction Studio's single cyan/blue sweep,
+     Historical Replay's archival amber glow, and Comparison Lab's
+     split-seam versus framing. A broad cyan glow sits high (behind the
+     selected-map hero), a more restrained acid-green glow (--color-accent-
+     lime, otherwise unused in this file) sits lower behind the filter
+     console/analysis zone, mirroring this feature's own attack (cyan) /
+     defense (acid-green) color language, over a low, cool vertical base so
+     the page reads as a dark tactical console rather than a lit dashboard.
+     Capped at the same 10-20% range the rest of this file uses for
+     page-level washes. */
+  --gradient-map-explorer-ambient: radial-gradient(
+      at 28% 14%,
+      color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 78% 58%,
+      color-mix(in oklab, var(--color-accent-lime) 14%, transparent) 0%,
+      transparent 50%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-brand-600) 12%, transparent) 0%,
+      transparent 55%,
+      transparent 100%
+    );
 }
 
 /* Dark ambient gradient — a page-level backdrop wash, authored for the

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Card } from "@repo/ui";
 import { AdvantageBadge } from "../team-comparison/AdvantageBadge";
+import { MapThumbnail } from "../team-comparison/MapThumbnail";
 import type { MapComparisonRow, PoolAggregate } from "../../lib/mapMatchup";
 
 export interface SelectedPoolViewProps {
@@ -87,7 +88,10 @@ export function SelectedPoolView({ teamAName, teamBName, aggregate, summary, poo
               key={row.mapId}
               className="flex items-center justify-between gap-sm rounded-md border border-surface-border bg-surface p-2xs text-sm"
             >
-              <span className="text-foreground">{row.mapName}</span>
+              <span className="flex items-center gap-2xs text-foreground">
+                <MapThumbnail mapId={row.mapId} size="sm" />
+                {row.mapName}
+              </span>
               <span className="text-muted-foreground">
                 {teamAName} {Math.round(row.scoreA)} · {teamBName} {Math.round(row.scoreB)}
               </span>
@@ -121,7 +125,14 @@ function HighlightCard({ label, row }: { label: string; row: MapComparisonRow | 
   return (
     <Card className="flex flex-col gap-2xs">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{row ? row.mapName : "Not available"}</span>
+      {row ? (
+        <span className="flex items-center gap-2xs">
+          <MapThumbnail mapId={row.mapId} size="sm" />
+          <span className="font-medium text-foreground">{row.mapName}</span>
+        </span>
+      ) : (
+        <span className="font-medium text-foreground">Not available</span>
+      )}
       {row ? <span className="text-sm text-muted-foreground">Modeled gap: {row.magnitude}</span> : null}
     </Card>
   );
