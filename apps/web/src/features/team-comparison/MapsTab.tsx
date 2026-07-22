@@ -1,6 +1,7 @@
 import { SplitBar } from "@repo/ui";
 import { AdvantageBadge } from "./AdvantageBadge";
 import { MapHighlightCard } from "./MapHighlightCard";
+import { MapThumbnail } from "./MapThumbnail";
 import type { MapComparisonRow, MapHighlight } from "../../lib/teamComparison";
 
 export interface MapsTabProps {
@@ -39,17 +40,23 @@ export function MapsTab({
       </div>
 
       <div className="grid grid-cols-1 gap-sm sm:grid-cols-2">
-        <div className="rounded-md border border-surface-border bg-surface p-sm text-sm">
-          <span className="font-medium text-foreground">Most evenly matched map</span>
-          <p className="text-muted-foreground">
-            {mostEvenMap ? `${mostEvenMap.mapName}: modeled gap of ${mostEvenMap.magnitude}` : "Not available"}
-          </p>
+        <div className="flex items-center gap-sm rounded-md border border-surface-border bg-surface p-sm text-sm">
+          {mostEvenMap ? <MapThumbnail mapId={mostEvenMap.mapId} /> : null}
+          <div>
+            <span className="font-medium text-foreground">Most evenly matched map</span>
+            <p className="text-muted-foreground">
+              {mostEvenMap ? `${mostEvenMap.mapName}: modeled gap of ${mostEvenMap.magnitude}` : "Not available"}
+            </p>
+          </div>
         </div>
-        <div className="rounded-md border border-surface-border bg-surface p-sm text-sm">
-          <span className="font-medium text-foreground">Largest modeled gap</span>
-          <p className="text-muted-foreground">
-            {largestGapMap ? `${largestGapMap.mapName}: modeled gap of ${largestGapMap.magnitude}` : "Not available"}
-          </p>
+        <div className="flex items-center gap-sm rounded-md border border-surface-border bg-surface p-sm text-sm">
+          {largestGapMap ? <MapThumbnail mapId={largestGapMap.mapId} /> : null}
+          <div>
+            <span className="font-medium text-foreground">Largest modeled gap</span>
+            <p className="text-muted-foreground">
+              {largestGapMap ? `${largestGapMap.mapName}: modeled gap of ${largestGapMap.magnitude}` : "Not available"}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -58,18 +65,21 @@ export function MapsTab({
           <div
             key={row.mapId}
             role="listitem"
-            className="flex flex-col gap-2xs rounded-md p-2xs transition-colors duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-border/30 focus-within:bg-surface-border/30"
+            className="flex items-center gap-sm rounded-md p-2xs transition-colors duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-border/30 focus-within:bg-surface-border/30"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2xs">
-              <span className="text-sm font-medium text-foreground">{row.mapName}</span>
-              <AdvantageBadge advantage={row.advantage} tier={row.tier} teamAName={teamAName} teamBName={teamBName} />
+            <MapThumbnail mapId={row.mapId} size="md" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-2xs">
+                <span className="text-sm font-medium text-foreground">{row.mapName}</span>
+                <AdvantageBadge advantage={row.advantage} tier={row.tier} teamAName={teamAName} teamBName={teamBName} />
+              </div>
+              <SplitBar
+                segments={[
+                  { id: "a", label: teamAName, value: row.scoreA, color: "var(--team-a)" },
+                  { id: "b", label: teamBName, value: row.scoreB, color: "var(--team-b)" },
+                ]}
+              />
             </div>
-            <SplitBar
-              segments={[
-                { id: "a", label: teamAName, value: row.scoreA, color: "var(--team-a)" },
-                { id: "b", label: teamBName, value: row.scoreB, color: "var(--team-b)" },
-              ]}
-            />
           </div>
         ))}
       </div>

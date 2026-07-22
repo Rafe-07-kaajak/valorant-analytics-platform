@@ -1,4 +1,5 @@
 import type { Team, TeamDna } from "@repo/shared";
+import { Card, cn } from "@repo/ui";
 import { DnaComparisonRadar } from "../match-dna/DnaComparisonRadar";
 import { AdvantageBadge } from "./AdvantageBadge";
 import type { ComparisonMetric } from "../../lib/teamComparison";
@@ -23,9 +24,9 @@ export function TeamDnaTab({ teamA, teamADna, teamB, teamBDna, dimensionRows }: 
 
   return (
     <div className="flex flex-col gap-lg">
-      <div className="flex justify-center">
+      <Card variant="metric" className="flex justify-center">
         <DnaComparisonRadar teamA={teamA} teamADna={teamADna} teamB={teamB} teamBDna={teamBDna} />
-      </div>
+      </Card>
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[24rem] border-collapse text-sm">
@@ -72,17 +73,30 @@ export function TeamDnaTab({ teamA, teamADna, teamB, teamBDna, dimensionRows }: 
       </div>
 
       <div className="grid grid-cols-1 gap-sm sm:grid-cols-3">
-        <DnaSummaryList title={`${teamA.name} is stronger in`} rows={strongerForA} />
-        <DnaSummaryList title={`${teamB.name} is stronger in`} rows={strongerForB} />
+        <DnaSummaryList title={`${teamA.name} is stronger in`} rows={strongerForA} accent="team-a" />
+        <DnaSummaryList title={`${teamB.name} is stronger in`} rows={strongerForB} accent="team-b" />
         <DnaSummaryList title="Balanced dimensions" rows={balanced} />
       </div>
     </div>
   );
 }
 
-function DnaSummaryList({ title, rows }: { title: string; rows: ComparisonMetric[] }) {
+function DnaSummaryList({
+  title,
+  rows,
+  accent,
+}: {
+  title: string;
+  rows: ComparisonMetric[];
+  accent?: "team-a" | "team-b";
+}) {
   return (
-    <div className="flex flex-col gap-2xs rounded-md border border-surface-border bg-surface p-sm">
+    <div
+      className={cn(
+        "flex flex-col gap-2xs rounded-md border bg-surface p-sm",
+        accent === "team-a" ? "border-team-a/30" : accent === "team-b" ? "border-team-b/30" : "border-surface-border",
+      )}
+    >
       <span className="text-sm font-medium text-foreground">{title}</span>
       {rows.length === 0 ? (
         <span className="text-sm text-muted-foreground">None</span>

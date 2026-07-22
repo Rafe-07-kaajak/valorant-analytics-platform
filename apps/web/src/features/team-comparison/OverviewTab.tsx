@@ -1,4 +1,4 @@
-import { SplitBar } from "@repo/ui";
+import { SplitBar, cn } from "@repo/ui";
 import { AdvantageBadge } from "./AdvantageBadge";
 import { MapHighlightCard } from "./MapHighlightCard";
 import type { ComparisonMetric, MapHighlight } from "../../lib/teamComparison";
@@ -35,7 +35,10 @@ export function OverviewTab({
     <div className="flex flex-col gap-lg">
       <div className="flex flex-col gap-md">
         {barMetrics.map((metric) => (
-          <div key={metric.key} className="flex flex-col gap-2xs">
+          <div
+            key={metric.key}
+            className={cn("flex flex-col gap-2xs", metric.tier === "none" && "opacity-70")}
+          >
             <div className="flex flex-wrap items-center justify-between gap-2xs">
               <span className="text-sm font-medium text-foreground">{metric.label}</span>
               <AdvantageBadge

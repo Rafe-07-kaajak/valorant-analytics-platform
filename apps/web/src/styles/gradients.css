@@ -159,6 +159,35 @@
       color-mix(in oklab, var(--color-accent-blue) 10%, transparent) 55%,
       transparent 92%
     );
+
+  /* TASK-057 — Comparison Lab's page-level ambient identity: a "split-energy"
+     wash rather than the single-hue vertical sweep used by Prediction
+     Studio/Historical Replay, matching this page's versus framing (Team A
+     cyan/blue on the left, Team B magenta/coral on the right, a graphite/
+     indigo neutral field behind both). A soft vertical seam sits at center so
+     the two halves visibly meet rather than blend into a muddy middle. Capped
+     at the same 14-20% range the rest of this file uses for page-level washes. */
+  --gradient-comparison-lab-ambient: radial-gradient(
+      at 15% 25%,
+      color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 85% 30%,
+      color-mix(in oklab, var(--color-accent-magenta) 18%, transparent) 0%,
+      transparent 50%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--color-brand-400) 10%, transparent) 50%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-accent-blue) 10%, transparent) 0%,
+      transparent 60%
+    );
 }
 
 /* Dark ambient gradient — a page-level backdrop wash, authored for the

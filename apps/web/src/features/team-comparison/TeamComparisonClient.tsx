@@ -3,8 +3,10 @@
 import { useMemo } from "react";
 import type { GameMap } from "@repo/shared";
 import { Card, Container, Section, Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 import type { VctRegion, VctTeam } from "../../constants/vct";
 import { VctTeamSideSelector, type SideSelection } from "../prediction-studio/VctTeamSideSelector";
+import { SyntheticScenarioBadge } from "../prediction-studio/SyntheticScenarioBadge";
 import { toPredictionTeam } from "../../lib/toPredictionTeam";
 import {
   adaptDisclosureForComparison,
@@ -16,6 +18,9 @@ import { AnalyticsContextLinks } from "../../components/AnalyticsContextLinks";
 import { useCanonicalUrlState } from "../../hooks/useCanonicalUrlState";
 import { EMPTY_CANONICAL_URL_STATE, withRegionA, withRegionB, withTeamA, withTeamB, type CanonicalFieldKey, type CanonicalUrlState } from "../../lib/urlState";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";
+import { TeamComparisonHeader } from "./TeamComparisonHeader";
+import { ComparisonCore } from "./ComparisonCore";
+import { ComparisonHero } from "./ComparisonHero";
 import { OverviewTab } from "./OverviewTab";
 import { TeamDnaTab } from "./TeamDnaTab";
 import { MapsTab } from "./MapsTab";
@@ -73,50 +78,50 @@ export function TeamComparisonClient({
     return compareDnaDimensions(profileA.dna, profileB.dna);
   }, [profileA, profileB]);
 
+  const bothSelected = Boolean(teamASelection.teamId && teamBSelection.teamId);
+
   return (
-    <Section>
-      <Container className="flex flex-col gap-lg">
-        <div>
-          <h1>Team Comparison Lab</h1>
-          <p className="text-muted-foreground">
-            Select any two of the 32 VCT Stage 1 teams to compare their modeled profiles side by side,
-            no match prediction required.
-          </p>
-        </div>
+    <Section className="relative overflow-hidden">
+      <AmbientSectionBackground
+        wash="var(--gradient-comparison-lab-ambient)"
+        texture={{ src: "/assets/redesign/textures/tactical-grid.png", opacity: 0.05 }}
+      />
+
+      <Container className="relative flex flex-col gap-lg">
+        <TeamComparisonHeader />
 
         <Card className="flex flex-col gap-lg">
-          <div className="flex flex-col gap-lg lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:gap-md">
-            <VctTeamSideSelector
-              side="A"
-              regions={regions}
-              teams={teams}
-              regionId={teamASelection.regionId}
-              teamId={teamASelection.teamId}
-              opposingTeamId={teamBSelection.teamId}
-              onRegionChange={(regionId) => setUrlState((current) => withRegionA(current, regionId))}
-              onTeamChange={(teamId) => setUrlState((current) => withTeamA(current, teamId))}
-            />
-
-            <div
-              aria-hidden="true"
-              className="flex items-center justify-center text-sm font-semibold uppercase tracking-wide text-muted-foreground lg:h-full"
-            >
-              VS
+          <div className="grid grid-cols-1 gap-lg lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.4fr)_minmax(0,1fr)] lg:items-start lg:gap-md">
+            <div className="min-w-0 rounded-lg border border-team-a/20 bg-[image:linear-gradient(180deg,color-mix(in_oklab,var(--team-a)_8%,transparent),transparent_60%)] p-sm">
+              <VctTeamSideSelector
+                side="A"
+                regions={regions}
+                teams={teams}
+                regionId={teamASelection.regionId}
+                teamId={teamASelection.teamId}
+                opposingTeamId={teamBSelection.teamId}
+                onRegionChange={(regionId) => setUrlState((current) => withRegionA(current, regionId))}
+                onTeamChange={(teamId) => setUrlState((current) => withTeamA(current, teamId))}
+              />
             </div>
 
-            <VctTeamSideSelector
-              side="B"
-              regions={regions}
-              teams={teams}
-              regionId={teamBSelection.regionId}
-              teamId={teamBSelection.teamId}
-              opposingTeamId={teamASelection.teamId}
-              onRegionChange={(regionId) => setUrlState((current) => withRegionB(current, regionId))}
-              onTeamChange={(teamId) => setUrlState((current) => withTeamB(current, teamId))}
-            />
+            <ComparisonCore ready={bothSelected} />
+
+            <div className="min-w-0 rounded-lg border border-team-b/20 bg-[image:linear-gradient(180deg,color-mix(in_oklab,var(--team-b)_8%,transparent),transparent_60%)] p-sm">
+              <VctTeamSideSelector
+                side="B"
+                regions={regions}
+                teams={teams}
+                regionId={teamBSelection.regionId}
+                teamId={teamBSelection.teamId}
+                opposingTeamId={teamASelection.teamId}
+                onRegionChange={(regionId) => setUrlState((current) => withRegionB(current, regionId))}
+                onTeamChange={(teamId) => setUrlState((current) => withTeamB(current, teamId))}
+              />
+            </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">{comparisonDisclosure}</p>
+          <SyntheticScenarioBadge disclosure={comparisonDisclosure} />
         </Card>
 
         <AnalyticsContextLinks currentFeature="team-comparison" state={urlState} placement="compact" />
@@ -128,9 +133,15 @@ export function TeamComparisonClient({
           </p>
         ) : viewModel && selectedTeamA && selectedTeamB && dnaRows ? (
           <div className="flex flex-col gap-lg motion-safe:transition-[opacity,transform] motion-safe:duration-(--duration-panel) motion-safe:ease-(--ease-standard) motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0">
-            <Card>
-              <p className="text-foreground">{viewModel.summary}</p>
-            </Card>
+            <ComparisonHero
+              teamAName={selectedTeamA.name}
+              teamBName={selectedTeamB.name}
+              summary={viewModel.summary}
+              headlineMetric={viewModel.metrics[0]!}
+              topFactor={viewModel.factors[0]}
+              strongestA={viewModel.strongestA}
+              strongestB={viewModel.strongestB}
+            />
 
             <Tabs defaultValue="overview">
               <TabsList aria-label="Comparison views">
