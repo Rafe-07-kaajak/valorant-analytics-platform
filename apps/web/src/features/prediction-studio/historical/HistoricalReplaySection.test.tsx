@@ -39,11 +39,15 @@ function catalogWithOneMatch(): HistoricalCatalogResponse {
         matchInternalId: "vlr:match:1001",
         scheduledAt: "2026-02-20T05:00:00.000Z",
         eventFamily: "masters",
+        eventName: "Valorant Masters Bangkok 2025",
         eventRegion: "international",
         tournamentLevel: "tier-1",
+        matchStageDisplay: "Grand Final",
         seriesFormat: "BO3",
         teamAProviderId: "vlr:team:1120",
         teamBProviderId: "vlr:team:474",
+        teamADisplayName: "Sentinels",
+        teamBDisplayName: "Paper Rex",
         modelEligible: true,
         featureDatasetVersion: "64591ef5a24f9a0b",
       },
@@ -61,11 +65,15 @@ function predictionResult(): HistoricalPredictionResponse {
       matchInternalId: "vlr:match:1001",
       scheduledAt: "2026-02-20T05:00:00.000Z",
       eventFamily: "masters",
+      eventName: "Valorant Masters Bangkok 2025",
       eventRegion: "international",
       tournamentLevel: "tier-1",
+      matchStageDisplay: "Grand Final",
       seriesFormat: "BO3",
       teamAProviderId: "vlr:team:1120",
       teamBProviderId: "vlr:team:474",
+      teamADisplayName: "Sentinels",
+      teamBDisplayName: "Paper Rex",
     },
     modelVersion: "aa85997f41de1264",
     estimatorType: "elo-baseline",
@@ -118,7 +126,7 @@ describe("HistoricalReplaySection", () => {
 
     const group = await screen.findByRole("group", { name: "Historical matches" });
     expect(group).toBeInTheDocument();
-    expect(screen.getByText(/vlr:team:1120 vs vlr:team:474/)).toBeInTheDocument();
+    expect(screen.getByText(/Sentinels vs Paper Rex/)).toBeInTheDocument();
   });
 
   it("shows an empty state when the catalog has no matches", async () => {
@@ -132,7 +140,7 @@ describe("HistoricalReplaySection", () => {
     installFetchMock({ readiness: () => availableReadiness(), catalog: () => catalogWithOneMatch(), predict: () => predictionResult() });
     render(<HistoricalReplaySection />);
 
-    const matchButton = await screen.findByRole("button", { name: /vlr:team:1120 vs vlr:team:474/ });
+    const matchButton = await screen.findByRole("button", { name: /Sentinels vs Paper Rex/ });
     fireEvent.click(matchButton);
 
     await screen.findByText("Real trained model");
@@ -156,7 +164,7 @@ describe("HistoricalReplaySection", () => {
     );
     render(<HistoricalReplaySection />);
 
-    const matchButton = await screen.findByRole("button", { name: /vlr:team:1120 vs vlr:team:474/ });
+    const matchButton = await screen.findByRole("button", { name: /Sentinels vs Paper Rex/ });
     fireEvent.click(matchButton);
 
     await screen.findByText("The prediction model is not currently available.");
@@ -169,5 +177,50 @@ describe("HistoricalReplaySection", () => {
 
     await screen.findByRole("group", { name: "Historical matches" });
     expect(screen.queryByText("Real trained model")).not.toBeInTheDocument();
+  });
+
+  it("shows a Load more control when the archive has more matches than the current page, and requests a larger page on click", async () => {
+    function pageOfMatches(count: number) {
+      return Array.from({ length: count }, (_, i) => ({
+        matchInternalId: `vlr:match:${1000 + i}`,
+        scheduledAt: `2026-0${(i % 9) + 1}-01T00:00:00.000Z`,
+        eventFamily: "masters",
+        eventName: "Valorant Masters Bangkok 2025",
+        eventRegion: "international",
+        tournamentLevel: "tier-1",
+        matchStageDisplay: "Swiss Stage",
+        seriesFormat: "BO3",
+        teamAProviderId: `vlr:team:${i}a`,
+        teamBProviderId: `vlr:team:${i}b`,
+        teamADisplayName: `Team ${i}A`,
+        teamBDisplayName: `Team ${i}B`,
+        modelEligible: true,
+        featureDatasetVersion: "64591ef5a24f9a0b",
+      }));
+    }
+
+    let lastRequestedLimit: number | null = null;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url === "/api/internal/prediction/readiness") return { ok: true, json: async () => availableReadiness() } as Response;
+        if (url.startsWith("/api/internal/prediction/catalog")) {
+          const limit = Number(new URL(url, "http://localhost").searchParams.get("limit"));
+          lastRequestedLimit = limit;
+          return { ok: true, json: async () => ({ matches: pageOfMatches(Math.min(limit, 120)), total: 120, featureDatasetVersion: "64591ef5a24f9a0b" }) } as Response;
+        }
+        throw new Error(`Unexpected fetch: ${url}`);
+      }),
+    );
+
+    render(<HistoricalReplaySection />);
+
+    const loadMore = await screen.findByRole("button", { name: /Load more \(50 of 120\)/ });
+    expect(lastRequestedLimit).toBe(50);
+
+    fireEvent.click(loadMore);
+
+    await waitFor(() => expect(lastRequestedLimit).toBe(100));
+    await screen.findByRole("button", { name: /Load more \(100 of 120\)/ });
   });
 });

@@ -37,11 +37,15 @@ function toMatchMetadata(row: RawHistoricalRow) {
     matchInternalId: row.matchInternalId,
     scheduledAt: row.scheduledAt,
     eventFamily: row.eventFamily,
+    eventName: row.eventName,
     eventRegion: row.eventRegion,
     tournamentLevel: row.tournamentLevel,
+    matchStageDisplay: row.matchStageDisplay,
     seriesFormat: row.seriesFormat,
     teamAProviderId: row.teamAProviderId,
     teamBProviderId: row.teamBProviderId,
+    teamADisplayName: row.teamADisplayName,
+    teamBDisplayName: row.teamBDisplayName,
   };
 }
 

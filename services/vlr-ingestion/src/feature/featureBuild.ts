@@ -7,11 +7,12 @@ import { assignSplits, computeSplitBoundaries, computeWalkForwardFolds, summariz
 import type { SplitAssignment, SplitSummary, WalkForwardFold } from "./splits";
 import { validateFeatureRows, validateSplitAssignments } from "./featureValidation";
 import type { ValidationResult } from "./featureValidation";
-import { computeFeatureDatasetVersion, contentHashOf } from "./featureVersion";
+import { computeFeatureDatasetVersion, contentHashOfOmitting } from "./featureVersion";
 import type { FeatureVersion } from "./featureVersion";
 import { buildFeatureDatasetFiles, writeFeatureDataset } from "./featureExport";
 import type { FeatureDatasetFiles } from "./featureExport";
 import { FEATURE_CATALOG } from "./featureCatalog";
+import { DISPLAY_ONLY_IDENTIFIER_FIELDS } from "./types";
 import type { FeatureRow } from "./types";
 import { DEFAULT_ELO_CONFIG } from "./versions";
 import type { EloConfig } from "./versions";
@@ -65,10 +66,18 @@ export async function runFeatureBuild(dataDir: string, options: FeatureBuildOpti
   const rowValidation = validateFeatureRows(rows, source.matches);
   const splitValidation = validateSplitAssignments(rows, splitAssignments);
 
+  // Display-only identifiers (event/team names, match stage text — see
+  // `types.ts`) are excluded from the row's own version hash: they carry no
+  // ML signal and are never in a model's `requiredInputFields`, so a purely
+  // cosmetic correction must never invalidate an already-trained/selected
+  // model via a `feature_dataset_version_mismatch` for matches whose actual
+  // feature values did not change. Mirrors `curate/curatedVersion.ts`'s
+  // existing choice to version curated matches from `metadata.contentHash`
+  // rather than the full enriched object.
   const version = computeFeatureDatasetVersion({
     sourceDatasetVersion: source.manifest.curatedDatasetVersion,
     eloConfig,
-    rowContentHashes: rows.map((row) => contentHashOf(row)),
+    rowContentHashes: rows.map((row) => contentHashOfOmitting(row, DISPLAY_ONLY_IDENTIFIER_FIELDS)),
   });
 
   const files = buildFeatureDatasetFiles({

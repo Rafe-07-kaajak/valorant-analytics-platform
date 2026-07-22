@@ -75,6 +75,7 @@ async function main(): Promise<void> {
     eventCategoryByInternalId,
     sourceDatasetVersion: sourceDatasetManifest.datasetVersion,
     generatedAt,
+    matchManifestEntries: matchManifest.entries,
   });
 
   const hashes = await writeCuratedDataset(config.dataDir, files);

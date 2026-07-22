@@ -80,11 +80,15 @@ function toSummary(row: RawHistoricalRow, featureDatasetVersion: string): Histor
     matchInternalId: row.matchInternalId,
     scheduledAt: row.scheduledAt,
     eventFamily: row.eventFamily,
+    eventName: row.eventName,
     eventRegion: row.eventRegion,
     tournamentLevel: row.tournamentLevel,
+    matchStageDisplay: row.matchStageDisplay,
     seriesFormat: row.seriesFormat,
     teamAProviderId: row.teamAProviderId,
     teamBProviderId: row.teamBProviderId,
+    teamADisplayName: row.teamADisplayName,
+    teamBDisplayName: row.teamBDisplayName,
     modelEligible: true,
     featureDatasetVersion,
   };
@@ -110,7 +114,7 @@ export async function buildHistoricalCatalog(filters: HistoricalCatalogFilters):
     return a.matchInternalId.localeCompare(b.matchInternalId);
   });
 
-  const boundedLimit = Math.min(filters.limit ?? config.catalogLimit, config.catalogLimit);
+  const boundedLimit = Math.min(filters.limit ?? config.catalogLimit, config.catalogMaxLimit);
   const page = sorted.slice(0, boundedLimit);
 
   return {

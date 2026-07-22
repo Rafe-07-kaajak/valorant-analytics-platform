@@ -25,12 +25,16 @@ export interface RawHistoricalRow {
   readonly scheduledAt: string;
   readonly eventInternalId: string;
   readonly eventFamily: string;
+  readonly eventName: string;
   readonly eventRegion: string;
   readonly eventStage: string;
   readonly tournamentLevel: string;
+  readonly matchStageDisplay: string;
   readonly seriesFormat: string;
   readonly teamAProviderId: string;
   readonly teamBProviderId: string;
+  readonly teamADisplayName: string;
+  readonly teamBDisplayName: string;
   readonly featureSchemaVersion: string;
   readonly featureRulesVersion: string;
   readonly sourceDatasetVersion: string;

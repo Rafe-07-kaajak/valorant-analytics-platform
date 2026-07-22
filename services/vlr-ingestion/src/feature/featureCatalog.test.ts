@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildNormalizedMatch } from "../testUtils/normalizedMatchFixture";
+import { buildCuratedMatch } from "../testUtils/curatedMatchFixture";
 import type { NormalizedEvent } from "../normalize/normalizedSchemas";
 import { runFeatureStateEngine } from "./stateEngine";
 import { buildEventsById } from "./curatedSource";
@@ -28,7 +28,7 @@ describe("FEATURE_CATALOG", () => {
   });
 
   it("describes every key that actually appears on a generated FeatureRow, and no extra ones", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const rowKeys = new Set(Object.keys(rows[0]!));

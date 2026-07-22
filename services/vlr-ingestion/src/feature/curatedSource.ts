@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { resolveSafePath } from "../persistence/pathSafety";
 import { IngestionError } from "../errors";
-import type { NormalizedEvent, NormalizedMatch } from "../normalize/normalizedSchemas";
+import type { NormalizedEvent } from "../normalize/normalizedSchemas";
+import type { CuratedMatch } from "../curate/curatedExport";
 
 /**
  * Read-only loader over TASK-043's curated dataset export
@@ -18,7 +19,7 @@ export interface CuratedDatasetManifestFile {
 }
 
 export interface CuratedFeatureSource {
-  readonly matches: readonly NormalizedMatch[];
+  readonly matches: readonly CuratedMatch[];
   readonly events: readonly NormalizedEvent[];
   readonly manifest: CuratedDatasetManifestFile;
 }
@@ -43,7 +44,7 @@ async function readJson<T>(dataDir: string, fileName: string): Promise<T> {
  */
 export async function loadCuratedFeatureSource(dataDir: string): Promise<CuratedFeatureSource> {
   const [matches, events, manifest] = await Promise.all([
-    readJson<NormalizedMatch[]>(dataDir, "matches.json"),
+    readJson<CuratedMatch[]>(dataDir, "matches.json"),
     readJson<NormalizedEvent[]>(dataDir, "events.json"),
     readJson<CuratedDatasetManifestFile>(dataDir, "dataset-manifest.json"),
   ]);

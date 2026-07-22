@@ -7,10 +7,13 @@ import { Button, Spinner, cn } from "@repo/ui";
 export interface HistoricalMatchArchiveProps {
   status: "idle" | "loading" | "success" | "error";
   matches: readonly HistoricalMatchSummary[];
+  total: number;
+  isLoadingMore: boolean;
   error: string | null;
   selectedMatchId: string | null;
   onSelectMatch: (matchInternalId: string) => void;
   onRetry: () => void;
+  onLoadMore: () => void;
 }
 
 function formatScheduledDate(scheduledAt: string): string {
@@ -34,10 +37,13 @@ function formatScheduledDate(scheduledAt: string): string {
 export function HistoricalMatchArchive({
   status,
   matches,
+  total,
+  isLoadingMore,
   error,
   selectedMatchId,
   onSelectMatch,
   onRetry,
+  onLoadMore,
 }: HistoricalMatchArchiveProps) {
   if (status === "loading") {
     return (
@@ -67,57 +73,72 @@ export function HistoricalMatchArchive({
   if (status !== "success") return null;
 
   return (
-    <div role="group" aria-label="Historical matches" className="flex max-h-80 min-w-0 flex-col gap-2xs overflow-y-auto pr-3xs">
-      {matches.map((match) => {
-        const selected = selectedMatchId === match.matchInternalId;
+    <div className="flex min-w-0 flex-col gap-2xs">
+      <div role="group" aria-label="Historical matches" className="flex max-h-80 min-w-0 flex-col gap-2xs overflow-y-auto pr-3xs">
+        {matches.map((match) => {
+          const selected = selectedMatchId === match.matchInternalId;
 
-        return (
-          <button
-            key={match.matchInternalId}
-            type="button"
-            aria-pressed={selected}
-            data-state={selected ? "active" : undefined}
-            onClick={() => onSelectMatch(match.matchInternalId)}
-            className={cn(
-              "group flex w-full min-w-0 flex-col gap-1 rounded-md border border-surface-border bg-surface px-sm py-2xs text-left",
-              "motion-safe:transition-[border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
-              "hover:border-(--color-accent-amber)/60",
-              selected &&
-                "border-(--color-accent-amber) shadow-[0_0_0_1px_var(--color-accent-amber),0_0_14px_-6px_var(--color-accent-amber)]",
-            )}
-          >
-            <div className="flex flex-wrap items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              <span>{match.eventFamily}</span>
-              <span aria-hidden="true">·</span>
-              <span>{match.tournamentLevel}</span>
-              <span aria-hidden="true">·</span>
-              <span>{match.eventRegion}</span>
-              <span aria-hidden="true">·</span>
-              <span>{match.seriesFormat}</span>
-            </div>
+          return (
+            <button
+              key={match.matchInternalId}
+              type="button"
+              aria-pressed={selected}
+              data-state={selected ? "active" : undefined}
+              title={`${match.teamAProviderId} vs ${match.teamBProviderId}`}
+              onClick={() => onSelectMatch(match.matchInternalId)}
+              className={cn(
+                "group flex w-full min-w-0 flex-col gap-1 rounded-md border border-surface-border bg-surface px-sm py-2xs text-left",
+                "motion-safe:transition-[border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+                "hover:border-(--color-accent-amber)/60",
+                selected &&
+                  "border-(--color-accent-amber) shadow-[0_0_0_1px_var(--color-accent-amber),0_0_14px_-6px_var(--color-accent-amber)]",
+              )}
+            >
+              <div className="flex flex-wrap items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="truncate">{match.eventName}</span>
+                <span aria-hidden="true">·</span>
+                <span>{match.tournamentLevel}</span>
+                <span aria-hidden="true">·</span>
+                <span>{match.matchStageDisplay}</span>
+                <span aria-hidden="true">·</span>
+                <span>{match.seriesFormat}</span>
+              </div>
 
-            <div className="flex flex-wrap items-center gap-x-2xs gap-y-3xs">
-              <span className="flex min-w-0 items-center gap-2xs">
-                <Check
-                  aria-hidden="true"
-                  className={cn(
-                    "size-3.5 shrink-0 text-(--color-accent-amber) motion-safe:transition-all motion-safe:duration-(--duration-base)",
-                    selected ? "scale-100 opacity-100" : "scale-75 opacity-0",
-                  )}
-                />
-                <span className="break-all font-mono text-sm text-foreground">
-                  {match.teamAProviderId} vs {match.teamBProviderId}
+              <div className="flex flex-wrap items-center gap-x-2xs gap-y-3xs">
+                <span className="flex min-w-0 items-center gap-2xs">
+                  <Check
+                    aria-hidden="true"
+                    className={cn(
+                      "size-3.5 shrink-0 text-(--color-accent-amber) motion-safe:transition-all motion-safe:duration-(--duration-base)",
+                      selected ? "scale-100 opacity-100" : "scale-75 opacity-0",
+                    )}
+                  />
+                  <span className="break-words text-sm text-foreground">
+                    {match.teamADisplayName} vs {match.teamBDisplayName}
+                  </span>
                 </span>
-              </span>
-              <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-                <Calendar aria-hidden="true" className="size-3" />
-                {formatScheduledDate(match.scheduledAt)}
-              </span>
-            </div>
-          </button>
-        );
-      })}
+                <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar aria-hidden="true" className="size-3" />
+                  {formatScheduledDate(match.scheduledAt)}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {matches.length < total ? (
+        <Button size="sm" variant="secondary" onClick={onLoadMore} disabled={isLoadingMore} className="self-start">
+          {isLoadingMore ? (
+            <span className="flex items-center gap-2xs">
+              <Spinner size={12} /> Loading…
+            </span>
+          ) : (
+            `Load more (${matches.length} of ${total})`
+          )}
+        </Button>
+      ) : null}
     </div>
   );
 }

@@ -12,12 +12,14 @@ describe("historicalCatalog", () => {
     resetHistoricalRepositoryCacheForTesting();
     delete process.env.REAL_PREDICTION_FEATURE_DATA_DIR;
     delete process.env.REAL_PREDICTION_CATALOG_LIMIT;
+    delete process.env.REAL_PREDICTION_CATALOG_MAX_LIMIT;
   });
 
   afterEach(async () => {
     resetHistoricalRepositoryCacheForTesting();
     delete process.env.REAL_PREDICTION_FEATURE_DATA_DIR;
     delete process.env.REAL_PREDICTION_CATALOG_LIMIT;
+    delete process.env.REAL_PREDICTION_CATALOG_MAX_LIMIT;
     if (rootDir) {
       await rm(rootDir, { recursive: true, force: true });
       rootDir = undefined;
@@ -74,8 +76,24 @@ describe("historicalCatalog", () => {
     expect(catalog.matches.map((m) => m.matchInternalId)).toEqual(["vlr:match:1002"]);
   });
 
-  it("bounds the response to the configured catalog limit even when a larger limit is requested", async () => {
+  it("uses the configured default catalog limit when the caller requests no explicit limit", async () => {
     process.env.REAL_PREDICTION_CATALOG_LIMIT = "1";
+    await withFixture();
+    const catalog = await buildHistoricalCatalog({});
+    expect(catalog.matches).toHaveLength(1);
+    expect(catalog.total).toBe(FIXTURE_HISTORICAL_ROWS.length);
+  });
+
+  it("honors a caller-requested limit larger than the default, up to the hard catalogMaxLimit ceiling (TASK-057 — the archive's own 'Load more' relies on this)", async () => {
+    process.env.REAL_PREDICTION_CATALOG_LIMIT = "1";
+    await withFixture();
+    const catalog = await buildHistoricalCatalog({ limit: 50 });
+    expect(catalog.matches).toHaveLength(FIXTURE_HISTORICAL_ROWS.length);
+    expect(catalog.total).toBe(FIXTURE_HISTORICAL_ROWS.length);
+  });
+
+  it("still clamps a caller-requested limit to catalogMaxLimit — the catalog is never fully unbounded", async () => {
+    process.env.REAL_PREDICTION_CATALOG_MAX_LIMIT = "1";
     await withFixture();
     const catalog = await buildHistoricalCatalog({ limit: 50 });
     expect(catalog.matches).toHaveLength(1);

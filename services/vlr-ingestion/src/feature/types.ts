@@ -16,16 +16,34 @@ export interface FeatureRowIdentifiers {
   readonly scheduledAt: string;
   readonly eventInternalId: string;
   readonly eventFamily: string;
+  /** Official event name (e.g. "Valorant Masters Santiago 2026") — display-only, never fed to the model; see `DISPLAY_ONLY_IDENTIFIER_FIELDS`. */
+  readonly eventName: string;
   readonly eventRegion: string | UnknownCategory;
   readonly eventStage: string | UnknownCategory;
   readonly tournamentLevel: string;
   readonly seriesFormat: string;
   readonly teamAProviderId: string;
   readonly teamBProviderId: string;
+  /** Human-readable team names for display — see `curate/curatedExport.ts`'s `CuratedMatch` doc comment for the resolution precedence. Display-only, never fed to the model. */
+  readonly teamADisplayName: string;
+  readonly teamBDisplayName: string;
+  /** Per-match round/bracket text for display (e.g. "Grand Final Playoffs") — distinct from the ML `eventStage` feature above, and never fed to the model. */
+  readonly matchStageDisplay: string;
   readonly sourceDatasetVersion: string;
   readonly featureSchemaVersion: string;
   readonly featureRulesVersion: string;
 }
+
+/**
+ * Purely descriptive identifier fields with no bearing on any trained model
+ * (never listed in a model's `requiredInputFields`) — excluded from the
+ * per-row content hash that feeds `featureDatasetVersion` (see
+ * `featureBuild.ts`) so that correcting or enriching display text never
+ * invalidates an already-trained/selected model. Mirrors
+ * `curate/curatedVersion.ts`'s existing choice to version curated matches
+ * from `metadata.contentHash` rather than the full enriched object.
+ */
+export const DISPLAY_ONLY_IDENTIFIER_FIELDS = ["eventName", "teamADisplayName", "teamBDisplayName", "matchStageDisplay"] as const;
 
 export interface FeatureRowLabels {
   readonly labelTeamAWin: 0 | 1;

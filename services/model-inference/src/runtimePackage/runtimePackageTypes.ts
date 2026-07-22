@@ -64,11 +64,15 @@ export interface RuntimeHistoricalIndexEntry {
   readonly matchInternalId: string;
   readonly scheduledAt: string;
   readonly eventFamily: string;
+  readonly eventName: string;
   readonly eventRegion: string;
   readonly tournamentLevel: string;
   readonly seriesFormat: string;
   readonly teamAProviderId: string;
   readonly teamBProviderId: string;
+  readonly teamADisplayName: string;
+  readonly teamBDisplayName: string;
+  readonly matchStageDisplay: string;
   readonly modelEligible: boolean;
   readonly featureDatasetVersion: string;
 }
@@ -79,12 +83,16 @@ export interface RuntimeHistoricalRow {
   readonly scheduledAt: string;
   readonly eventInternalId: string;
   readonly eventFamily: string;
+  readonly eventName: string;
   readonly eventRegion: string;
   readonly eventStage: string;
   readonly tournamentLevel: string;
   readonly seriesFormat: string;
   readonly teamAProviderId: string;
   readonly teamBProviderId: string;
+  readonly teamADisplayName: string;
+  readonly teamBDisplayName: string;
+  readonly matchStageDisplay: string;
   readonly sourceDatasetVersion: string;
   readonly featureSchemaVersion: string;
   readonly featureRulesVersion: string;

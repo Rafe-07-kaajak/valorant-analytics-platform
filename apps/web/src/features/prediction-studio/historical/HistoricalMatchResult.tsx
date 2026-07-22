@@ -16,7 +16,7 @@ function formatMatchContext(match: HistoricalPredictionResponse["match"]): strin
   const dateLabel = Number.isNaN(date.getTime())
     ? match.scheduledAt
     : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  return `${dateLabel} · ${match.eventFamily} · ${match.eventRegion} · ${match.tournamentLevel} · ${match.seriesFormat}`;
+  return `${dateLabel} · ${match.eventName} · ${match.tournamentLevel} · ${match.matchStageDisplay} · ${match.seriesFormat}`;
 }
 
 /**
@@ -28,7 +28,7 @@ function formatMatchContext(match: HistoricalPredictionResponse["match"]): strin
  * building a prediction-vs-actual comparison the backend has no data for.
  */
 export function HistoricalMatchResult({ result }: HistoricalMatchResultProps) {
-  const predictedTeamLabel = result.predictedWinnerSide === "teamA" ? "Team A" : "Team B";
+  const predictedTeamLabel = result.predictedWinnerSide === "teamA" ? result.match.teamADisplayName : result.match.teamBDisplayName;
 
   return (
     <Card
@@ -55,8 +55,8 @@ export function HistoricalMatchResult({ result }: HistoricalMatchResultProps) {
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Historical prediction</span>
         <SplitBar
           segments={[
-            { id: "teamA", label: "Team A", value: result.teamAWinProbability, color: "var(--team-a)" },
-            { id: "teamB", label: "Team B", value: result.teamBWinProbability, color: "var(--team-b)" },
+            { id: "teamA", label: result.match.teamADisplayName, value: result.teamAWinProbability, color: "var(--team-a)" },
+            { id: "teamB", label: result.match.teamBDisplayName, value: result.teamBWinProbability, color: "var(--team-b)" },
           ]}
         />
         <p className="text-sm text-foreground">

@@ -36,6 +36,13 @@ export function contentHashOf(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(sortKeysDeep(value))).digest("hex");
 }
 
+/** Hashes `value` after dropping `omitKeys` — used to version a row on its ML-relevant content only, so a purely cosmetic field never changes the resulting hash. */
+export function contentHashOfOmitting<T extends object>(value: T, omitKeys: readonly string[]): string {
+  const omitSet = new Set<string>(omitKeys);
+  const filtered = Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([key]) => !omitSet.has(key)));
+  return contentHashOf(filtered);
+}
+
 export function computeFeatureDatasetVersion(inputs: FeatureVersionInputs): FeatureVersion {
   const canonical = JSON.stringify({
     featureSchemaVersion: FEATURE_SCHEMA_VERSION,

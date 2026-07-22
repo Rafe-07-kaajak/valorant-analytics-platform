@@ -18,8 +18,10 @@ export interface RealPredictionConfig {
   readonly enabled: boolean;
   /** Root `vlr-data` directory (contains a `features/` subdirectory) — same convention as `VLR_DATA_DIR` in `services/vlr-ingestion/src/env.ts`. Only consulted when `sourceMode` is `"local-generated"`. */
   readonly featureDataDir: string;
-  /** Upper bound on any single catalog response, regardless of a caller-requested `limit`. */
+  /** Page size used when a caller requests the catalog with no explicit `limit`. */
   readonly catalogLimit: number;
+  /** TASK-057: hard upper bound on any single catalog response, regardless of a caller-requested `limit` — distinct from `catalogLimit` (the *default* page size) so the archive's own "Load more" control can request progressively larger pages up to the full dataset without an unconfigured deployment's default response growing. */
+  readonly catalogMaxLimit: number;
   /** TASK-048: which data source to read from. */
   readonly sourceMode: RealPredictionSourceMode;
   /** TASK-048: only consulted when `sourceMode` is `"runtime-package"`. */
@@ -82,10 +84,13 @@ export function loadRealPredictionConfig(): RealPredictionConfig {
   return {
     enabled: readBool("REAL_PREDICTION_ENABLED", true),
     featureDataDir: readOptionalString("REAL_PREDICTION_FEATURE_DATA_DIR") ?? defaultFeatureDataDir(),
-    // Safe minimum/maximum: 1 to 200 rows per response — the full dataset is
-    // 432 rows today, so this bounds a single catalog response well under
-    // "the full feature dataset sent to client" (TASK-047 requirement 6).
-    catalogLimit: readClampedInt("REAL_PREDICTION_CATALOG_LIMIT", 50, 1, 200),
+    // Default page size for a caller that doesn't request an explicit `limit`.
+    catalogLimit: readClampedInt("REAL_PREDICTION_CATALOG_LIMIT", 50, 1, 1000),
+    // TASK-057: separate hard ceiling — the full dataset is 432 rows today,
+    // so 500 lets the archive's "Load more" control reach every row across a
+    // handful of clicks, while a caller-requested `limit` is still clamped
+    // here, so this never becomes an unbounded single response.
+    catalogMaxLimit: readClampedInt("REAL_PREDICTION_CATALOG_MAX_LIMIT", 500, 1, 1000),
     sourceMode: readSourceMode(),
     runtimePackageDir: readOptionalString("REAL_PREDICTION_RUNTIME_PACKAGE_DIR") ?? defaultRuntimePackageDir(),
     requireRuntimePackage: readBool("REAL_PREDICTION_REQUIRE_RUNTIME_PACKAGE", false),
@@ -95,5 +100,5 @@ export function loadRealPredictionConfig(): RealPredictionConfig {
 
 /** Human-readable, safe-to-print summary — never the resolved directory's absolute path. */
 export function describeRealPredictionConfig(config: RealPredictionConfig): string {
-  return [`enabled: ${config.enabled}`, `catalog limit: ${config.catalogLimit}`, `source mode: ${config.sourceMode}`, `require runtime package: ${config.requireRuntimePackage}`].join("\n");
+  return [`enabled: ${config.enabled}`, `catalog limit: ${config.catalogLimit}`, `catalog max limit: ${config.catalogMaxLimit}`, `source mode: ${config.sourceMode}`, `require runtime package: ${config.requireRuntimePackage}`].join("\n");
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildNormalizedMatch } from "../testUtils/normalizedMatchFixture";
+import { buildCuratedMatch } from "../testUtils/curatedMatchFixture";
 import type { NormalizedEvent } from "../normalize/normalizedSchemas";
 import { runFeatureStateEngine } from "./stateEngine";
 import { buildEventsById } from "./curatedSource";
@@ -25,7 +25,7 @@ function buildEvent(): NormalizedEvent {
 
 describe("validateFeatureRows", () => {
   it("passes for a well-formed single-match dataset", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const result = validateFeatureRows(rows, [match]);
@@ -34,7 +34,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags a duplicate feature row", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const result = validateFeatureRows([...rows, rows[0]!], [match]);
@@ -43,7 +43,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags non-chronological output", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const reordered: FeatureRow[] = [{ ...rows[0]!, scheduledAt: "2030-01-01T00:00:00.000Z" }, rows[0]!];
@@ -52,7 +52,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags a row referencing a match outside the curated set", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const result = validateFeatureRows(rows, []); // empty curated set
@@ -61,7 +61,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags a NaN/Infinity value", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const corrupted: FeatureRow = { ...rows[0]!, teamAEloRating: Number.NaN };
@@ -71,7 +71,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags an out-of-bounds rate value", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const corrupted: FeatureRow = { ...rows[0]!, teamACumulativeWinRate: 1.5 };
@@ -81,7 +81,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags a negative count value", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const corrupted: FeatureRow = { ...rows[0]!, teamAPriorMatchCount: -1 };
@@ -91,7 +91,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("allows legitimately signed differential/trend/Elo fields to be negative", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const modified: FeatureRow = { ...rows[0]!, eloRatingDiff: -50, restDifferenceDays: -3, teamAFormTrend: -0.2 };
@@ -100,7 +100,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("flags a label mismatch against the source match", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const corrupted: FeatureRow = { ...rows[0]!, labelTeamAWin: rows[0]!.labelTeamAWin === 1 ? 0 : 1 };
@@ -110,7 +110,7 @@ describe("validateFeatureRows", () => {
   });
 
   it("catches current-match-result leakage via the independent recount cross-check", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     // Simulate a leakage bug: as if this match's own result had already been folded into its own prior-count.
@@ -123,7 +123,7 @@ describe("validateFeatureRows", () => {
 
 describe("validateSplitAssignments", () => {
   it("passes for a correctly assigned chronological split", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const boundaries = computeSplitBoundaries(rows);
@@ -133,7 +133,7 @@ describe("validateSplitAssignments", () => {
   });
 
   it("flags a row missing a split assignment", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const result = validateSplitAssignments(rows, []);
@@ -142,7 +142,7 @@ describe("validateSplitAssignments", () => {
   });
 
   it("flags a duplicate split assignment", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, { eloConfig: DEFAULT_ELO_CONFIG, sourceDatasetVersion: "v1" });
     const boundaries = computeSplitBoundaries(rows);

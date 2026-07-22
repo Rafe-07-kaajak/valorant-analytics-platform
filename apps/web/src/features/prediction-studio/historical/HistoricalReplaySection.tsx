@@ -32,7 +32,15 @@ import { HistoricalMatchResult } from "./HistoricalMatchResult";
 export function HistoricalReplaySection() {
   const { status: readinessStatus, readiness, error: readinessError, refresh: refreshReadiness } = useRealPredictionReadiness();
   const catalogEnabled = readiness?.realPredictionAvailable ?? false;
-  const { status: catalogStatus, matches, error: catalogError, refresh: refreshCatalog } = useHistoricalCatalog(catalogEnabled);
+  const {
+    status: catalogStatus,
+    matches,
+    total: catalogTotal,
+    isLoadingMore,
+    error: catalogError,
+    refresh: refreshCatalog,
+    loadMore,
+  } = useHistoricalCatalog(catalogEnabled);
   const { status: predictionStatus, result, error: predictionError, requestPrediction } = useHistoricalPrediction();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
@@ -87,10 +95,13 @@ export function HistoricalReplaySection() {
               <HistoricalMatchArchive
                 status={catalogStatus}
                 matches={matches}
+                total={catalogTotal}
+                isLoadingMore={isLoadingMore}
                 error={catalogError}
                 selectedMatchId={selectedMatchId}
                 onSelectMatch={handleSelectMatch}
                 onRetry={() => void refreshCatalog()}
+                onLoadMore={() => void loadMore()}
               />
             </div>
 

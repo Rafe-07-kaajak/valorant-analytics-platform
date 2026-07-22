@@ -14,7 +14,25 @@ import type { RuntimeHistoricalIndexEntry, RuntimeHistoricalManifest, RuntimeHis
  * read here, never mutated.
  */
 
-const SAFE_METADATA_FIELDS = ["matchInternalId", "scheduledAt", "eventInternalId", "eventFamily", "eventRegion", "eventStage", "tournamentLevel", "seriesFormat", "teamAProviderId", "teamBProviderId", "sourceDatasetVersion", "featureSchemaVersion", "featureRulesVersion"] as const;
+const SAFE_METADATA_FIELDS = [
+  "matchInternalId",
+  "scheduledAt",
+  "eventInternalId",
+  "eventFamily",
+  "eventName",
+  "eventRegion",
+  "eventStage",
+  "tournamentLevel",
+  "seriesFormat",
+  "teamAProviderId",
+  "teamBProviderId",
+  "teamADisplayName",
+  "teamBDisplayName",
+  "matchStageDisplay",
+  "sourceDatasetVersion",
+  "featureSchemaVersion",
+  "featureRulesVersion",
+] as const;
 
 interface SourceFeatureManifest {
   readonly featureDatasetVersion: string;
@@ -97,11 +115,15 @@ function toIndexEntry(row: RuntimeHistoricalRow, featureDatasetVersion: string):
     matchInternalId: row.matchInternalId,
     scheduledAt: row.scheduledAt,
     eventFamily: row.eventFamily,
+    eventName: row.eventName,
     eventRegion: row.eventRegion,
     tournamentLevel: row.tournamentLevel,
     seriesFormat: row.seriesFormat,
     teamAProviderId: row.teamAProviderId,
     teamBProviderId: row.teamBProviderId,
+    teamADisplayName: row.teamADisplayName,
+    teamBDisplayName: row.teamBDisplayName,
+    matchStageDisplay: row.matchStageDisplay,
     modelEligible: true,
     featureDatasetVersion,
   };

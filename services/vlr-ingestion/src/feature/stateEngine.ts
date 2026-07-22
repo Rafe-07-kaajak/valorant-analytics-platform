@@ -1,4 +1,5 @@
-import type { NormalizedEvent, NormalizedMatch } from "../normalize/normalizedSchemas";
+import type { NormalizedEvent } from "../normalize/normalizedSchemas";
+import type { CuratedMatch } from "../curate/curatedExport";
 import { groupMatchesChronologically } from "./chronology";
 import { TeamState } from "./teamState";
 import { PlayerRegistry } from "./playerState";
@@ -30,7 +31,7 @@ export interface StateEngineOptions {
   readonly maxGroups?: number;
 }
 
-function rosterFor(match: NormalizedMatch, teamId: string): readonly string[] | null {
+function rosterFor(match: CuratedMatch, teamId: string): readonly string[] | null {
   const roster = match.rosterSnapshots?.find((r) => r.teamInternalId === teamId);
   return roster && roster.playerInternalIds.length > 0 ? roster.playerInternalIds : null;
 }
@@ -48,7 +49,7 @@ function rosterFor(match: NormalizedMatch, teamId: string): readonly string[] | 
  * This ordering is what guarantees no same-timestamp match can leak into
  * another, and that a match's own result never influences its own row.
  */
-export function runFeatureStateEngine(matches: readonly NormalizedMatch[], eventsById: ReadonlyMap<string, NormalizedEvent>, options: StateEngineOptions): StateEngineResult {
+export function runFeatureStateEngine(matches: readonly CuratedMatch[], eventsById: ReadonlyMap<string, NormalizedEvent>, options: StateEngineOptions): StateEngineResult {
   const rejected: RejectedMatch[] = [];
 
   // A match with no unambiguously-normalized timestamp cannot be
@@ -83,7 +84,7 @@ export function runFeatureStateEngine(matches: readonly NormalizedMatch[], event
     const medianBeforeGroup = medianTracker.median(options.eloConfig.initialRating);
 
     interface PendingUpdate {
-      readonly match: NormalizedMatch;
+      readonly match: CuratedMatch;
       readonly event: NormalizedEvent;
       readonly nowMs: number;
       readonly rosterA: readonly string[] | null;
@@ -137,12 +138,16 @@ export function runFeatureStateEngine(matches: readonly NormalizedMatch[], event
         scheduledAt: scheduledAtIso,
         eventInternalId: event.internalId,
         eventFamily: event.eventFamily,
+        eventName: event.name,
         eventRegion: eventContext.eventRegion,
         eventStage: eventContext.eventStage,
         tournamentLevel: event.tournamentLevel,
         seriesFormat: match.seriesFormat,
         teamAProviderId: match.teamAId,
         teamBProviderId: match.teamBId,
+        teamADisplayName: match.teamADisplayName,
+        teamBDisplayName: match.teamBDisplayName,
+        matchStageDisplay: match.matchStageDisplay,
         sourceDatasetVersion: options.sourceDatasetVersion,
         featureSchemaVersion: FEATURE_SCHEMA_VERSION,
         featureRulesVersion: FEATURE_RULES_VERSION,

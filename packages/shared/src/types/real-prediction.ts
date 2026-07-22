@@ -17,11 +17,18 @@ export interface HistoricalMatchSummary {
   readonly matchInternalId: string;
   readonly scheduledAt: string;
   readonly eventFamily: string;
+  /** Official event name (e.g. "Valorant Masters Santiago 2026") — see docs/32, "Region/Team Metadata Policy"; resolved from the source event record, never guessed. */
+  readonly eventName: string;
   readonly eventRegion: string;
   readonly tournamentLevel: string;
+  /** Per-match round/bracket text for display (e.g. "Grand Final Playoffs"). */
+  readonly matchStageDisplay: string;
   readonly seriesFormat: string;
   readonly teamAProviderId: string;
   readonly teamBProviderId: string;
+  /** Human-readable team names for display; `teamAProviderId`/`teamBProviderId` remain the canonical identifiers. */
+  readonly teamADisplayName: string;
+  readonly teamBDisplayName: string;
   readonly modelEligible: boolean;
   readonly featureDatasetVersion: string;
 }
@@ -43,11 +50,15 @@ export interface HistoricalMatchMetadata {
   readonly matchInternalId: string;
   readonly scheduledAt: string;
   readonly eventFamily: string;
+  readonly eventName: string;
   readonly eventRegion: string;
   readonly tournamentLevel: string;
+  readonly matchStageDisplay: string;
   readonly seriesFormat: string;
   readonly teamAProviderId: string;
   readonly teamBProviderId: string;
+  readonly teamADisplayName: string;
+  readonly teamBDisplayName: string;
 }
 
 export interface PredictionDataProvenance {

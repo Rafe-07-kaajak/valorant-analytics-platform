@@ -43,11 +43,15 @@ function catalogBody() {
         matchInternalId: "vlr:match:1001",
         scheduledAt: "2026-02-20T05:00:00.000Z",
         eventFamily: "masters",
+        eventName: "Valorant Masters Bangkok 2025",
         eventRegion: "international",
         tournamentLevel: "tier-1",
+        matchStageDisplay: "Grand Final",
         seriesFormat: "BO3",
         teamAProviderId: "vlr:team:1120",
         teamBProviderId: "vlr:team:474",
+        teamADisplayName: "Sentinels",
+        teamBDisplayName: "Paper Rex",
         modelEligible: true,
         featureDatasetVersion: "fixture-feature-dataset-v1",
       },
@@ -65,11 +69,15 @@ function predictionBody() {
       matchInternalId: "vlr:match:1001",
       scheduledAt: "2026-02-20T05:00:00.000Z",
       eventFamily: "masters",
+      eventName: "Valorant Masters Bangkok 2025",
       eventRegion: "international",
       tournamentLevel: "tier-1",
+      matchStageDisplay: "Grand Final",
       seriesFormat: "BO3",
       teamAProviderId: "vlr:team:1120",
       teamBProviderId: "vlr:team:474",
+      teamADisplayName: "Sentinels",
+      teamBDisplayName: "Paper Rex",
     },
     modelVersion: "fixture-model-v1",
     estimatorType: "elo-baseline",
@@ -121,14 +129,14 @@ test("historical mode becomes visible and usable once readiness reports availabl
 
   const matchesGroup = page.getByRole("group", { name: "Historical matches" });
   await expect(matchesGroup).toBeVisible();
-  await expect(page.getByRole("button", { name: /vlr:team:1120 vs vlr:team:474/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Sentinels vs Paper Rex/ })).toBeVisible();
 });
 
 test("selecting a historical match runs a fixture real-model prediction labeled as historical replay", async ({ page }) => {
   await mockAvailable(page);
   await page.goto("/prediction-studio");
 
-  await page.getByRole("button", { name: /vlr:team:1120 vs vlr:team:474/ }).click();
+  await page.getByRole("button", { name: /Sentinels vs Paper Rex/ }).click();
 
   await expect(page.getByText("Real trained model")).toBeVisible();
   await expect(page.getByText("fixture-model-v1")).toBeVisible();
@@ -158,7 +166,7 @@ test("a failed prediction request shows a labeled error with a retry action, wit
   );
   await page.goto("/prediction-studio");
 
-  await page.getByRole("button", { name: /vlr:team:1120 vs vlr:team:474/ }).click();
+  await page.getByRole("button", { name: /Sentinels vs Paper Rex/ }).click();
   await expect(page.getByText("The prediction model is not currently available.")).toBeVisible();
   await expect(page.getByRole("group", { name: "Team A region" })).toBeVisible();
 });

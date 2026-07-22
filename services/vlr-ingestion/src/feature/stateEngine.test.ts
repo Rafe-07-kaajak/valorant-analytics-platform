@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildNormalizedMatch } from "../testUtils/normalizedMatchFixture";
+import { buildCuratedMatch } from "../testUtils/curatedMatchFixture";
 import type { NormalizedEvent } from "../normalize/normalizedSchemas";
 import { runFeatureStateEngine } from "./stateEngine";
 import { buildEventsById } from "./curatedSource";
@@ -27,7 +27,7 @@ function options() {
 
 describe("runFeatureStateEngine", () => {
   it("produces one row per eligible match with cold-start defaults for the first meeting", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows, rejected } = runFeatureStateEngine([match], events, options());
 
@@ -44,7 +44,7 @@ describe("runFeatureStateEngine", () => {
   });
 
   it("never lets a match's own result influence its own row (current-match leakage check)", () => {
-    const match = buildNormalizedMatch();
+    const match = buildCuratedMatch();
     const events = buildEventsById([buildEvent()]);
     const { rows } = runFeatureStateEngine([match], events, options());
     // teamA won this match, but its own prior-win count must still be 0 pre-match.
@@ -52,8 +52,8 @@ describe("runFeatureStateEngine", () => {
   });
 
   it("updates state chronologically so a later match sees an earlier one's result", () => {
-    const first = buildNormalizedMatch({ internalId: "vlr:match:1", scheduledAt: { iso: "2025-01-01T00:00:00.000Z", raw: "r", confidence: "high" } });
-    const second = buildNormalizedMatch({
+    const first = buildCuratedMatch({ internalId: "vlr:match:1", scheduledAt: { iso: "2025-01-01T00:00:00.000Z", raw: "r", confidence: "high" } });
+    const second = buildCuratedMatch({
       internalId: "vlr:match:2",
       scheduledAt: { iso: "2025-01-08T00:00:00.000Z", raw: "r", confidence: "high" },
       metadata: { provider: "vlr", providerExternalId: "2", sourceUrl: "https://www.vlr.gg/2", fetchedAt: "t", parsedAt: "t", schemaVersion: "1.0.0", contentHash: "hash2" },
@@ -68,8 +68,8 @@ describe("runFeatureStateEngine", () => {
   });
 
   it("does not let a future match affect an earlier row (reversed input order yields identical output)", () => {
-    const first = buildNormalizedMatch({ internalId: "vlr:match:1", scheduledAt: { iso: "2025-01-01T00:00:00.000Z", raw: "r", confidence: "high" } });
-    const second = buildNormalizedMatch({
+    const first = buildCuratedMatch({ internalId: "vlr:match:1", scheduledAt: { iso: "2025-01-01T00:00:00.000Z", raw: "r", confidence: "high" } });
+    const second = buildCuratedMatch({
       internalId: "vlr:match:2",
       scheduledAt: { iso: "2025-01-08T00:00:00.000Z", raw: "r", confidence: "high" },
       metadata: { provider: "vlr", providerExternalId: "2", sourceUrl: "https://www.vlr.gg/2", fetchedAt: "t", parsedAt: "t", schemaVersion: "1.0.0", contentHash: "hash2" },
@@ -84,7 +84,7 @@ describe("runFeatureStateEngine", () => {
 
   it("groups identical timestamps and emits both rows from the same pre-group state", () => {
     const sameTime = "2025-01-01T00:00:00.000Z";
-    const matchOne = buildNormalizedMatch({
+    const matchOne = buildCuratedMatch({
       internalId: "vlr:match:1",
       teamAId: "team-x",
       teamBId: "team-y",
@@ -96,7 +96,7 @@ describe("runFeatureStateEngine", () => {
       ],
       metadata: { provider: "vlr", providerExternalId: "1", sourceUrl: "https://www.vlr.gg/1", fetchedAt: "t", parsedAt: "t", schemaVersion: "1.0.0", contentHash: "h1" },
     });
-    const matchTwo = buildNormalizedMatch({
+    const matchTwo = buildCuratedMatch({
       internalId: "vlr:match:2",
       teamAId: "team-x",
       teamBId: "team-z",
@@ -119,7 +119,7 @@ describe("runFeatureStateEngine", () => {
   });
 
   it("rejects a match whose winner is neither team A nor team B", () => {
-    const match = buildNormalizedMatch({ winnerId: "some-other-team" });
+    const match = buildCuratedMatch({ winnerId: "some-other-team" });
     const events = buildEventsById([buildEvent()]);
     const { rows, rejected } = runFeatureStateEngine([match], events, options());
     expect(rows).toHaveLength(0);
