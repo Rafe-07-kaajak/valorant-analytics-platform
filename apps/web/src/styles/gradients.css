@@ -138,6 +138,27 @@
     color-mix(in oklab, var(--color-accent-blue) 14%, transparent) 45%,
     transparent 85%
   );
+
+  /* TASK-056 — Historical Model Replay's own ambient identity, nested
+     inside Prediction Studio's page-level wash (this section keeps its own
+     local AmbientSectionBackground rather than changing the page-level
+     one). Deliberately not cyan-led like --gradient-prediction-studio-
+     ambient: a deep indigo/archival-blue vertical wash for the "archive"
+     base, with a broad muted-amber radial glow stacked on top the same way
+     --gradient-mesh-subtle stacks multiple radial layers in one token, so a
+     single `wash` value carries both the base and the local glow the task
+     asked for without a second decorative element. */
+  --gradient-historical-replay-ambient: radial-gradient(
+      at 50% 12%,
+      color-mix(in oklab, var(--color-accent-amber) 20%, transparent) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-accent-blue) 22%, transparent) 0%,
+      color-mix(in oklab, var(--color-accent-blue) 10%, transparent) 55%,
+      transparent 92%
+    );
 }
 
 /* Dark ambient gradient — a page-level backdrop wash, authored for the

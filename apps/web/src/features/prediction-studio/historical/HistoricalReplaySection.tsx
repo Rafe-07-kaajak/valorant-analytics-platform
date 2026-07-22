@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Spinner, Stack } from "@repo/ui";
+import { Button, Spinner, Stack } from "@repo/ui";
+import { AmbientSectionBackground } from "../../../components/effects/AmbientSectionBackground";
 import { useRealPredictionReadiness } from "../../../hooks/useRealPredictionReadiness";
 import { useHistoricalCatalog } from "../../../hooks/useHistoricalCatalog";
 import { useHistoricalPrediction } from "../../../hooks/useHistoricalPrediction";
+import { HistoricalReplayHeader } from "./HistoricalReplayHeader";
+import { HistoricalModelSnapshot } from "./HistoricalModelSnapshot";
+import { HistoricalMatchArchive } from "./HistoricalMatchArchive";
 import { HistoricalMatchResult } from "./HistoricalMatchResult";
-
-function formatMatchLabel(scheduledAt: string, eventFamily: string, teamAProviderId: string, teamBProviderId: string): string {
-  const date = new Date(scheduledAt);
-  const dateLabel = Number.isNaN(date.getTime()) ? scheduledAt : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  return `${dateLabel} · ${eventFamily} · ${teamAProviderId} vs ${teamBProviderId}`;
-}
 
 /**
  * TASK-047 UI integration — a separate, always-visible "Historical Model
@@ -23,6 +21,13 @@ function formatMatchLabel(scheduledAt: string, eventFamily: string, teamAProvide
  * independent result state, so there is no shared result area where a
  * historical prediction and a synthetic one could ever be confused for one
  * another. See docs/35, "UI integration".
+ *
+ * TASK-056 — visual redesign into an "analytical archive console." All
+ * state/data flow above is unchanged; only presentation and how the
+ * sub-panels are composed changed. Nests its own AmbientSectionBackground
+ * (TASK-054's shared component) with a distinct indigo/amber identity
+ * (gradients.css) rather than touching Prediction Studio's own page-level
+ * ambient wash.
  */
 export function HistoricalReplaySection() {
   const { status: readinessStatus, readiness, error: readinessError, refresh: refreshReadiness } = useRealPredictionReadiness();
@@ -37,14 +42,15 @@ export function HistoricalReplaySection() {
   }
 
   return (
-    <Card>
-      <Stack gap="sm">
-        <div>
-          <h2 className="text-lg font-semibold">Historical Model Replay</h2>
-          <p className="text-sm text-muted-foreground">
-            Select a known historical match to see what the trained model would have predicted using only information available before it was played.
-          </p>
-        </div>
+    <div className="relative overflow-hidden rounded-xl border border-surface-border bg-background">
+      <AmbientSectionBackground
+        wash="var(--gradient-historical-replay-ambient)"
+        texture={{ src: "/assets/redesign/textures/blueprint-contours.png", opacity: 0.05 }}
+        overlay={{ src: "/assets/redesign/textures/data-streams.png", opacity: 0.08, drift: "slower" }}
+      />
+
+      <Stack gap="md" className="relative p-md">
+        <HistoricalReplayHeader readinessStatus={readinessStatus} readiness={readiness} />
 
         {readinessStatus === "loading" ? (
           <div className="flex items-center gap-2xs text-sm text-muted-foreground">
@@ -75,68 +81,44 @@ export function HistoricalReplaySection() {
         ) : null}
 
         {readinessStatus === "success" && readiness?.realPredictionAvailable ? (
-          <>
-            {catalogStatus === "loading" ? (
-              <div className="flex items-center gap-2xs text-sm text-muted-foreground">
-                <Spinner size={14} /> Loading historical matches…
-              </div>
-            ) : null}
+          <div className="flex flex-col gap-md lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start lg:gap-md">
+            <div className="flex min-w-0 flex-col gap-sm">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Historical archive</span>
+              <HistoricalMatchArchive
+                status={catalogStatus}
+                matches={matches}
+                error={catalogError}
+                selectedMatchId={selectedMatchId}
+                onSelectMatch={handleSelectMatch}
+                onRetry={() => void refreshCatalog()}
+              />
+            </div>
 
-            {catalogStatus === "error" ? (
-              <div className="flex flex-col gap-2xs">
-                <p role="alert" className="text-sm text-danger">
-                  {catalogError ?? "Unable to load historical matches."}
-                </p>
-                <Button size="sm" variant="secondary" onClick={() => void refreshCatalog()}>
-                  Retry
-                </Button>
-              </div>
-            ) : null}
-
-            {catalogStatus === "success" && matches.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No historical matches are available for replay yet.</p>
-            ) : null}
-
-            {catalogStatus === "success" && matches.length > 0 ? (
-              <div role="group" aria-label="Historical matches" className="flex flex-col gap-2xs">
-                {matches.map((match) => (
-                  <button
-                    key={match.matchInternalId}
-                    type="button"
-                    aria-pressed={selectedMatchId === match.matchInternalId}
-                    onClick={() => handleSelectMatch(match.matchInternalId)}
-                    className="rounded-md border border-surface-border px-sm py-2xs text-left text-sm hover:bg-surface-border data-[state=active]:border-brand-500"
-                    data-state={selectedMatchId === match.matchInternalId ? "active" : undefined}
-                  >
-                    {formatMatchLabel(match.scheduledAt, match.eventFamily, match.teamAProviderId, match.teamBProviderId)}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            {predictionStatus === "loading" ? (
-              <div className="flex items-center gap-2xs text-sm text-muted-foreground">
-                <Spinner size={14} /> Generating historical model prediction…
-              </div>
-            ) : null}
-
-            {predictionStatus === "error" ? (
-              <div className="flex flex-col gap-2xs">
-                <p role="alert" className="text-sm text-danger">
-                  {predictionError ?? "Unable to generate a prediction for this match."}
-                </p>
-                {selectedMatchId ? (
-                  <Button size="sm" variant="secondary" onClick={() => handleSelectMatch(selectedMatchId)}>
-                    Retry
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-
-            {predictionStatus === "success" && result ? <HistoricalMatchResult result={result} /> : null}
-          </>
+            <HistoricalModelSnapshot readiness={readiness} />
+          </div>
         ) : null}
+
+        {predictionStatus === "loading" ? (
+          <div className="flex items-center gap-2xs text-sm text-muted-foreground">
+            <Spinner size={14} /> Evaluating archived model…
+          </div>
+        ) : null}
+
+        {predictionStatus === "error" ? (
+          <div className="flex flex-col gap-2xs">
+            <p role="alert" className="text-sm text-danger">
+              {predictionError ?? "Unable to generate a prediction for this match."}
+            </p>
+            {selectedMatchId ? (
+              <Button size="sm" variant="secondary" onClick={() => handleSelectMatch(selectedMatchId)}>
+                Retry
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {predictionStatus === "success" && result ? <HistoricalMatchResult result={result} /> : null}
       </Stack>
-    </Card>
+    </div>
   );
 }
