@@ -2,12 +2,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Badge, buttonVariants, Card, Container, Meter, ScrollReveal, Section, SplitBar } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 import { InteractiveParticleField } from "../../components/effects/InteractiveParticleField";
 
 export function PredictionStudioPreview() {
   return (
     <Section className="relative overflow-hidden">
-      <Container className="flex flex-col gap-xl">
+      <AmbientSectionBackground
+        wash="var(--gradient-ambient)"
+        overlay={{ src: "/assets/redesign/overlays/radial-rings.png", opacity: 0.08, drift: "slower" }}
+      />
+
+      <Container className="relative flex flex-col gap-xl">
         <ScrollReveal className="flex max-w-(--breakpoint-md) flex-col gap-sm">
           <h2>Every prediction comes with its reasoning attached.</h2>
           <p className="text-lg text-muted-foreground">

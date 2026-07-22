@@ -21,7 +21,11 @@ test("a direct Prediction Studio URL initializes the draft without auto-submitti
 
   await expect(page.getByRole("button", { name: /Paper Rex/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: /G2 Esports/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByLabel("Series Format")).toHaveValue("BO3");
+  const seriesFormatGroup = page.getByRole("group", { name: "Series Format" });
+  await expect(seriesFormatGroup.getByRole("button", { name: "Best of 3" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await expect(page.getByRole("button", { name: "Ascent", exact: true })).toHaveAttribute("aria-pressed", "true");
 
   // No prediction was auto-generated — the user must still press the button.

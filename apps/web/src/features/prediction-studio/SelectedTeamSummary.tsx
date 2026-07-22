@@ -31,8 +31,8 @@ export function SelectedTeamSummary({ team, side }: SelectedTeamSummaryProps) {
         accent === "team-a" ? "border-team-a" : "border-team-b",
       )}
     >
-      <span className="relative block size-16 shrink-0">
-        <Image src={team.logoPath} alt="" fill sizes="64px" className="object-contain" />
+      <span className="relative flex size-16 shrink-0 items-center justify-center rounded-md bg-white/[0.06] ring-1 ring-white/10">
+        <Image src={team.logoPath} alt="" fill sizes="64px" className="object-contain p-2" />
       </span>
       <div className="flex flex-col gap-3xs">
         <span className="flex items-center gap-3xs text-xs font-semibold uppercase tracking-wide text-foreground">

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants, Card, cn, Container, ScrollReveal, Section } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 import { EnergyPulse } from "../../components/effects/EnergyPulse";
 import { usePointerGlow } from "../../hooks/usePointerGlow";
 
@@ -16,6 +17,14 @@ export function FinalCta() {
           footer immediately below it read as one continuous dark zone
           instead of a dark card floating on a light section in light mode. */}
       <div className="pointer-events-none absolute inset-0 bg-background" aria-hidden="true" />
+
+      {/* Minimal ambient support only — a single restrained radial wash
+          behind the card, never a raster layer, so the CTA artwork inside
+          the Card stays the unobstructed focal point. */}
+      <AmbientSectionBackground
+        wash="radial-gradient(60% 70% at 50% 45%, color-mix(in oklab, var(--team-a) 16%, transparent) 0%, transparent 70%)"
+        fade={false}
+      />
 
       <Container className="relative">
         <ScrollReveal>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRef } from "react";
 import { cn, DURATION_SLOW, EASE_EMPHASIZED, Section, useScrollProgress } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 
 const PIPELINE = [
   {
@@ -99,6 +100,16 @@ const branchVariants: Variants = {
   active: { opacity: 1, transition: { duration: DURATION_SLOW, ease: EASE_EMPHASIZED } },
 };
 
+// A broad, low-opacity radial glow behind each step, tinted with that step's
+// own accent and alternating sides with the zig-zag layout — restrained
+// ambient support for the card, never a competing focal point. Fades in
+// with the rest of the step via the same parent `motion.li` variant
+// propagation as node/branch/text above.
+const glowVariants: Variants = {
+  inactive: { opacity: 0 },
+  active: { opacity: 1, transition: { duration: DURATION_SLOW, ease: EASE_EMPHASIZED } },
+};
+
 export function ProductStory() {
   const listRef = useRef<HTMLOListElement>(null);
   // Whole-section scroll progress (0-1) driving the illuminated spine fill —
@@ -112,14 +123,10 @@ export function ProductStory() {
 
   return (
     <Section className="relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 bg-[url('/assets/redesign/textures/tactical-grid.png')] bg-repeat opacity-[0.035]"
-        aria-hidden="true"
-      />
-
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background via-background/96 to-background"
-        aria-hidden="true"
+      <AmbientSectionBackground
+        wash="var(--gradient-pipeline-ambient)"
+        texture={{ src: "/assets/redesign/textures/tactical-grid.png", opacity: 0.06 }}
+        overlay={{ src: "/assets/redesign/overlays/node-network.png", opacity: 0.12, drift: "slow" }}
       />
 
       <div
@@ -228,6 +235,25 @@ export function ProductStory() {
                       isLeft ? "md:col-start-1" : "md:col-start-3",
                     )}
                   >
+                    {/* Local glow — broad, low-opacity, tinted with this
+                        step's accent. Sized/positioned relative to the card
+                        box itself (not the viewport) so the section's own
+                        overflow-hidden always keeps it from causing
+                        horizontal scroll. Hidden below md, same as the
+                        section-level overlay, per the mobile "one wash + one
+                        texture" budget. */}
+                    <motion.div
+                      aria-hidden="true"
+                      variants={glowVariants}
+                      className={cn(
+                        "pointer-events-none absolute top-1/2 hidden h-[28rem] w-[28rem] -translate-y-1/2 rounded-full md:block",
+                        isLeft ? "left-[-6rem]" : "right-[-6rem]",
+                      )}
+                      style={{
+                        background: `radial-gradient(circle, color-mix(in oklab, ${accent} 28%, transparent) 0%, transparent 70%)`,
+                      }}
+                    />
+
                     {/* Branch — connects this card back to its node. */}
                     <motion.span
                       aria-hidden="true"

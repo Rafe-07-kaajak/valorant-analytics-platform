@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { cn } from "@repo/ui";
 import { usePointerGlow } from "../../hooks/usePointerGlow";
 import type { VctTeam } from "../../constants/vct";
+import { getRegionAccentVar } from "../../constants/regionAccent";
 
 export interface TeamCardProps {
   team: VctTeam;
@@ -23,10 +24,16 @@ export interface TeamCardProps {
  * TASK-034 adds a card-local pointer spotlight ("pointer-glow"), tinted
  * cyan for Team A / coral for Team B — weaker than the selected-state glow
  * below by design, and never attached at all when the card is disabled.
+ * TASK-055 adds the team's region identity color as a small accent stripe
+ * (region is never conveyed by color alone elsewhere — the region name is
+ * still visible on SelectedTeamSummary) and a neutral logo tile behind
+ * every crest so a black-on-transparent logo still reads against the dark
+ * surface without inverting or otherwise altering the source asset.
  */
 export function TeamCard({ team, side, selected, disabledReason, onSelect }: TeamCardProps) {
   const disabled = Boolean(disabledReason);
   const accent = side === "A" ? "team-a" : "team-b";
+  const regionAccent = getRegionAccentVar(team.region);
   const reasonId = disabled ? `${team.id}-${side}-disabled-reason` : undefined;
   const glow = usePointerGlow<HTMLButtonElement>();
   const spotlightStyle = {
@@ -47,7 +54,7 @@ export function TeamCard({ team, side, selected, disabledReason, onSelect }: Tea
       onPointerMove={disabled ? undefined : glow.onPointerMove}
       onPointerLeave={disabled ? undefined : glow.onPointerLeave}
       className={cn(
-        "group relative flex min-h-[44px] flex-col items-center gap-2xs rounded-md border border-surface-border bg-surface p-sm text-center",
+        "group relative flex min-h-[44px] flex-col items-center gap-2xs overflow-hidden rounded-md border border-surface-border bg-surface p-sm text-center",
         !disabled && "pointer-glow",
         "motion-safe:transition-[transform,border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
@@ -63,22 +70,29 @@ export function TeamCard({ team, side, selected, disabledReason, onSelect }: Tea
             : "border-team-b shadow-[0_0_0_1px_var(--color-team-b),0_0_16px_-6px_var(--color-team-b)]"),
       )}
     >
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[3px]"
+        style={{ background: regionAccent }}
+      />
+
       <Check
         aria-hidden="true"
         className={cn(
-          "absolute right-1.5 top-1.5 size-4 motion-safe:transition-all motion-safe:duration-(--duration-base)",
+          "absolute right-1.5 top-2.5 size-4 motion-safe:transition-all motion-safe:duration-(--duration-base)",
           selected ? "scale-100 opacity-100" : "scale-75 opacity-0",
           accent === "team-a" ? "text-team-a" : "text-team-b",
         )}
       />
-      <span className="relative block size-12">
+
+      <span className="relative mt-1 flex size-12 items-center justify-center rounded-md bg-white/[0.06] ring-1 ring-white/10">
         <Image
           src={team.logoPath}
           alt=""
           fill
           sizes="48px"
           className={cn(
-            "object-contain motion-safe:transition-transform motion-safe:duration-(--duration-base)",
+            "object-contain p-1.5 motion-safe:transition-transform motion-safe:duration-(--duration-base)",
             !disabled && "motion-safe:group-hover:scale-(--scale-logo-hover) motion-safe:group-focus-visible:scale-(--scale-logo-hover)",
           )}
         />

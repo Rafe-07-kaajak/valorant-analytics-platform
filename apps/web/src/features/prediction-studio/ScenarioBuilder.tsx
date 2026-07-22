@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { SERIES_MAP_LIMITS, type GameMap, type Scenario, type SeriesFormat } from "@repo/shared";
-import { Button, Card, Label, Select, Spinner, Stack } from "@repo/ui";
+import { SERIES_MAP_LIMITS, type GameMap, type Scenario } from "@repo/shared";
+import { Button, Card, Spinner } from "@repo/ui";
 import type { VctRegion, VctTeam } from "../../constants/vct";
 import { VctTeamSideSelector, type SideSelection } from "./VctTeamSideSelector";
 import { MapSelector } from "./MapSelector";
+import { MatchContextCore } from "./MatchContextCore";
+import { SyntheticScenarioBadge } from "./SyntheticScenarioBadge";
 import { AnalyticsContextLinks } from "../../components/AnalyticsContextLinks";
 import { useCanonicalUrlState } from "../../hooks/useCanonicalUrlState";
 import {
@@ -55,6 +57,10 @@ export function ScenarioBuilder({
   const mapIds = urlState.maps;
 
   const maxSelectable = SERIES_MAP_LIMITS[seriesFormat];
+  const selectedMapNames = useMemo(
+    () => mapIds.map((mapId) => maps.find((map) => map.id === mapId)?.name).filter((name): name is string => Boolean(name)),
+    [mapIds, maps],
+  );
 
   const validationError = useMemo(() => {
     if (!teamASelection.teamId || !teamBSelection.teamId) return "Select both teams to continue.";
@@ -98,12 +104,14 @@ export function ScenarioBuilder({
           onTeamChange={(teamId) => setUrlState((current) => withTeamA(current, teamId))}
         />
 
-        <div
-          aria-hidden="true"
-          className="flex items-center justify-center text-sm font-semibold uppercase tracking-wide text-muted-foreground lg:h-full"
-        >
-          VS
-        </div>
+        <MatchContextCore
+          seriesFormat={seriesFormat}
+          onSeriesFormatChange={handleSeriesFormatChange}
+          selectedMapNames={selectedMapNames}
+          maxSelectable={maxSelectable}
+          teamAReady={Boolean(teamASelection.teamId)}
+          teamBReady={Boolean(teamBSelection.teamId)}
+        />
 
         <VctTeamSideSelector
           side="B"
@@ -119,18 +127,6 @@ export function ScenarioBuilder({
 
       {!hasResult ? <AnalyticsContextLinks currentFeature="prediction-studio" state={urlState} placement="compact" /> : null}
 
-      <Stack gap="2xs">
-        <Label htmlFor="series-format">Series Format</Label>
-        <Select
-          id="series-format"
-          value={seriesFormat}
-          onChange={(event) => handleSeriesFormatChange(event.target.value as SeriesFormat)}
-        >
-          <option value="BO3">Best of 3</option>
-          <option value="BO5">Best of 5</option>
-        </Select>
-      </Stack>
-
       <MapSelector
         maps={maps}
         selectedMapIds={mapIds}
@@ -138,7 +134,7 @@ export function ScenarioBuilder({
         onToggle={toggleMap}
       />
 
-      <p className="text-xs text-muted-foreground">{disclosure}</p>
+      <SyntheticScenarioBadge disclosure={disclosure} />
 
       {validationError ? (
         <p role="alert" className="text-sm text-danger">

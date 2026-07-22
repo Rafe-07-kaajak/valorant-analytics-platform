@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { GameMap } from "@repo/shared";
 import { Container, Section } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 import { ScenarioBuilder } from "./ScenarioBuilder";
 import { PredictionResultExperience } from "./PredictionResultExperience";
 import { HistoricalReplaySection } from "./historical/HistoricalReplaySection";
@@ -39,8 +40,13 @@ export function PredictionStudioClient({
   const resultUrlState = useMemo(() => (result ? scenarioToCanonicalState(result.scenario) : null), [result]);
 
   return (
-    <Section>
-      <Container className="flex flex-col gap-lg">
+    <Section className="relative overflow-hidden">
+      <AmbientSectionBackground
+        wash="var(--gradient-prediction-studio-ambient)"
+        texture={{ src: "/assets/redesign/textures/tactical-grid.png", opacity: 0.05 }}
+      />
+
+      <Container className="relative flex flex-col gap-lg">
         <div>
           <h1>Prediction Studio</h1>
           <p className="text-muted-foreground">

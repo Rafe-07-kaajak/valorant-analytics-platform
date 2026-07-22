@@ -1,13 +1,15 @@
 import { Badge, Container, ScrollReveal, Section } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 
 const TOURNAMENTS = ["VCT Americas", "VCT EMEA", "VCT Pacific", "VCT China", "Masters", "Champions"];
 
 export function SupportedTournaments() {
   return (
     <Section className="relative overflow-hidden py-xl sm:py-2xl">
-      <div
-        className="pointer-events-none absolute inset-0 bg-[url('/assets/redesign/textures/data-streams.png')] bg-cover bg-center opacity-[0.06]"
-        aria-hidden="true"
+      <AmbientSectionBackground
+        texture={{ src: "/assets/redesign/textures/data-streams.png", opacity: 0.06, size: "cover" }}
+        overlay={{ src: "/assets/redesign/overlays/chromatic-haze.png", opacity: 0.08, drift: "slow" }}
+        fade={false}
       />
       <Container className="relative flex flex-col items-center gap-md text-center">
         <ScrollReveal>

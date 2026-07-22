@@ -115,7 +115,11 @@ describe("PredictionStudioClient", () => {
 
     expect(screen.getByRole("button", { name: /Paper Rex/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: /G2 Esports/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByLabelText("Series Format")).toHaveValue("BO5");
+    const seriesFormatGroup = screen.getByRole("group", { name: "Series Format" });
+    expect(within(seriesFormatGroup).getByRole("button", { name: "Best of 5" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     expect(screen.getByRole("button", { name: "Ascent" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Haven" })).toHaveAttribute("aria-pressed", "true");
   });
@@ -185,7 +189,8 @@ describe("PredictionStudioClient", () => {
     const linkBefore = screen.getByRole("link", { name: /Compare Teams/ }).getAttribute("href");
 
     // Change the draft's series format after the result already exists.
-    fireEvent.change(screen.getByLabelText("Series Format"), { target: { value: "BO5" } });
+    const seriesFormatGroup = screen.getByRole("group", { name: "Series Format" });
+    fireEvent.click(within(seriesFormatGroup).getByRole("button", { name: "Best of 5" }));
 
     const linkAfter = screen.getByRole("link", { name: /Compare Teams/ }).getAttribute("href");
     expect(linkAfter).toBe(linkBefore);

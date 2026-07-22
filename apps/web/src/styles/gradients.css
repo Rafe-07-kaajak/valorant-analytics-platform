@@ -80,21 +80,24 @@
 
   /* Subtle mesh gradient — three soft radial washes over a transparent
      base, for large ambient panels (hero backgrounds, section dividers).
-     Deliberately low-alpha: a mesh at full saturation is the "uncontrolled
-     rainbow gradient" this system explicitly avoids. */
+     TASK-054: bumped from 14/12/10% to 18/16/14% — the original values were
+     visually cancelled by AmbientSectionBackground's old opaque edge fade
+     and read as invisible once that was fixed to a true vignette; still
+     capped below 20% to stay short of the "uncontrolled rainbow gradient"
+     this system explicitly avoids. */
   --gradient-mesh-subtle: radial-gradient(
       at 20% 20%,
-      color-mix(in oklab, var(--color-accent-cyan) 14%, transparent) 0%,
+      color-mix(in oklab, var(--color-accent-cyan) 18%, transparent) 0%,
       transparent 55%
     ),
     radial-gradient(
       at 80% 30%,
-      color-mix(in oklab, var(--color-accent-violet) 12%, transparent) 0%,
+      color-mix(in oklab, var(--color-accent-violet) 16%, transparent) 0%,
       transparent 55%
     ),
     radial-gradient(
       at 50% 85%,
-      color-mix(in oklab, var(--color-accent-coral) 10%, transparent) 0%,
+      color-mix(in oklab, var(--color-accent-coral) 14%, transparent) 0%,
       transparent 55%
     );
 
@@ -107,6 +110,33 @@
     circle,
     color-mix(in oklab, var(--color-brand-400) 16%, transparent) 0%,
     transparent 70%
+  );
+
+  /* TASK-054 — pipeline section ambient wash. A vertical drift through the
+     same cyan -> blue -> violet -> magenta sweep as ProductStory's process
+     line, so the 6-step section reads as one continuous atmosphere instead
+     of a flat rectangle. Bumped from 10/7/6% to 26/22/18% — the pipeline
+     gets the strongest ambient treatment on the page (still below the
+     process line's own fully-opaque gradient/glow, which stays the
+     strongest visual connector). */
+  --gradient-pipeline-ambient: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-blue) 26%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-violet) 22%, transparent) 45%,
+    color-mix(in oklab, var(--color-accent-magenta) 18%, transparent) 75%,
+    transparent 100%
+  );
+
+  /* TASK-055 — Prediction Studio's page-level ambient identity: electric
+     cyan into royal blue, distinct from the site-wide violet-leaning
+     --gradient-ambient. Same restrained vertical-wash shape as
+     --gradient-pipeline-ambient above, capped low since this sits behind
+     the entire page (header through results), not one bounded section. */
+  --gradient-prediction-studio-ambient: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-blue) 14%, transparent) 45%,
+    transparent 85%
   );
 }
 
@@ -121,7 +151,7 @@
 [data-theme="dark"] {
   --gradient-ambient: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--color-accent-blue) 8%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-blue) 16%, transparent) 0%,
     transparent 40%,
     transparent 100%
   );

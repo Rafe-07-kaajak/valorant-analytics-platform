@@ -34,7 +34,7 @@ export const VCT_REGION_LOGOS = {
   emea: {
     id: "emea",
     name: "VCT EMEA",
-    logoPath: "/assets/vct/regions/emea/vct-emea.png",
+    logoPath: "/assets/vct/regions/emea/vct-emea-light.png",
   },
   pacific: {
     id: "pacific",

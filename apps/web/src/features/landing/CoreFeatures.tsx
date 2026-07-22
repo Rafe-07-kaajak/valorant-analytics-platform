@@ -11,6 +11,7 @@ import {
   Target,
 } from "lucide-react";
 import { buttonVariants, Section } from "@repo/ui";
+import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
 
 const FEATURES = [
   {
@@ -54,14 +55,9 @@ const FEATURES = [
 export function CoreFeatures() {
   return (
     <Section className="relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 bg-[url('/assets/redesign/textures/blueprint-contours.png')] bg-repeat opacity-[0.025]"
-        aria-hidden="true"
-      />
-
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background via-background/96 to-background"
-        aria-hidden="true"
+      <AmbientSectionBackground
+        wash="var(--gradient-mesh-subtle)"
+        texture={{ src: "/assets/redesign/textures/blueprint-contours.png", opacity: 0.025 }}
       />
 
       <div
