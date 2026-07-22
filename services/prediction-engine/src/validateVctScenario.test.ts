@@ -35,7 +35,7 @@ describe("validateVctScenario", () => {
   });
 
   it("rejects an unsupported map", () => {
-    expect(validateVctScenario(request({ mapIds: ["fracture"] }))).not.toBeNull();
+    expect(validateVctScenario(request({ mapIds: ["not-a-real-map"] }))).not.toBeNull();
   });
 
   it("rejects duplicate maps", () => {

@@ -72,7 +72,7 @@ describe("validateMatchRecord", () => {
 
   it("rejects an unknown map ID", () => {
     const record = validRecord();
-    record.mapId = "fracture";
+    record.mapId = "not-a-real-map";
 
     const reasons = validateMatchRecord(record, noSeen);
     expect(reasons.some((reason) => reason.includes("unknown map"))).toBe(true);

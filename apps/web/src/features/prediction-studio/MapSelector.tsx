@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
+import Image from "next/image";
 import type { GameMap } from "@repo/shared";
 import { Check } from "lucide-react";
 import { cn } from "@repo/ui";
+import { getMapArtworkPath } from "./mapArtwork";
 
 export interface MapSelectorProps {
   maps: GameMap[];
@@ -14,15 +16,15 @@ export interface MapSelectorProps {
 const ARROW_KEYS = new Set(["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"]);
 
 /**
- * TASK-055 — tactical map chips replacing the previous flat text buttons.
- * No per-map thumbnail asset exists anywhere in the redesign asset library
- * (`GameMap` is just `{id, name}` — reported in the pre-edit inspection
- * rather than generating a new photographic thumbnail); each chip instead
- * gets an accent-tinted tile carrying the map's initial, cycling through
- * the same accent palette ProductStory's pipeline uses, so chips stay
- * visually distinct without inventing map artwork.
+ * TASK-055 — each map tile now uses its real artwork (`./mapArtwork`) as a
+ * full-bleed background instead of the earlier single-letter accent chip
+ * (no thumbnail asset existed when that version shipped). A dark gradient
+ * keeps the rectangular name nameplate readable over any source photo, and
+ * the accent cycling that used to color the letter tile now colors the
+ * selected/hover border and check badge instead, so tiles stay visually
+ * distinct without a giant letter.
  */
-const CHIP_ACCENTS = [
+const TILE_ACCENTS = [
   "var(--color-accent-cyan)",
   "var(--color-accent-blue)",
   "var(--color-accent-violet)",
@@ -64,7 +66,8 @@ export function MapSelector({ maps, selectedMapIds, maxSelectable, onToggle }: M
         {maps.map((map, index) => {
           const selected = selectedMapIds.includes(map.id);
           const disabled = !selected && limitReached;
-          const accent = CHIP_ACCENTS[index % CHIP_ACCENTS.length];
+          const accent = TILE_ACCENTS[index % TILE_ACCENTS.length];
+          const artworkPath = getMapArtworkPath(map.id);
 
           return (
             <button
@@ -77,34 +80,53 @@ export function MapSelector({ maps, selectedMapIds, maxSelectable, onToggle }: M
               aria-pressed={selected}
               onClick={() => onToggle(map.id)}
               onKeyDown={(event) => handleKeyDown(event, index)}
-              style={{ "--map-chip-accent": accent } as CSSProperties}
+              style={{ "--map-tile-accent": accent } as CSSProperties}
               className={cn(
-                "group relative flex flex-col items-center gap-2xs rounded-md border border-surface-border bg-surface px-2 py-2.5 text-center",
+                "group relative aspect-video w-full overflow-hidden rounded-md border border-surface-border bg-surface",
                 "motion-safe:transition-[transform,border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
                 disabled
                   ? "cursor-not-allowed opacity-40"
-                  : "motion-safe:hover:-translate-y-(--lift-card-selectable) motion-safe:active:scale-(--scale-press) hover:border-(--map-chip-accent)/70",
+                  : "motion-safe:hover:-translate-y-(--lift-card-selectable) motion-safe:active:scale-(--scale-press) hover:border-(--map-tile-accent)/70",
                 selected &&
-                  "border-(--map-chip-accent) shadow-[0_0_0_1px_var(--map-chip-accent),0_0_14px_-6px_var(--map-chip-accent)]",
+                  "border-(--map-tile-accent) shadow-[0_0_0_1px_var(--map-tile-accent),0_0_14px_-6px_var(--map-tile-accent)]",
               )}
             >
-              <Check
+              {artworkPath ? (
+                <Image
+                  src={artworkPath}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  sizes="(min-width: 640px) 25vw, 50vw"
+                  className="object-cover motion-safe:transition-transform motion-safe:duration-(--duration-base) motion-safe:group-hover:scale-105"
+                />
+              ) : null}
+
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/5"
                 aria-hidden="true"
-                className={cn(
-                  "absolute right-1 top-1 size-3.5 motion-safe:transition-all motion-safe:duration-(--duration-base)",
-                  selected ? "scale-100 opacity-100" : "scale-75 opacity-0",
-                )}
-                style={{ color: accent }}
               />
+              <div
+                className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5"
+                aria-hidden="true"
+              />
+
               <span
                 aria-hidden="true"
-                className="flex size-9 items-center justify-center rounded-md text-sm font-semibold uppercase text-white"
-                style={{ background: `color-mix(in oklab, ${accent} 55%, var(--surface-raised))` }}
+                className={cn(
+                  "absolute right-1.5 top-1.5 z-10 flex size-6 items-center justify-center rounded-full border border-white/10 bg-surface/80 backdrop-blur-sm motion-safe:transition-all motion-safe:duration-(--duration-base)",
+                  selected ? "scale-100 opacity-100" : "scale-75 opacity-0",
+                )}
               >
-                {map.name.slice(0, 1)}
+                <Check className="size-3.5" style={{ color: accent }} />
               </span>
-              <span className="text-xs font-medium text-foreground">{map.name}</span>
+
+              <span
+                className="absolute bottom-1.5 left-1.5 z-10 max-w-[calc(100%-0.75rem)] truncate rounded-md border border-white/10 bg-surface/80 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+              >
+                {map.name}
+              </span>
             </button>
           );
         })}

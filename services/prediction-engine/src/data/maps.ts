@@ -9,4 +9,9 @@ export const maps: GameMap[] = [
   { id: "split", name: "Split" },
   { id: "sunset", name: "Sunset" },
   { id: "icebox", name: "Icebox" },
+  { id: "abyss", name: "Abyss" },
+  { id: "corrode", name: "Corrode" },
+  { id: "summit", name: "Summit" },
+  { id: "fracture", name: "Fracture" },
+  { id: "breeze", name: "Breeze" },
 ];
