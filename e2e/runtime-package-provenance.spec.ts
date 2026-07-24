@@ -46,11 +46,15 @@ function catalogBody() {
         matchInternalId: "vlr:match:2001",
         scheduledAt: "2026-03-01T05:00:00.000Z",
         eventFamily: "vct-americas",
+        eventName: "Fixture Event",
         eventRegion: "americas",
         tournamentLevel: "tier-1",
+        matchStageDisplay: "Group Stage",
         seriesFormat: "BO3",
         teamAProviderId: "vlr:team:501",
         teamBProviderId: "vlr:team:502",
+        teamADisplayName: "Fixture Team A",
+        teamBDisplayName: "Fixture Team B",
         modelEligible: true,
         featureDatasetVersion: "fixture-feature-dataset-v1",
       },
@@ -67,11 +71,15 @@ function predictionBody() {
       matchInternalId: "vlr:match:2001",
       scheduledAt: "2026-03-01T05:00:00.000Z",
       eventFamily: "vct-americas",
+      eventName: "Fixture Event",
       eventRegion: "americas",
       tournamentLevel: "tier-1",
+      matchStageDisplay: "Group Stage",
       seriesFormat: "BO3",
       teamAProviderId: "vlr:team:501",
       teamBProviderId: "vlr:team:502",
+      teamADisplayName: "Fixture Team A",
+      teamBDisplayName: "Fixture Team B",
     },
     modelVersion: "fixture-model-v1",
     estimatorType: "elo-baseline",
@@ -85,7 +93,13 @@ function predictionBody() {
     warnings: [],
     predictionGeneratedAt: new Date().toISOString(),
     inferenceDurationMs: 0.4,
-    dataProvenance: { sourceFeatureDatasetVersion: "fixture-feature-dataset-v1", featureSchemaVersion: "fixture-feature-schema@1.0.0", generatedFromHistoricalSnapshot: true },
+    dataProvenance: {
+      sourceFeatureDatasetVersion: "fixture-feature-dataset-v1",
+      featureSchemaVersion: "fixture-feature-schema@1.0.0",
+      generatedFromHistoricalSnapshot: true,
+      modelTrainDateRangeEndIso: "2026-04-24T11:00:00.000Z",
+      temporalFidelity: "point-in-time",
+    },
     resultAvailability: { actualResultRevealable: false },
   };
 }
@@ -110,9 +124,13 @@ test("historical mode works normally when readiness reports sourceMode: runtime-
 
   const matchesGroup = page.getByRole("group", { name: "Historical matches" });
   await expect(matchesGroup).toBeVisible();
-  await page.getByRole("button", { name: /vlr:team:501 vs vlr:team:502/ }).click();
+  await page.getByRole("button", { name: /Fixture Team A vs Fixture Team B/ }).click();
 
-  await expect(page.getByText("Real trained model")).toBeVisible();
+  // Exact match: Real Model 2.0's own pre-submission disclosure badge (always
+  // present on this page, since Real Model 2.0 is the default mode) also
+  // mentions "real trained model" in prose, case-insensitively colliding with
+  // this exact historical-replay badge text without `exact: true`.
+  await expect(page.getByText("Real trained model", { exact: true })).toBeVisible();
   await expect(page.getByText("fixture-model-v1")).toBeVisible();
 });
 

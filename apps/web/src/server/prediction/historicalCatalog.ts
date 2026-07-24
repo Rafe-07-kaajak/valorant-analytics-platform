@@ -10,6 +10,9 @@ import { PredictionApiError } from "./errors";
  * TASK-044's export is, by construction, a fully-featured pre-match row
  * (rejected/ineligible matches never reach `feature-rows.json` at all) — see
  * docs/32, "Label policy".
+ *
+ * Sorted newest-first (most recently completed match leads the archive) —
+ * see the real-data-correction task's Historical Archive ordering fix.
  */
 
 export interface HistoricalCatalogFilters {
@@ -107,10 +110,13 @@ export async function buildHistoricalCatalog(filters: HistoricalCatalogFilters):
   const rows = await listHistoricalRows();
   const filtered = rows.filter((row) => matchesFilters(row, filters));
 
-  // Stable chronological sort ascending — ties break on matchInternalId
-  // (mirrors TASK-044's own state-engine tie-break rule, `feature/chronology.ts`).
+  // Newest-first: most recently completed match leads the archive. Ties
+  // break ascending on matchInternalId for determinism (mirrors TASK-044's
+  // own state-engine tie-break rule, `feature/chronology.ts`) — this
+  // secondary key only matters for same-timestamp matches and carries no
+  // display meaning, so it is left unreversed.
   const sorted = [...filtered].sort((a, b) => {
-    if (a.scheduledAt !== b.scheduledAt) return a.scheduledAt < b.scheduledAt ? -1 : 1;
+    if (a.scheduledAt !== b.scheduledAt) return a.scheduledAt > b.scheduledAt ? -1 : 1;
     return a.matchInternalId.localeCompare(b.matchInternalId);
   });
 

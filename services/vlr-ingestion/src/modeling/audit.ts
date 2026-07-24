@@ -136,7 +136,7 @@ export function buildModelFeasibilityAudit(rows: readonly FeatureRow[], policy: 
   const dateRangeStartIso = sortedByTime[0]?.scheduledAt ?? null;
   const dateRangeEndIso = sortedByTime[sortedByTime.length - 1]?.scheduledAt ?? null;
 
-  const splitCounts: Record<SplitLabel, number> = { train: 0, validation: 0, test: 0 };
+  const splitCounts: Record<SplitLabel, number> = { train: 0, validation: 0, test: 0, excluded: 0 };
   for (const row of rows) splitCounts[splitOf(row)] += 1;
 
   const eventFamilyDistribution = countBy(rows.map((r) => r.eventFamily));
@@ -220,7 +220,7 @@ export function buildModelFeasibilityAudit(rows: readonly FeatureRow[], policy: 
       const split = splitOf(row);
       if (split === "train") trainValues.push(byField[i]!);
       else if (split === "validation") validationValues.push(byField[i]!);
-      else testValues.push(byField[i]!);
+      else if (split === "test") testValues.push(byField[i]!);
     });
     return { field, trainMean: mean(trainValues), validationMean: mean(validationValues), testMean: mean(testValues) };
   });
@@ -239,8 +239,9 @@ export function buildModelFeasibilityAudit(rows: readonly FeatureRow[], policy: 
     train: { teamAWinRate: 0, count: 0 },
     validation: { teamAWinRate: 0, count: 0 },
     test: { teamAWinRate: 0, count: 0 },
+    excluded: { teamAWinRate: 0, count: 0 },
   };
-  for (const split of ["train", "validation", "test"] as const) {
+  for (const split of ["train", "validation", "test", "excluded"] as const) {
     const splitRows = rows.filter((r) => splitOf(r) === split);
     bySplit[split] = { teamAWinRate: mean(splitRows.map((r) => r.labelTeamAWin)), count: splitRows.length };
   }

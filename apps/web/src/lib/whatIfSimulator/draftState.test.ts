@@ -13,12 +13,12 @@ import {
   teamDraftHasAdjustments,
   toProfileAdjustment,
 } from "./draftState";
-import { ATTRIBUTE_CONTROLS } from "./types";
+import { ALL_ATTRIBUTE_CONTROLS } from "./types";
 
 describe("createEmptyTeamDraft", () => {
-  it("populates every attribute control at zero", () => {
+  it("populates every attribute control (synthetic and real) at zero", () => {
     const draft = createEmptyTeamDraft();
-    expect(Object.keys(draft)).toHaveLength(ATTRIBUTE_CONTROLS.length);
+    expect(Object.keys(draft)).toHaveLength(ALL_ATTRIBUTE_CONTROLS.length);
     expect(Object.values(draft).every((value) => value === 0)).toBe(true);
   });
 });

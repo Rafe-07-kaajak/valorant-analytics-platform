@@ -1,15 +1,25 @@
 "use client";
 
 import { cn } from "@repo/ui";
-import type { VctProfileBaseline } from "@repo/shared";
 import { AttributeSlider } from "./AttributeSlider";
 import { usePointerGlow } from "../../../hooks/usePointerGlow";
-import { ATTRIBUTE_CONTROLS, SIMULATION_PRESETS, type AttributeControlKey, type MapDraftAdjustment, type TeamDraftAdjustment } from "../../../lib/whatIfSimulator";
+import {
+  ATTRIBUTE_CONTROLS,
+  SIMULATION_PRESETS,
+  type AttributeControlDefinition,
+  type AttributeControlKey,
+  type MapDraftAdjustment,
+  type SimulationPreset,
+  type TeamDraftAdjustment,
+} from "../../../lib/whatIfSimulator";
 
 export interface TeamControlsPanelProps {
   teamName: string;
   accent: "team-a" | "team-b";
-  baseline: VctProfileBaseline;
+  /** Baseline value per control key. Widened from the original `VctProfileBaseline` shape so a Real Model 2.0 caller can supply real baseline values keyed by `RealAxisKey` instead. */
+  baseline: Record<string, number>;
+  /** Kept separate from `baseline` (rather than nested) since it's itself a dictionary, not a single number per key. */
+  mapStrength: Record<string, number>;
   draft: TeamDraftAdjustment;
   mapDraft: MapDraftAdjustment;
   mapIds: readonly string[];
@@ -19,15 +29,17 @@ export interface TeamControlsPanelProps {
   onMapChange: (mapId: string, value: number) => void;
   onMapReset: (mapId: string) => void;
   onApplyPreset: (presetId: string) => void;
+  /** Defaults to the synthetic engine's controls, unchanged from every existing caller. Real Model 2.0 passes `REAL_ATTRIBUTE_CONTROLS`. */
+  controls?: readonly AttributeControlDefinition[];
+  /** Defaults to the synthetic presets, unchanged from every existing caller. Real Model 2.0 passes `REAL_SIMULATION_PRESETS`. */
+  presets?: readonly SimulationPreset[];
 }
-
-const CORE_CONTROLS = ATTRIBUTE_CONTROLS.filter((control) => control.affectsPrediction);
-const ADDITIONAL_CONTROLS = ATTRIBUTE_CONTROLS.filter((control) => !control.affectsPrediction);
 
 export function TeamControlsPanel({
   teamName,
   accent,
   baseline,
+  mapStrength,
   draft,
   mapDraft,
   mapIds,
@@ -37,8 +49,12 @@ export function TeamControlsPanel({
   onMapChange,
   onMapReset,
   onApplyPreset,
+  controls = ATTRIBUTE_CONTROLS,
+  presets = SIMULATION_PRESETS,
 }: TeamControlsPanelProps) {
   const glow = usePointerGlow<HTMLButtonElement>();
+  const coreControls = controls.filter((control) => control.affectsPrediction);
+  const additionalControls = controls.filter((control) => !control.affectsPrediction);
 
   return (
     <div className="flex flex-col gap-md">
@@ -57,7 +73,7 @@ export function TeamControlsPanel({
         <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Core modeled attributes
         </span>
-        {CORE_CONTROLS.map((control) => (
+        {coreControls.map((control) => (
           <AttributeSlider
             key={control.key}
             id={`sim-${accent}-${control.key}`}
@@ -79,9 +95,9 @@ export function TeamControlsPanel({
         </span>
         <p className="text-xs text-muted-foreground">
           Tracked on the simulated profile and visible in the Change Breakdown, but the current model doesn&apos;t
-          weigh these five directly. Adjusting them won&apos;t move the headline probability below.
+          weigh these directly. Adjusting them won&apos;t move the headline probability below.
         </p>
-        {ADDITIONAL_CONTROLS.map((control) => (
+        {additionalControls.map((control) => (
           <AttributeSlider
             key={control.key}
             id={`sim-${accent}-${control.key}`}
@@ -109,9 +125,9 @@ export function TeamControlsPanel({
               accent={accent}
               teamName={teamName}
               label={mapLabel(mapId)}
-              baseline={baseline.mapStrength[mapId] ?? 50}
+              baseline={mapStrength[mapId] ?? 50}
               delta={mapDraft[mapId] ?? 0}
-              ariaLabel={`${teamName} modeled strength on ${mapLabel(mapId)}: baseline ${baseline.mapStrength[mapId] ?? 50}, adjustment ${(mapDraft[mapId] ?? 0) > 0 ? "+" : ""}${mapDraft[mapId] ?? 0} relative to baseline`}
+              ariaLabel={`${teamName} modeled strength on ${mapLabel(mapId)}: baseline ${mapStrength[mapId] ?? 50}, adjustment ${(mapDraft[mapId] ?? 0) > 0 ? "+" : ""}${mapDraft[mapId] ?? 0} relative to baseline`}
               onChange={(value) => onMapChange(mapId, value)}
               onReset={() => onMapReset(mapId)}
             />
@@ -124,7 +140,7 @@ export function TeamControlsPanel({
       <div className="flex flex-col gap-sm">
         <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Presets</span>
         <div className="flex flex-wrap gap-2xs">
-          {SIMULATION_PRESETS.map((preset) => (
+          {presets.map((preset) => (
             <button
               key={preset.id}
               type="button"

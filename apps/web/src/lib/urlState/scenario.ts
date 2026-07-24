@@ -21,5 +21,6 @@ export function scenarioToCanonicalState(scenario: Scenario): CanonicalUrlState 
     teamB,
     maps: [...scenario.mapIds],
     format: scenario.seriesFormat,
+    mode: null,
   };
 }

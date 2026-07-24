@@ -1,4 +1,4 @@
-import { ATTRIBUTE_CONTROLS, type MapDraftAdjustment, type TeamDraftAdjustment } from "./types";
+import { ALL_ATTRIBUTE_CONTROLS, type MapDraftAdjustment, type TeamDraftAdjustment } from "./types";
 
 const EMPTY_SUMMARY = "No hypothetical adjustments applied.";
 
@@ -7,7 +7,7 @@ function formatDelta(delta: number): string {
 }
 
 function summarizeTeamDraft(teamName: string, draft: TeamDraftAdjustment): string | null {
-  const parts = ATTRIBUTE_CONTROLS.filter((control) => draft[control.key] !== 0).map(
+  const parts = ALL_ATTRIBUTE_CONTROLS.filter((control) => draft[control.key] !== 0).map(
     (control) => `${control.label} ${formatDelta(draft[control.key])}`,
   );
   if (parts.length === 0) return null;

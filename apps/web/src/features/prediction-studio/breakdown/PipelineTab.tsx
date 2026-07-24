@@ -63,7 +63,7 @@ function PipelineStageRow({ stage, breakdown }: { stage: PipelineStageView; brea
         onBlur={() => breakdown.hoverStage(null)}
         onClick={() => breakdown.selectStage(stage.id)}
         onKeyDown={handleKeyDown}
-        aria-label={`Stage ${stage.order}: ${stage.label}, complete, ${stage.durationMs} milliseconds`}
+        aria-label={`Stage ${stage.order}: ${stage.label}, complete, ${stage.durationMs !== null ? `${stage.durationMs} milliseconds` : "timing not measured"}`}
         className={cn(
           "flex w-full flex-col gap-2xs rounded-md border bg-surface p-sm text-left",
           "motion-safe:transition-[border-color,box-shadow] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-standard)",
@@ -79,7 +79,9 @@ function PipelineStageRow({ stage, breakdown }: { stage: PipelineStageView; brea
           <span className="font-medium text-foreground">
             {stage.order}. {stage.label}
           </span>
-          <span className="text-sm text-muted-foreground">{stage.durationMs}ms · complete</span>
+          <span className="text-sm text-muted-foreground">
+            {stage.durationMs !== null ? `${stage.durationMs}ms` : "not measured"} · complete
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">{stage.description}</p>
         {isActive && stage.affects.length > 0 ? (

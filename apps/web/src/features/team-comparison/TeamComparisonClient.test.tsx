@@ -174,6 +174,7 @@ describe("TeamComparisonClient", () => {
       teamB: "g2-esports",
       maps: [],
       format: null,
+      mode: null,
     });
 
     expect(screen.getByRole("tablist", { name: "Comparison views" })).toBeInTheDocument();

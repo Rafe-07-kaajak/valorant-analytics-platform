@@ -8,14 +8,16 @@ export interface ResultTimelineProps {
 }
 
 export function ResultTimeline({ stages }: ResultTimelineProps) {
-  const totalMs = stages.reduce((sum, stage) => sum + stage.durationMs, 0);
+  const measuredStages = stages.filter((stage): stage is typeof stage & { durationMs: number } => stage.durationMs !== null);
+  const totalMs = measuredStages.reduce((sum, stage) => sum + stage.durationMs, 0);
+  const totalLabel = measuredStages.length === stages.length ? `${totalMs}ms total` : measuredStages.length > 0 ? `${totalMs}ms measured` : "timing not measured";
 
   return (
     <Card className="relative flex flex-col gap-md overflow-hidden">
       <MediaBackground asset={MEDIA_ASSETS.predictionTimelineLoop} className="opacity-[0.08]" />
       <div className="relative flex items-baseline justify-between">
         <h3>How This Prediction Was Made</h3>
-        <span className="text-sm text-muted-foreground">{totalMs}ms total</span>
+        <span className="text-sm text-muted-foreground">{totalLabel}</span>
       </div>
       <ol className="relative flex flex-col">
         {stages.map((stage, index) => (
@@ -31,7 +33,9 @@ export function ResultTimeline({ stages }: ResultTimelineProps) {
                 <p className="text-sm font-medium text-foreground">{stage.label}</p>
                 <p className="text-sm text-muted-foreground">{stage.description}</p>
               </div>
-              <span className="whitespace-nowrap text-sm text-muted-foreground">{stage.durationMs}ms</span>
+              <span className="whitespace-nowrap text-sm text-muted-foreground">
+                {stage.durationMs !== null ? `${stage.durationMs}ms` : "not measured"}
+              </span>
             </div>
           </li>
         ))}

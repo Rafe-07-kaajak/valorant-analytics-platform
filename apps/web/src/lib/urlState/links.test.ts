@@ -9,6 +9,7 @@ const BOTH_TEAMS: CanonicalUrlState = {
   teamB: "g2-esports",
   maps: ["ascent", "haven"],
   format: "BO3",
+  mode: null,
 };
 
 describe("buildFeatureHref", () => {

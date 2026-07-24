@@ -9,6 +9,7 @@ const FULL_STATE: CanonicalUrlState = {
   teamB: "g2-esports",
   maps: ["ascent", "haven", "bind"],
   format: "BO3",
+  mode: null,
 };
 
 describe("serializeUrlState", () => {
@@ -62,6 +63,7 @@ describe("projectCanonicalState", () => {
       teamB: "g2-esports",
       maps: [],
       format: null,
+      mode: null,
     });
   });
 });

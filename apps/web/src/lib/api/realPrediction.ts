@@ -1,4 +1,12 @@
-import type { HistoricalCatalogResponse, HistoricalPredictionRequest, HistoricalPredictionResponse, PredictionApiErrorPayload, RealPredictionReadiness } from "@repo/shared";
+import type {
+  CurrentPredictionRequest,
+  CurrentPredictionResponse,
+  HistoricalCatalogResponse,
+  HistoricalPredictionRequest,
+  HistoricalPredictionResponse,
+  PredictionApiErrorPayload,
+  RealPredictionReadiness,
+} from "@repo/shared";
 
 /**
  * Thin browser-side client for TASK-047's real (historical-replay)
@@ -62,4 +70,18 @@ export async function predictHistoricalMatch(
 
   if (!response.ok) throw new RealPredictionApiError(await parseErrorPayload(response));
   return (await response.json()) as HistoricalPredictionResponse;
+}
+
+/** Real-model integration task: predicts an arbitrary, not-yet-scheduled team pairing "as of" the real data cutoff — distinct from `predictHistoricalMatch`, which replays a specific past match. */
+export async function predictCurrentMatch(request: Omit<CurrentPredictionRequest, "mode">): Promise<CurrentPredictionResponse> {
+  const body: CurrentPredictionRequest = { mode: "current-real-model", ...request };
+
+  const response = await fetch("/api/internal/prediction/current", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) throw new RealPredictionApiError(await parseErrorPayload(response));
+  return (await response.json()) as CurrentPredictionResponse;
 }

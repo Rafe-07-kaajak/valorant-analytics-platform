@@ -73,10 +73,31 @@ describe("predictHistoricalMatch (integration, fixture artifact + fixture featur
     expect(result.teamBWinProbability).toBeCloseTo(0.38, 5);
     expect(result.predictedWinnerSide).toBe("teamA");
     expect(result.dataProvenance.generatedFromHistoricalSnapshot).toBe(true);
+    // Fixture model trains through 2025-06-01; fixture row is scheduled 2026-01-01, strictly after — genuine point-in-time.
+    expect(result.dataProvenance.temporalFidelity).toBe("point-in-time");
+    expect(result.dataProvenance.modelTrainDateRangeEndIso).toBe("2025-06-01T00:00:00.000Z");
+    expect(result.warnings.some((w) => w.includes("retrospective reconstruction"))).toBe(false);
     expect(result.resultAvailability.actualResultRevealable).toBe(false);
     // Never present anywhere on the response.
     expect(result).not.toHaveProperty("labelTeamAWin");
     expect(JSON.stringify(result)).not.toContain("labelWinnerProviderId");
+  });
+
+  it("labels a match at-or-before the model's train cutoff as a retrospective reconstruction, with an explanatory warning", async () => {
+    const artifact = await buildFixtureArtifact({ model: ELO_FIXTURE_MODEL });
+    tempDirs.push(artifact.rootDir);
+    const service = new PredictionService(fixtureModelInferenceConfig(artifact.artifactDir));
+    await service.start();
+    setModelServiceForTesting(service);
+
+    const preTrainingRow = { ...FIXTURE_HISTORICAL_ROWS[0], matchInternalId: "vlr:match:pre-cutoff", scheduledAt: "2025-01-01T00:00:00.000Z" };
+    const dataset = await buildFixtureFeatureDataset([preTrainingRow]);
+    tempDirs.push(dataset.rootDir);
+    process.env.REAL_PREDICTION_FEATURE_DATA_DIR = dataset.rootDir;
+
+    const result = await predictHistoricalMatch({ matchInternalId: "vlr:match:pre-cutoff" });
+    expect(result.dataProvenance.temporalFidelity).toBe("retrospective");
+    expect(result.warnings.some((w) => w.includes("retrospective reconstruction"))).toBe(true);
   });
 
   it("is deterministic across repeated calls for the same match", async () => {

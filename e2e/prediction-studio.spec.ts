@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 /**
@@ -6,6 +6,16 @@ import AxeBuilder from "@axe-core/playwright";
  * replacing the old native-<select> team pickers. Team A → Pacific → Paper
  * Rex, Team B → Americas → G2 Esports is used throughout as the canonical
  * example scenario.
+ *
+ * Prediction Studio mode-correction task: this file covers "Real Model 2.0"
+ * (the default mode, wire value "synthetic") — the former Synthetic Scenario
+ * UI, now backed end to end by the real ingested-data pipeline via
+ * `/api/internal/prediction/current`. Every test that submits a prediction
+ * mocks that endpoint, mirroring `e2e/prediction-studio-real-mode.spec.ts`'s
+ * own pattern, so this file never depends on the real gitignored
+ * TASK-044/045 local artifact/dataset. "Real Model 1.0" (the distinct
+ * technical result experience) is covered by
+ * `e2e/prediction-studio-real-mode.spec.ts`.
  */
 /**
  * Real Tab-key navigation (rather than a programmatic `.focus()` call)
@@ -21,6 +31,127 @@ async function tabToLocator(page: Page, locator: import("@playwright/test").Loca
     await page.keyboard.press("Tab");
   }
   throw new Error("tabToLocator: target was not reached within maxPresses");
+}
+
+const CURRENT_PREDICTION_URL = "**/api/internal/prediction/current";
+
+function realResultBody(overrides: Record<string, unknown> = {}) {
+  return {
+    mode: "current-real-model",
+    requestId: "req-e2e",
+    teamAId: "paper-rex",
+    teamBId: "g2-esports",
+    seriesFormat: "BO3",
+    tournamentTier: "international",
+    eventRegion: "international",
+    modelVersion: "fixture-model-v1",
+    estimatorType: "elo-baseline",
+    calibrationMethod: "none",
+    teamAWinProbability: 0.58,
+    teamBWinProbability: 0.42,
+    predictedWinnerSide: "teamA",
+    confidence: 0.2,
+    warnings: [],
+    predictionGeneratedAt: new Date().toISOString(),
+    inferenceDurationMs: 0.6,
+    dataProvenance: {
+      sourceFeatureDatasetVersion: "fixture-feature-dataset-v1",
+      featureSchemaVersion: "fixture-feature-schema@1.0.0",
+      canonicalWindowStartIso: "2025-06-07T12:00:00.000Z",
+      modelTrainDateRangeEndIso: "2026-04-24T11:00:00.000Z",
+      asOfIso: "2026-07-18T04:00:00.000Z",
+      constructedFromRealFeatureData: true,
+    },
+    teamAConfidence: { teamId: "paper-rex", confidence: "verified", seriesCountInWindow: 30 },
+    teamBConfidence: { teamId: "g2-esports", confidence: "verified", seriesCountInWindow: 25 },
+    teamAState: {
+      teamId: "paper-rex",
+      isColdStart: false,
+      eloRating: 1550,
+      recentFormWinRate: 0.6,
+      formTrend: 0.05,
+      opponentAdjustedRating: 1500,
+      strengthOfSchedule: 1480,
+      mapPoolBreadth: 7,
+      recentMapWinRate: 0.55,
+      avgRoundsWonPerMap: 13,
+      avgRoundsLostPerMap: 10,
+      daysSinceLastMatch: 5,
+      isBackToBack: false,
+      priorInternationalAppearances: 3,
+      priorMastersChampionsAppearances: 1,
+      seriesCountInWindow: 30,
+    },
+    teamBState: {
+      teamId: "g2-esports",
+      isColdStart: false,
+      eloRating: 1480,
+      recentFormWinRate: 0.5,
+      formTrend: -0.02,
+      opponentAdjustedRating: 1470,
+      strengthOfSchedule: 1460,
+      mapPoolBreadth: 6,
+      recentMapWinRate: 0.5,
+      avgRoundsWonPerMap: 12,
+      avgRoundsLostPerMap: 11,
+      daysSinceLastMatch: 8,
+      isBackToBack: false,
+      priorInternationalAppearances: 2,
+      priorMastersChampionsAppearances: 0,
+      seriesCountInWindow: 25,
+    },
+    contribution: {
+      driverLabel: "Elo rating differential",
+      driverDifferential: 70,
+      uncalibratedProbability: 0.58,
+      calibrationAdjustment: 0,
+      finalProbability: 0.58,
+      isSoleDriver: true,
+    },
+    supportingContext: [
+      { id: "recent-form", label: "Recent Form", favoredSide: "teamA", teamAValue: 0.6, teamBValue: 0.5, description: "Win rate across each team's last 10 real matches. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "opponent-adjusted-strength", label: "Opponent-Adjusted Strength", favoredSide: "teamA", teamAValue: 1500, teamBValue: 1470, description: "Average real opponent Elo faced in each team's last 10 matches. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "map-pool-breadth", label: "Map Pool Breadth", favoredSide: "teamA", teamAValue: 7, teamBValue: 6, description: "Count of distinct real maps each team has recorded matches on. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "schedule-strength", label: "Strength of Schedule", favoredSide: "teamA", teamAValue: 1480, teamBValue: 1460, description: "Average real opponent Elo across each team's entire match history. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "activity-rest", label: "Activity & Rest", favoredSide: "teamA", teamAValue: 5, teamBValue: 8, description: "Days since each team's last real match (-1 means no real match history). Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "competition-experience", label: "Competition Experience", favoredSide: "teamA", teamAValue: 4, teamBValue: 2, description: "Combined real prior International/Masters/Champions roster appearances. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+    ],
+    evidenceTrust: {
+      score: 78,
+      explanation: "30 real series for team A and 25 for team B in the canonical data window. 2 prior real meeting(s) between these exact teams.",
+      teamASeriesCount: 30,
+      teamBSeriesCount: 25,
+      teamAIdentityConfidence: "verified",
+      teamBIdentityConfidence: "verified",
+      h2hMeetingCount: 2,
+    },
+    headToHead: { priorMeetingCount: 2, teamAWins: 1, teamBWins: 1, teamAWinRate: 0.5, priorMapDifferential: 0, meetingsLast365Days: 2 },
+    mapEvidence: {
+      teamAMapPoolBreadth: 7,
+      teamBMapPoolBreadth: 6,
+      teamARecentMapWinRate: 0.55,
+      teamBRecentMapWinRate: 0.5,
+      teamACumulativeMapWinRate: 0.52,
+      teamBCumulativeMapWinRate: 0.48,
+      teamAAvgRoundsWonPerMap: 13,
+      teamBAvgRoundsWonPerMap: 12,
+      teamAAvgRoundsLostPerMap: 10,
+      teamBAvgRoundsLostPerMap: 11,
+      knownMapPoolOverlapCount: 5,
+      mapStrengthDifferential: 0.04,
+      evidenceLevel: "sufficient",
+    },
+    pipeline: [
+      { id: "match-request", label: "Match Request", description: "Received the selected teams, series format, and tournament tier.", durationMs: null },
+      { id: "run-estimator", label: "Run Selected Estimator", description: "Scored the encoded row with the currently selected estimator.", durationMs: 0.6 },
+      { id: "generate-explanation", label: "Generate Human-Readable Explanation", description: "Built the deterministic explanation from the estimator's actual driver and supporting real context.", durationMs: null },
+    ],
+    ...overrides,
+  };
+}
+
+async function fulfillJson(route: Route, body: unknown, status = 200) {
+  await route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 }
 
 async function selectTeam(page: Page, side: "A" | "B", region: string, team: string) {
@@ -55,9 +186,32 @@ test("BO3 caps the map pool at 3 and disables the rest", async ({ page }) => {
   await expect(page.getByText("Map Pool (3/3)")).toBeVisible();
 });
 
-test("shows the disclosure text near the scenario controls", async ({ page }) => {
+test("shows the Real Model 2.0 disclosure near the scenario controls, never the old synthetic copy", async ({ page }) => {
   await page.goto("/prediction-studio");
-  await expect(page.getByText(/simulated team profiles/i)).toBeVisible();
+  await expect(page.getByText(/real curated historical VCT match data/)).toBeVisible();
+  await expect(page.getByText(/simulated team profiles/i)).toHaveCount(0);
+});
+
+test("never calls the synthetic prediction, profile-baseline, or simulation APIs", async ({ page }) => {
+  const syntheticRequests: string[] = [];
+  page.on("request", (req) => {
+    const url = req.url();
+    if (url.includes("/api/vct-prediction") || url.includes("/api/vct-profile-baseline") || url.includes("/api/simulate-prediction")) {
+      syntheticRequests.push(url);
+    }
+  });
+  await page.route(CURRENT_PREDICTION_URL, (route) => fulfillJson(route, realResultBody()));
+
+  await page.goto("/prediction-studio");
+  await selectTeam(page, "A", "Pacific", "Paper Rex");
+  await selectTeam(page, "B", "Americas", "G2 Esports");
+  await page.getByRole("button", { name: "Ascent" }).click();
+  await page.getByRole("button", { name: "Haven" }).click();
+  await page.getByRole("button", { name: "Bind" }).click();
+  await page.getByRole("button", { name: "Generate Prediction" }).click();
+
+  await expect(page.getByText("Predicted Winner")).toBeVisible({ timeout: 15_000 });
+  expect(syntheticRequests).toEqual([]);
 });
 
 test("prevents the same team from being selected on both sides", async ({ page }) => {
@@ -82,6 +236,7 @@ test("prevents the same team from being selected on both sides", async ({ page }
 test("full scenario submission renders an explainable result with no accessibility violations", async ({
   page,
 }) => {
+  await page.route(CURRENT_PREDICTION_URL, (route) => fulfillJson(route, realResultBody()));
   await page.goto("/prediction-studio");
 
   await selectTeam(page, "A", "Pacific", "Paper Rex");
@@ -98,8 +253,8 @@ test("full scenario submission renders an explainable result with no accessibili
   await expect(page.getByRole("heading", { name: "Match DNA" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "How This Prediction Was Made" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Feature Contribution" })).toBeVisible();
-  // Visible near both the controls (always) and the result (as a warning) once a prediction exists.
-  await expect(page.getByText(/simulated team profiles/i).first()).toBeVisible();
+  // Visible near the controls, still the truthful Real Model 2.0 copy once a prediction exists.
+  await expect(page.getByText(/real curated historical VCT match data/).first()).toBeVisible();
 
   // Let the result's and What-if Simulator's motion-safe entrance transition
   // settle before scanning — mid-transition text is briefly lower-opacity,
@@ -114,6 +269,7 @@ test("full scenario submission renders an explainable result with no accessibili
 test("confidence and trust score explanations are reachable by keyboard and dismissible via Escape", async ({
   page,
 }) => {
+  await page.route(CURRENT_PREDICTION_URL, (route) => fulfillJson(route, realResultBody()));
   await page.goto("/prediction-studio");
 
   await selectTeam(page, "A", "Pacific", "Paper Rex");
@@ -131,7 +287,11 @@ test("confidence and trust score explanations are reachable by keyboard and dism
   const confidenceInfo = page.getByRole("button", { name: "What does Confidence mean?" });
   await confidenceInfo.scrollIntoViewIfNeeded();
   await tabToLocator(page, confidenceInfo);
-  await expect(page.getByRole("tooltip")).toContainText("Confidence sits at");
+  // Real Model 2.0's confidence copy (from `presentationAdapter.ts`'s
+  // `confidence-explanation` insight) differs from the old synthetic
+  // engine's "Confidence sits at..." phrasing — this is the real, honest
+  // explanation, not a regression.
+  await expect(page.getByRole("tooltip")).toContainText("reflects the calibrated probability margin");
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("tooltip")).toBeHidden();
@@ -139,10 +299,14 @@ test("confidence and trust score explanations are reachable by keyboard and dism
   const trustScoreInfo = page.getByRole("button", { name: "What does Trust Score mean?" });
   await trustScoreInfo.scrollIntoViewIfNeeded();
   await tabToLocator(page, trustScoreInfo);
-  await expect(page.getByRole("tooltip")).toContainText("Trust Score sits at");
+  // Real Model 2.0's trust-score copy (from `presentationAdapter.ts`'s
+  // `trust-score-explanation` insight) is `${score}/100. ${explanation}`,
+  // not the old synthetic "Trust Score sits at..." phrasing.
+  await expect(page.getByRole("tooltip")).toContainText("/100.");
 });
 
 test("full scenario submission works using only the keyboard", async ({ page }) => {
+  await page.route(CURRENT_PREDICTION_URL, (route) => fulfillJson(route, realResultBody()));
   await page.goto("/prediction-studio");
 
   // Region and team cards are real <button> elements — focusing one directly

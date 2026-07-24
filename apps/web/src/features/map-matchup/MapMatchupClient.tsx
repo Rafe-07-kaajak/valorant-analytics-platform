@@ -3,7 +3,9 @@
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
 import type { GameMap } from "@repo/shared";
 import { Card, Container, Section, Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui";
-import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
+import { FeatureAmbientBackground } from "../../components/effects/FeatureAmbientBackground";
+import { MEDIA_ASSETS } from "../../constants/media";
+import { AMBIENT_VIDEO_LOOP_CONFIG } from "../../constants/ambientVideoLoopConfig";
 import type { VctRegion, VctTeam } from "../../constants/vct";
 import { VctTeamSideSelector, type SideSelection } from "../prediction-studio/VctTeamSideSelector";
 import { SyntheticScenarioBadge } from "../prediction-studio/SyntheticScenarioBadge";
@@ -141,12 +143,14 @@ export function MapMatchupClient({
   const hasBothTeams = Boolean(selectedTeamA && selectedTeamB && profileA && profileB && mapRows && rankedRows);
 
   return (
-    <Section className="relative overflow-hidden">
-      <AmbientSectionBackground
-        wash="var(--gradient-map-explorer-ambient)"
-        texture={{ src: "/assets/redesign/textures/tactical-grid.png", opacity: 0.05 }}
+    <>
+      <FeatureAmbientBackground
+        video={MEDIA_ASSETS.mapExplorerAmbientVideo}
+        tint="var(--gradient-map-explorer-video-tint)"
+        loop={AMBIENT_VIDEO_LOOP_CONFIG.mapExplorer}
       />
 
+      <Section className="relative overflow-hidden">
       <Container className="relative flex flex-col gap-lg">
         <MapExplorerHeader />
 
@@ -260,6 +264,7 @@ export function MapMatchupClient({
           />
         )}
       </Container>
-    </Section>
+      </Section>
+    </>
   );
 }

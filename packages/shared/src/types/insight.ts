@@ -21,5 +21,6 @@ export interface PipelineStage {
   id: string;
   label: string;
   description: string;
-  durationMs: number;
+  /** Real measured duration in milliseconds, or `null` when this stage's timing isn't separately measured — never a fabricated estimate. The synthetic engine always supplies a real measured number here; only Real Model 2.0's stages are ever `null`. */
+  durationMs: number | null;
 }

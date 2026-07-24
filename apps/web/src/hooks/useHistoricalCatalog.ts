@@ -12,11 +12,11 @@ const PAGE_SIZE = 50;
 /**
  * TASK-057 — the catalog endpoint bounds every response to a `limit`
  * (`config.ts`'s `catalogLimit`), so a dataset larger than one page was
- * previously invisible: the archive silently showed only its first (oldest)
+ * previously invisible: the archive silently showed only its first (newest)
  * page. `loadMore` re-requests from the beginning with a larger `limit`
  * rather than an offset/cursor — simplest correct approach given the
- * catalog's stable `(scheduledAt, matchInternalId)` sort, and avoids any
- * duplicate-row risk at a page boundary.
+ * catalog's stable `(scheduledAt descending, matchInternalId)` sort, and
+ * avoids any duplicate-row risk at a page boundary.
  */
 export function useHistoricalCatalog(enabled: boolean) {
   const [status, setStatus] = useState<Status>("idle");

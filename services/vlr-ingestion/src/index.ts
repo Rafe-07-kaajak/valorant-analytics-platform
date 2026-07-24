@@ -56,7 +56,7 @@ export type { ReconciliationCategory, ReconciliationEntry, ReconciliationReport 
 
 // Curated dataset export (TASK-043)
 export { buildCuratedDataset, writeCuratedDataset, stableStringify } from "./curate/curatedExport";
-export type { CuratedDatasetFiles, CuratedDatasetManifest, CuratedExportInput } from "./curate/curatedExport";
+export type { CuratedDatasetFiles, CuratedDatasetManifest, CuratedExportInput, CuratedMatch } from "./curate/curatedExport";
 export { computeCuratedDatasetVersion, computeIdentityMappingVersion } from "./curate/curatedVersion";
 
 // Mapping import (TASK-043)
@@ -128,3 +128,20 @@ export type { ModelInputRow, PredictionOutput } from "./modeling/inference";
 export { ModelingError, exitCodeForModelingError } from "./modeling/errors";
 export type { ModelingErrorCode } from "./modeling/errors";
 export { computeModelVersion, contentHashOf, MODELING_RULES_VERSION } from "./modeling/modelVersion";
+
+// Canonical training/ranking window + per-team real-data state (real-data-
+// correction task) — reused as-is by apps/web's Power Rankings repository so
+// the window boundary and team-state math are never duplicated outside this
+// package.
+export { deriveCanonicalWindow, isEligibleForCanonicalWindow } from "./feature/canonicalWindow";
+export type { CanonicalWindow } from "./feature/canonicalWindow";
+export { buildTeamRealDataStates } from "./feature/teamRealDataState";
+export type { RealTeamPowerState } from "./feature/teamRealDataState";
+export type { FeatureRow } from "./feature/types";
+export { DEFAULT_ELO_CONFIG, FEATURE_SCHEMA_VERSION, FEATURE_RULES_VERSION } from "./feature/versions";
+export type { EloConfig } from "./feature/versions";
+
+// Real current-match ("Flow B") feature construction — real-model
+// integration for Prediction Studio's main flow.
+export { buildCurrentMatchupRow } from "./feature/currentMatchupRow";
+export type { CurrentMatchupContext, CurrentMatchupRow } from "./feature/currentMatchupRow";

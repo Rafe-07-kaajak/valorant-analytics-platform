@@ -9,6 +9,7 @@ import type { FeatureRow } from "./types";
 import type { FeatureFieldMeta } from "./featureCatalog";
 import type { SplitAssignment, SplitSummary } from "./splits";
 import type { WalkForwardFold } from "./splits";
+import type { CanonicalWindow } from "./canonicalWindow";
 import type { ValidationResult } from "./featureValidation";
 import type { RejectedMatch } from "./stateEngine";
 import { countFeatureFields } from "./featureCatalog";
@@ -36,9 +37,14 @@ export interface FeatureManifest {
   readonly trainRowCount: number;
   readonly validationRowCount: number;
   readonly testRowCount: number;
+  readonly excludedRowCount: number;
   readonly walkForwardFoldCount: number;
   readonly validationErrorCount: number;
   readonly validationWarningCount: number;
+}
+
+export interface CanonicalWindowFile extends CanonicalWindow {
+  readonly derivedAt: string;
 }
 
 export interface FeatureDatasetFiles {
@@ -46,6 +52,7 @@ export interface FeatureDatasetFiles {
   readonly "feature-rows.jsonl": string;
   readonly "labels.json": readonly Pick<FeatureRow, "matchInternalId" | "labelTeamAWin" | "labelWinnerProviderId" | "labelSeriesScore" | "labelMapCountPlayed">[];
   readonly "feature-catalog.json": readonly FeatureFieldMeta[];
+  readonly "canonical-window.json": CanonicalWindowFile;
   readonly "split-assignments.json": { readonly summary: SplitSummary; readonly assignments: readonly SplitAssignment[] };
   readonly "walk-forward-folds.json": readonly WalkForwardFold[];
   readonly "feature-validation.json": { readonly rows: ValidationResult; readonly splits: ValidationResult; readonly rejected: readonly RejectedMatch[] };
@@ -57,6 +64,7 @@ export interface BuildFeatureDatasetFilesInput {
   readonly rows: readonly FeatureRow[];
   readonly rejected: readonly RejectedMatch[];
   readonly featureCatalog: readonly FeatureFieldMeta[];
+  readonly canonicalWindow: CanonicalWindow;
   readonly splitSummary: SplitSummary;
   readonly splitAssignments: readonly SplitAssignment[];
   readonly walkForwardFolds: readonly WalkForwardFold[];
@@ -96,6 +104,7 @@ export function buildFeatureDatasetFiles(input: BuildFeatureDatasetFilesInput): 
     trainRowCount: input.splitSummary.boundaries.trainRowCount,
     validationRowCount: input.splitSummary.boundaries.validationRowCount,
     testRowCount: input.splitSummary.boundaries.testRowCount,
+    excludedRowCount: input.splitAssignments.filter((a) => a.split === "excluded").length,
     walkForwardFoldCount: input.walkForwardFolds.length,
     validationErrorCount: input.rowValidation.errors.length + input.splitValidation.errors.length,
     validationWarningCount: input.rowValidation.warnings.length + input.splitValidation.warnings.length,
@@ -106,6 +115,7 @@ export function buildFeatureDatasetFiles(input: BuildFeatureDatasetFilesInput): 
     "feature-rows.jsonl": toJsonLines(input.rows),
     "labels.json": labels,
     "feature-catalog.json": input.featureCatalog,
+    "canonical-window.json": { ...input.canonicalWindow, derivedAt: input.generatedAt },
     "split-assignments.json": { summary: input.splitSummary, assignments: input.splitAssignments },
     "walk-forward-folds.json": input.walkForwardFolds,
     "feature-validation.json": { rows: input.rowValidation, splits: input.splitValidation, rejected: input.rejected },

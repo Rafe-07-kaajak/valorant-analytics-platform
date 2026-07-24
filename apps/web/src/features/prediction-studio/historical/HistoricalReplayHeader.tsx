@@ -67,7 +67,8 @@ export function HistoricalReplayHeader({ readinessStatus, readiness }: Historica
         <div>
           <h2 className="text-lg font-semibold text-foreground">Historical Model Replay</h2>
           <p className="text-sm text-muted-foreground">
-            Recreate a prediction using only the model and information available at that point in time.
+            Run the currently active model against real historical match data. Matches the model was trained on (or
+            trained after) are labeled as retrospective reconstructions rather than genuine point-in-time predictions.
           </p>
         </div>
 

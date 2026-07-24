@@ -17,7 +17,12 @@ export interface CanonicalUrlState {
   maps: string[];
   /** Only meaningful for Prediction Studio; other features never read or write it. */
   format: SeriesFormat | null;
+  /** Only meaningful for Prediction Studio; other features never read or write it. `null` behaves as `"synthetic"` (today's only mode), mirroring `format`'s own null-default convention. */
+  mode: ScenarioMode | null;
 }
+
+/** Prediction Studio's main-flow prediction source — real-model integration task. */
+export type ScenarioMode = "synthetic" | "real";
 
 export const EMPTY_CANONICAL_URL_STATE: CanonicalUrlState = Object.freeze({
   regionA: null,
@@ -26,9 +31,10 @@ export const EMPTY_CANONICAL_URL_STATE: CanonicalUrlState = Object.freeze({
   teamB: null,
   maps: [],
   format: null,
+  mode: null,
 }) as CanonicalUrlState;
 
-export type CanonicalFieldKey = "regionA" | "teamA" | "regionB" | "teamB" | "maps" | "format";
+export type CanonicalFieldKey = "regionA" | "teamA" | "regionB" | "teamB" | "maps" | "format" | "mode";
 
 /** The three routes that participate in cross-feature navigation. The What-if Simulator is result-scoped, not a route, and is intentionally excluded. */
 export type AnalyticsFeature = "prediction-studio" | "team-comparison" | "map-matchup";

@@ -1,3 +1,5 @@
+import type { CanonicalWindow } from "./canonicalWindow";
+import { isEligibleForCanonicalWindow } from "./canonicalWindow";
 import type { FeatureRow } from "./types";
 
 /**
@@ -6,8 +8,15 @@ import type { FeatureRow } from "./types";
  * engine's own output guarantee) — every function here relies on that
  * ordering rather than re-sorting, so it can never accidentally place a
  * later match before an earlier one.
+ *
+ * `"excluded"` marks a row that falls before the canonical eligibility
+ * window (see `canonicalWindow.ts`) — it is never assigned to train/
+ * validation/test, but it still gets a real `SplitAssignment` record so
+ * every row remains fully traceable rather than silently vanishing from
+ * `split-assignments.json`. Feature *computation* (Elo/form state) still
+ * replays these rows — only their eligibility for the split is affected.
  */
-export type SplitLabel = "train" | "validation" | "test";
+export type SplitLabel = "train" | "validation" | "test" | "excluded";
 
 const DEFAULT_TRAIN_FRACTION = 0.7;
 const DEFAULT_VALIDATION_FRACTION = 0.15;
@@ -138,4 +147,27 @@ export function computeWalkForwardFolds(rows: readonly FeatureRow[], foldCount: 
     trainEndIdx = validationEndIdx;
   }
   return folds;
+}
+
+export interface WindowPartition {
+  /** Chronologically ordered subsequence at-or-after the canonical window start — the only rows eligible for train/validation/test. */
+  readonly eligible: readonly FeatureRow[];
+  /** Chronologically ordered subsequence strictly before the canonical window start. */
+  readonly excluded: readonly FeatureRow[];
+}
+
+/** Splits already-chronologically-ordered rows into the canonical-window-eligible subsequence and the excluded (pre-window) subsequence, preserving relative order in both. */
+export function partitionEligibleForSplitting(rows: readonly FeatureRow[], window: CanonicalWindow): WindowPartition {
+  const eligible: FeatureRow[] = [];
+  const excluded: FeatureRow[] = [];
+  for (const row of rows) {
+    if (isEligibleForCanonicalWindow(row.scheduledAt, window)) eligible.push(row);
+    else excluded.push(row);
+  }
+  return { eligible, excluded };
+}
+
+/** Assigns every excluded (pre-window) row its own traceable `"excluded"` split record. */
+export function assignExcludedSplits(excludedRows: readonly FeatureRow[]): readonly SplitAssignment[] {
+  return excludedRows.map((row) => ({ matchInternalId: row.matchInternalId, scheduledAt: row.scheduledAt, split: "excluded" }));
 }

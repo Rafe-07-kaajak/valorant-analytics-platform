@@ -10,6 +10,8 @@ export interface MatchContextCoreProps {
   maxSelectable: number;
   teamAReady: boolean;
   teamBReady: boolean;
+  /** Real-model integration task: the real model has no map-pool concept, so this summary (irrelevant, potentially stale from a prior synthetic selection) is hidden rather than shown misleadingly. Defaults to `true`, unchanged for every existing caller. */
+  showMapSummary?: boolean;
 }
 
 const SERIES_FORMAT_OPTIONS: { value: SeriesFormat; label: string; shortLabel: string }[] = [
@@ -35,6 +37,7 @@ export function MatchContextCore({
   maxSelectable,
   teamAReady,
   teamBReady,
+  showMapSummary = true,
 }: MatchContextCoreProps) {
   const readyCount = Number(teamAReady) + Number(teamBReady);
 
@@ -98,25 +101,27 @@ export function MatchContextCore({
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-2xs text-center">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Map Pool {selectedMapNames.length}/{maxSelectable}
-        </span>
-        {selectedMapNames.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-1">
-            {selectedMapNames.map((name) => (
-              <span
-                key={name}
-                className="rounded-sm border border-surface-border bg-surface px-1.5 py-0.5 text-xs text-foreground"
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground">Select maps below</span>
-        )}
-      </div>
+      {showMapSummary ? (
+        <div className="flex flex-col items-center gap-2xs text-center">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Map Pool {selectedMapNames.length}/{maxSelectable}
+          </span>
+          {selectedMapNames.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-1">
+              {selectedMapNames.map((name) => (
+                <span
+                  key={name}
+                  className="rounded-sm border border-surface-border bg-surface px-1.5 py-0.5 text-xs text-foreground"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">Select maps below</span>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

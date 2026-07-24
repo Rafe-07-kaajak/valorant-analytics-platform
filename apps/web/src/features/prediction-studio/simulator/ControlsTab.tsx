@@ -4,17 +4,30 @@ import { Button, Spinner } from "@repo/ui";
 import type { VctProfileBaseline } from "@repo/shared";
 import { TeamControlsPanel } from "./TeamControlsPanel";
 import type { SimulatorController } from "./useSimulatorState";
-import { summarizeAdjustments } from "../../../lib/whatIfSimulator";
+import { summarizeAdjustments, type AttributeControlDefinition, type SimulationPreset } from "../../../lib/whatIfSimulator";
 
 export interface ControlsTabProps {
   teamAName: string;
   teamBName: string;
-  teamABaseline: VctProfileBaseline;
-  teamBBaseline: VctProfileBaseline;
+  /** Widened from the original single `VctProfileBaseline` shape so a Real Model 2.0 caller can supply real baseline values (`{ values: Record<RealAxisKey, number>, mapStrength: {} }`) instead. */
+  teamABaseline: VctProfileBaseline | { values: Record<string, number>; mapStrength: Record<string, number> };
+  teamBBaseline: VctProfileBaseline | { values: Record<string, number>; mapStrength: Record<string, number> };
   mapIds: readonly string[];
   mapLabel: (mapId: string) => string;
   controller: SimulatorController;
   onRunSimulation: () => void;
+  /** Defaults to the synthetic controls/presets, unchanged from every existing caller. */
+  controls?: readonly AttributeControlDefinition[];
+  presets?: readonly SimulationPreset[];
+}
+
+function baselineValues(baseline: ControlsTabProps["teamABaseline"]): Record<string, number> {
+  if ("values" in baseline) return baseline.values;
+  const rest: Record<string, number> = {};
+  for (const [key, value] of Object.entries(baseline)) {
+    if (key !== "mapStrength") rest[key] = value as number;
+  }
+  return rest;
 }
 
 export function ControlsTab({
@@ -26,6 +39,8 @@ export function ControlsTab({
   mapLabel,
   controller,
   onRunSimulation,
+  controls,
+  presets,
 }: ControlsTabProps) {
   const isLoading = controller.status === "loading";
   const runDisabled = isLoading || !controller.hasAdjustments;
@@ -53,7 +68,8 @@ export function ControlsTab({
         <TeamControlsPanel
           teamName={teamAName}
           accent="team-a"
-          baseline={teamABaseline}
+          baseline={baselineValues(teamABaseline)}
+          mapStrength={teamABaseline.mapStrength}
           draft={controller.teamADraft}
           mapDraft={controller.mapADraft}
           mapIds={mapIds}
@@ -63,11 +79,14 @@ export function ControlsTab({
           onMapChange={(mapId, value) => controller.setMap("A", mapId, value)}
           onMapReset={(mapId) => controller.resetMap("A", mapId)}
           onApplyPreset={(presetId) => controller.applyPreset("A", presetId)}
+          controls={controls}
+          presets={presets}
         />
         <TeamControlsPanel
           teamName={teamBName}
           accent="team-b"
-          baseline={teamBBaseline}
+          baseline={baselineValues(teamBBaseline)}
+          mapStrength={teamBBaseline.mapStrength}
           draft={controller.teamBDraft}
           mapDraft={controller.mapBDraft}
           mapIds={mapIds}
@@ -77,6 +96,8 @@ export function ControlsTab({
           onMapChange={(mapId, value) => controller.setMap("B", mapId, value)}
           onMapReset={(mapId) => controller.resetMap("B", mapId)}
           onApplyPreset={(presetId) => controller.applyPreset("B", presetId)}
+          controls={controls}
+          presets={presets}
         />
       </div>
 

@@ -7,6 +7,7 @@ import { HeadToHeadRegistry } from "./h2hState";
 import { EventCongestionRegistry, deriveEventContextFeatures } from "./eventContextState";
 import { RunningMedianTracker } from "./median";
 import { createEloState, applyEloUpdate } from "./elo";
+import type { EloState } from "./elo";
 import { buildMatchLabels } from "./labels";
 import { actuallyPlayedMaps, extractPlayedMapInstancesForTeam } from "./mapInstances";
 import { buildTeamFeatureBlock } from "./types";
@@ -19,9 +20,25 @@ export interface RejectedMatch {
   readonly reason: string;
 }
 
+/**
+ * The fully-replayed-through-history state registries, as they stand after
+ * the last chronological group has been processed — exposed so a caller can
+ * take one further, honest "as of now" snapshot for a hypothetical team
+ * pairing (see `currentMatchupRow.ts`) without re-deriving or duplicating
+ * this replay. Never mutated by a caller — treat as read-only.
+ */
+export interface ReplayedChronologicalState {
+  readonly teamStates: ReadonlyMap<string, TeamState>;
+  readonly players: PlayerRegistry;
+  readonly h2h: HeadToHeadRegistry;
+  readonly congestion: EventCongestionRegistry;
+  readonly eloState: EloState;
+}
+
 export interface StateEngineResult {
   readonly rows: readonly FeatureRow[];
   readonly rejected: readonly RejectedMatch[];
+  readonly finalState: ReplayedChronologicalState;
 }
 
 export interface StateEngineOptions {
@@ -274,5 +291,5 @@ export function runFeatureStateEngine(matches: readonly CuratedMatch[], eventsBy
     }
   }
 
-  return { rows, rejected };
+  return { rows, rejected, finalState: { teamStates, players, h2h, congestion, eloState } };
 }

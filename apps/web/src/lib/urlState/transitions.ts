@@ -1,7 +1,7 @@
 import { SERIES_MAP_LIMITS, type SeriesFormat } from "@repo/shared";
 import type { VctRegionId, VctTeamId } from "../../constants/vct";
 import { sortMapIdsCanonically } from "./mapIds";
-import type { CanonicalUrlState } from "./types";
+import type { CanonicalUrlState, ScenarioMode } from "./types";
 import { regionForTeam } from "./validation";
 
 /**
@@ -44,4 +44,9 @@ export function withMaps(
 
 export function withFormat(state: CanonicalUrlState, format: SeriesFormat): CanonicalUrlState {
   return { ...state, format, maps: state.maps.slice(0, SERIES_MAP_LIMITS[format]) };
+}
+
+/** Real-model integration task: never a reason to reset team/region/map/format selections — switching the prediction *source*, not the scenario, so a user comparing both modes for the same matchup doesn't lose their picks. */
+export function withMode(state: CanonicalUrlState, mode: ScenarioMode): CanonicalUrlState {
+  return { ...state, mode };
 }

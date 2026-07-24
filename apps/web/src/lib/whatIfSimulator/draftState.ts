@@ -5,7 +5,7 @@ import {
   type VctProfileAdjustment,
   type VctProfileScalarField,
 } from "@repo/shared";
-import { ATTRIBUTE_CONTROLS, type AttributeControlKey, type MapDraftAdjustment, type TeamDraftAdjustment } from "./types";
+import { ALL_ATTRIBUTE_CONTROLS, type AttributeControlKey, type MapDraftAdjustment, type TeamDraftAdjustment } from "./types";
 
 export function clampDeltaValue(value: number): number {
   if (!Number.isFinite(value)) return 0;
@@ -14,7 +14,7 @@ export function clampDeltaValue(value: number): number {
 
 export function createEmptyTeamDraft(): TeamDraftAdjustment {
   const draft = {} as TeamDraftAdjustment;
-  for (const control of ATTRIBUTE_CONTROLS) draft[control.key] = 0;
+  for (const control of ALL_ATTRIBUTE_CONTROLS) draft[control.key] = 0;
   return draft;
 }
 
@@ -76,7 +76,7 @@ export function toProfileAdjustment(draft: TeamDraftAdjustment, mapDraft: MapDra
   const scalar: Partial<Record<VctProfileScalarField, number>> = {};
   const dna: Partial<Record<DnaDimensionKey, number>> = {};
 
-  for (const control of ATTRIBUTE_CONTROLS) {
+  for (const control of ALL_ATTRIBUTE_CONTROLS) {
     const delta = draft[control.key];
     if (delta === 0) continue;
     if (control.kind === "scalar") scalar[control.key as VctProfileScalarField] = delta;
@@ -91,7 +91,7 @@ export function toProfileAdjustment(draft: TeamDraftAdjustment, mapDraft: MapDra
   return { scalar, dna, mapStrength };
 }
 
-/** Inverse of `toProfileAdjustment` — turns an applied wire-shape `VctProfileAdjustment` back into a full, zero-filled UI draft, so already-applied adjustments can reuse the same display/summary helpers as live draft state. */
+/** Inverse of `toProfileAdjustment` — turns an applied wire-shape `VctProfileAdjustment` back into a full, zero-filled UI draft (real or synthetic keys alike, since both live in `.dna`/`.scalar` generically), so already-applied adjustments can reuse the same display/summary helpers as live draft state. */
 export function fromProfileAdjustment(adjustment: VctProfileAdjustment): TeamDraftAdjustment {
   const draft = createEmptyTeamDraft();
   for (const [key, delta] of Object.entries(adjustment.scalar)) {

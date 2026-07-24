@@ -63,7 +63,8 @@ export interface PipelineStageView {
   id: string;
   label: string;
   description: string;
-  durationMs: number;
+  /** `null` when this stage's timing isn't separately measured (Real Model 2.0 only) — never a fabricated estimate. */
+  durationMs: number | null;
   order: number;
   status: PipelineStageStatus;
   affects: PipelineAffect[];

@@ -39,6 +39,9 @@ const ERROR_POLICY: Readonly<Record<PredictionErrorCode, ErrorPolicy>> = {
   runtime_package_row_count_mismatch: { retryable: false, httpStatus: 500 },
   runtime_package_unsafe_path: { retryable: false, httpStatus: 400 },
   runtime_package_unsupported_target: { retryable: false, httpStatus: 500 },
+  // Real-model integration: the raw curated dataset (matches.json/events.json)
+  // needed to construct a current-matchup feature row is not available locally.
+  current_matchup_data_unavailable: { retryable: true, httpStatus: 503 },
 };
 
 export class PredictionApiError extends Error {

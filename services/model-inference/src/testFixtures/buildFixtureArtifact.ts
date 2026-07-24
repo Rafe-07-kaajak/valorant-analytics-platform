@@ -108,6 +108,8 @@ function reportingFiles(): Pick<ModelArtifactFiles, "model-card.json" | "evaluat
 export interface FixtureArtifactOptions {
   readonly model: SerializedEstimator;
   readonly manifestOverrides?: Partial<ModelManifest>;
+  /** Overrides fields of `FIXTURE_FEATURE_CONTRACT` — e.g. a caller that constructs its own real-shaped feature row (not `fixtureValidRow()`) needs the artifact to declare a matching `featureSchemaVersion`/`featureRulesVersion` rather than the fixture's own default strings. */
+  readonly featureContractOverrides?: Partial<FeatureContract>;
   /** Deliberately breaks a content hash to exercise `artifact_hash_mismatch` — TASK-046 requirement 24. */
   readonly corruptModelJsonAfterHashing?: boolean;
   /** Omits a required file to exercise `artifact_missing`. */
@@ -124,13 +126,19 @@ export async function buildFixtureArtifact(options: FixtureArtifactOptions): Pro
   const rootDir = await mkdtemp(join(tmpdir(), "model-inference-fixture-"));
   const preprocessing = fixturePreprocessing();
   const calibration = { method: "none" as const };
+  const featureContract: FeatureContract = { ...FIXTURE_FEATURE_CONTRACT, ...options.featureContractOverrides };
 
   const files: ModelArtifactFiles = {
     "model.json": options.model,
     "preprocessing.json": preprocessing,
     "calibration.json": calibration,
-    "feature-contract.json": FIXTURE_FEATURE_CONTRACT,
-    "model-manifest.json": fixtureManifest({ estimatorType: options.model.estimatorType, ...options.manifestOverrides }),
+    "feature-contract.json": featureContract,
+    "model-manifest.json": fixtureManifest({
+      estimatorType: options.model.estimatorType,
+      featureSchemaVersion: featureContract.featureSchemaVersion,
+      featureRulesVersion: featureContract.featureRulesVersion,
+      ...options.manifestOverrides,
+    }),
     ...reportingFiles(),
   };
 

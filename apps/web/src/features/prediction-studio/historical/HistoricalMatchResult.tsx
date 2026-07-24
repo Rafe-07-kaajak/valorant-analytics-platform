@@ -29,6 +29,7 @@ function formatMatchContext(match: HistoricalPredictionResponse["match"]): strin
  */
 export function HistoricalMatchResult({ result }: HistoricalMatchResultProps) {
   const predictedTeamLabel = result.predictedWinnerSide === "teamA" ? result.match.teamADisplayName : result.match.teamBDisplayName;
+  const isPointInTime = result.dataProvenance.temporalFidelity === "point-in-time";
 
   return (
     <Card
@@ -44,7 +45,10 @@ export function HistoricalMatchResult({ result }: HistoricalMatchResultProps) {
           </div>
           <h3 className="text-lg font-semibold text-foreground">{formatMatchContext(result.match)}</h3>
         </div>
-        <Badge tone="brand">Real trained model</Badge>
+        <div className="flex flex-wrap items-center gap-2xs">
+          <Badge tone="brand">Real trained model</Badge>
+          <Badge tone={isPointInTime ? "success" : "info"}>{isPointInTime ? "Point-in-time" : "Retrospective reconstruction"}</Badge>
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground">
@@ -99,7 +103,9 @@ export function HistoricalMatchResult({ result }: HistoricalMatchResultProps) {
       </details>
 
       <p className="text-xs text-muted-foreground">
-        This replay uses the archived model and data snapshot available at the selected historical point.
+        {isPointInTime
+          ? "This replay uses the currently active model, which was trained only on data strictly before this match: a genuine point-in-time prediction."
+          : "This replay uses the currently active model against this match's real historical data. The model itself was trained on data including this match's own period (or later), so this is a retrospective reconstruction rather than a genuine point-in-time prediction."}
       </p>
 
       {result.warnings.length > 0 ? (

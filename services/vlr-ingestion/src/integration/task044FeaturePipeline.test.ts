@@ -16,6 +16,15 @@ import { DEFAULT_ELO_CONFIG } from "../feature/versions";
  */
 let dataDir: string;
 
+/**
+ * These fixtures predate the canonical-window feature and test general
+ * feature-engineering correctness, not window semantics — pointing the
+ * anchor at this suite's own synthetic event (rather than the real Masters
+ * Toronto 2025 anchor) keeps every fixture match eligible, preserving each
+ * test's original assertions unchanged.
+ */
+const WINDOW_OPTIONS = { canonicalWindowEventName: "VCT 2025: Americas Stage 1" };
+
 beforeEach(async () => {
   dataDir = await mkdtemp(join(tmpdir(), "vlr-task044-pipeline-test-"));
 });
@@ -57,7 +66,7 @@ describe("TASK-044 feature pipeline integration", () => {
     const matchOne = buildNormalizedMatch({ internalId: "vlr:match:1", teamAId: "team-a", teamBId: "team-b", winnerId: "team-a", eventId: "vlr:event:100" });
     await writeCuratedFixture([matchOne], [buildEvent()]);
 
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     expect(result.rows).toHaveLength(1);
     expect(result.rowValidation.valid).toBe(true);
     expect(result.splitValidation.valid).toBe(true);
@@ -86,10 +95,10 @@ describe("TASK-044 feature pipeline integration", () => {
     });
 
     await writeCuratedFixture([early, late], [buildEvent()]);
-    const forward = await runFeatureBuild(dataDir);
+    const forward = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
 
     await writeCuratedFixture([late, early], [buildEvent()]);
-    const reversed = await runFeatureBuild(dataDir);
+    const reversed = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
 
     expect(forward.rows.map((r) => r.matchInternalId)).toEqual(reversed.rows.map((r) => r.matchInternalId));
     expect(forward.rows).toEqual(reversed.rows);
@@ -116,7 +125,7 @@ describe("TASK-044 feature pipeline integration", () => {
       metadata: { provider: "vlr", providerExternalId: "2", sourceUrl: "u2", fetchedAt: "t", parsedAt: "t", schemaVersion: "1.0.0", contentHash: "h2" },
     });
     await writeCuratedFixture([matchOne, matchTwo], [buildEvent()]);
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     const rowOne = result.rows.find((r) => r.matchInternalId === "vlr:match:1")!;
     const rowTwo = result.rows.find((r) => r.matchInternalId === "vlr:match:2")!;
     expect(rowOne.teamAPriorMatchCount).toBe(0);
@@ -126,7 +135,7 @@ describe("TASK-044 feature pipeline integration", () => {
   it("gives cold-start teams explicit defaults, not fabricated history", async () => {
     const match = buildNormalizedMatch({ internalId: "vlr:match:1", teamAId: "brand-new-team-a", teamBId: "brand-new-team-b", winnerId: "brand-new-team-a", eventId: "vlr:event:100" });
     await writeCuratedFixture([match], [buildEvent()]);
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     const row = result.rows[0]!;
     expect(row.teamAIsColdStart).toBe(true);
     expect(row.teamBIsColdStart).toBe(true);
@@ -136,7 +145,7 @@ describe("TASK-044 feature pipeline integration", () => {
   it("flags missing roster data explicitly rather than guessing", async () => {
     const match = buildNormalizedMatch({ internalId: "vlr:match:1", eventId: "vlr:event:100", rosterSnapshots: [] });
     await writeCuratedFixture([match], [buildEvent()]);
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     expect(result.rows[0]!.teamARosterSnapshotAvailable).toBe(false);
     expect(result.rows[0]!.teamBRosterSnapshotAvailable).toBe(false);
   });
@@ -158,7 +167,7 @@ describe("TASK-044 feature pipeline integration", () => {
       metadata: { provider: "vlr", providerExternalId: "2", sourceUrl: "u2", fetchedAt: "t", parsedAt: "t", schemaVersion: "1.0.0", contentHash: "h2" },
     });
     await writeCuratedFixture([match, second], [buildEvent()]);
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     const secondRow = result.rows.find((r) => r.matchInternalId === "vlr:match:2")!;
     expect(secondRow.teamAUnknownMapCount).toBe(1);
     expect(secondRow.teamAMapPoolBreadth).toBe(0);
@@ -184,7 +193,7 @@ describe("TASK-044 feature pipeline integration", () => {
       metadata: { provider: "vlr", providerExternalId: "2", sourceUrl: "u2", fetchedAt: "t", parsedAt: "t", schemaVersion: "1.0.0", contentHash: "h2" },
     });
     await writeCuratedFixture([match2025, match2026], [buildEvent()]);
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     const row2025 = result.rows.find((r) => r.matchInternalId === "vlr:match:1")!;
     const row2026 = result.rows.find((r) => r.matchInternalId === "vlr:match:2")!;
     expect(row2025.teamAPriorMatchCount).toBe(0); // 2026 result never reaches back
@@ -205,7 +214,7 @@ describe("TASK-044 feature pipeline integration", () => {
       }),
     );
     await writeCuratedFixture(matches, [buildEvent()]);
-    const result = await runFeatureBuild(dataDir);
+    const result = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
     expect(result.rowValidation.valid).toBe(true);
     expect(result.splitValidation.valid).toBe(true);
     expect(result.splitAssignments).toHaveLength(10);
@@ -215,14 +224,15 @@ describe("TASK-044 feature pipeline integration", () => {
     const match = buildNormalizedMatch({ internalId: "vlr:match:1", eventId: "vlr:event:100" });
     await writeCuratedFixture([match], [buildEvent()]);
 
-    const first = await runFeatureBuildAndWrite(dataDir);
-    const second = await runFeatureBuildAndWrite(dataDir);
+    const first = await runFeatureBuildAndWrite(dataDir, WINDOW_OPTIONS);
+    const second = await runFeatureBuildAndWrite(dataDir, WINDOW_OPTIONS);
 
     expect(second.version.featureDatasetVersion).toBe(first.version.featureDatasetVersion);
-    // feature-manifest.json and feature-audit.json both carry their own
-    // generatedAt timestamp, expected to differ between two real build
-    // invocations — every other file must be byte-identical.
-    const timestampedFiles = new Set(["feature-manifest.json", "feature-audit.json"]);
+    // feature-manifest.json, feature-audit.json, and canonical-window.json
+    // all carry their own generatedAt/derivedAt timestamp, expected to differ
+    // between two real build invocations — every other file must be
+    // byte-identical.
+    const timestampedFiles = new Set(["feature-manifest.json", "feature-audit.json", "canonical-window.json"]);
     for (const fileName of Object.keys(first.fileHashes)) {
       if (timestampedFiles.has(fileName)) continue;
       expect(second.fileHashes[fileName]).toBe(first.fileHashes[fileName]);
@@ -233,9 +243,9 @@ describe("TASK-044 feature pipeline integration", () => {
     const match = buildNormalizedMatch({ internalId: "vlr:match:1", eventId: "vlr:event:100" });
     await writeCuratedFixture([match], [buildEvent()]);
 
-    const baseline = await runFeatureBuild(dataDir);
-    const sameConfig = await runFeatureBuild(dataDir, { eloConfig: DEFAULT_ELO_CONFIG });
-    const differentConfig = await runFeatureBuild(dataDir, { eloConfig: { ...DEFAULT_ELO_CONFIG, kFactor: 40 } });
+    const baseline = await runFeatureBuild(dataDir, WINDOW_OPTIONS);
+    const sameConfig = await runFeatureBuild(dataDir, { ...WINDOW_OPTIONS, eloConfig: DEFAULT_ELO_CONFIG });
+    const differentConfig = await runFeatureBuild(dataDir, { ...WINDOW_OPTIONS, eloConfig: { ...DEFAULT_ELO_CONFIG, kFactor: 40 } });
 
     expect(sameConfig.version.featureDatasetVersion).toBe(baseline.version.featureDatasetVersion);
     expect(differentConfig.version.featureDatasetVersion).not.toBe(baseline.version.featureDatasetVersion);
@@ -245,6 +255,6 @@ describe("TASK-044 feature pipeline integration", () => {
     expect(process.env.VLR_NETWORK_ENABLED).toBe("false");
     const match = buildNormalizedMatch({ internalId: "vlr:match:1", eventId: "vlr:event:100" });
     await writeCuratedFixture([match], [buildEvent()]);
-    await expect(runFeatureBuild(dataDir)).resolves.toBeDefined();
+    await expect(runFeatureBuild(dataDir, WINDOW_OPTIONS)).resolves.toBeDefined();
   });
 });

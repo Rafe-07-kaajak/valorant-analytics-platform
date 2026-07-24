@@ -37,13 +37,24 @@ describe("historicalCatalog", () => {
     await expect(buildHistoricalCatalog({})).rejects.toMatchObject({ code: "historical_data_unavailable" });
   });
 
-  it("returns every fixture row with no filters, sorted chronologically ascending", async () => {
+  it("returns every fixture row with no filters, sorted newest-first (scheduledAt descending)", async () => {
     await withFixture();
     const catalog = await buildHistoricalCatalog({});
     expect(catalog.matches).toHaveLength(FIXTURE_HISTORICAL_ROWS.length);
     expect(catalog.total).toBe(FIXTURE_HISTORICAL_ROWS.length);
-    expect(catalog.matches[0].matchInternalId).toBe("vlr:match:1001");
-    expect(catalog.matches[1].matchInternalId).toBe("vlr:match:1002");
+    expect(catalog.matches[0].matchInternalId).toBe("vlr:match:1002");
+    expect(catalog.matches[1].matchInternalId).toBe("vlr:match:1001");
+  });
+
+  it("places a recently-completed match ahead of an older one regardless of input order", async () => {
+    const older = { ...FIXTURE_HISTORICAL_ROWS[0], matchInternalId: "vlr:match:old", scheduledAt: "2025-06-07T12:00:00.000Z" };
+    const newer = { ...FIXTURE_HISTORICAL_ROWS[0], matchInternalId: "vlr:match:new", scheduledAt: "2026-07-18T04:00:00.000Z" };
+    const fixture = await buildFixtureFeatureDataset([older, newer]);
+    rootDir = fixture.rootDir;
+    process.env.REAL_PREDICTION_FEATURE_DATA_DIR = fixture.rootDir;
+
+    const catalog = await buildHistoricalCatalog({});
+    expect(catalog.matches.map((m) => m.matchInternalId)).toEqual(["vlr:match:new", "vlr:match:old"]);
   });
 
   it("never includes label/outcome fields in a catalog entry", async () => {

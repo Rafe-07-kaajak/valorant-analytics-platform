@@ -155,6 +155,7 @@ function verifiedEntry(
   internalTeamId: VctTeamId,
   slug: string,
   reason: string,
+  verifiedAt: string = "2026-07-18",
 ): VlrTeamMappingEntry {
   const sourceUrl = `https://www.vlr.gg/team/${vlrTeamId}/${slug}`;
   return {
@@ -163,10 +164,19 @@ function verifiedEntry(
     reason,
     status: "verified",
     confidence: "authoritative",
-    verifiedAt: "2026-07-18",
+    verifiedAt,
     sourceUrl,
-    evidence: [{ description: reason, sourceUrl, observedAt: "2026-07-18" }],
+    evidence: [{ description: reason, sourceUrl, observedAt: verifiedAt }],
   };
+}
+
+/**
+ * Second-pass equivalent of `verifiedEntry`, defaulting `verifiedAt` to this
+ * pass's date (2026-07-23) instead of the original TASK-042 date, so newly
+ * added entries don't misreport when they were actually verified.
+ */
+function verifiedEntry2(vlrTeamId: string, internalTeamId: VctTeamId, slug: string, reason: string): VlrTeamMappingEntry {
+  return verifiedEntry(vlrTeamId, internalTeamId, slug, reason, "2026-07-23");
 }
 
 export const INITIAL_TEAM_MAPPING_REGISTRY: readonly VlrTeamMappingEntry[] = [
@@ -180,4 +190,33 @@ export const INITIAL_TEAM_MAPPING_REGISTRY: readonly VlrTeamMappingEntry[] = [
   verifiedEntry("918", "global-esports", "global-esports", "Verified via /team/918/global-esports link on a live match page (2026-07-18)."),
   verifiedEntry("1119", "all-gamers", "all-gamers", "Verified via /team/1119/all-gamers link on a live match page (2026-07-18)."),
   verifiedEntry("13581", "xi-lai-gaming", "xi-lai-gaming", "Verified via /team/13581/xi-lai-gaming link — the match page's own team A — fetched live (2026-07-18)."),
+
+  // Second verification pass (2026-07-23), covering the 22 roster teams
+  // discovered unmapped in the real 432-match curated dataset (found by
+  // display name in curated/matches.json, cross-referenced against
+  // @repo/prediction-engine's 32-team directory). Each id below was
+  // confirmed by directly fetching its live vlr.gg team page and matching
+  // the page's own displayed team name/tag against the roster entry.
+  verifiedEntry2("11058", "g2-esports", "g2-esports", "Verified via live fetch of /team/11058/g2-esports (2026-07-23) — page displays 'G2 Esports' / 'G2'."),
+  verifiedEntry2("12685", "trace-esports", "trace-esports", "Verified via live fetch of /team/12685/trace-esports (2026-07-23) — page displays 'Trace Esports' / 'TE'."),
+  verifiedEntry2("1120", "edward-gaming", "edward-gaming", "Verified via live fetch of /team/1120/edward-gaming (2026-07-23) — page displays 'EDward Gaming' / 'EDG'."),
+  verifiedEntry2("474", "team-liquid", "team-liquid", "Verified via live fetch of /team/474/team-liquid (2026-07-23) — page displays 'Team Liquid' / 'TL'."),
+  verifiedEntry2("14", "t1", "t1", "Verified via live fetch of /team/14/t1 (2026-07-23) — page displays 'T1' / '@T1'."),
+  verifiedEntry2("8185", "kiwoom-drx", "kiwoom-drx", "Verified via live fetch of /team/8185/kiwoom-drx (2026-07-23) — page displays 'KIWOOM DRX' / 'KRX'."),
+  verifiedEntry2("7386", "mibr", "mibr", "Verified via live fetch of /team/7386/mibr (2026-07-23) — page displays 'MIBR'."),
+  verifiedEntry2("878", "rex-regum-qeon", "rex-regum-qeon", "Verified via live fetch of /team/878/rex-regum-qeon (2026-07-23) — page displays 'Rex Regum Qeon' / 'RRQ'."),
+  verifiedEntry2("2593", "fnatic", "fnatic", "Verified via live fetch of /team/2593/fnatic (2026-07-23) — page displays 'FNATIC' / 'FNC'."),
+  verifiedEntry2("11981", "dragon-ranger-gaming", "dragon-ranger-gaming", "Verified via live fetch of /team/11981/dragon-ranger-gaming (2026-07-23) — page displays 'Dragon Ranger Gaming' / 'DRG'."),
+  verifiedEntry2("1184", "fut-esports", "fut-esports", "Verified via live fetch of /team/1184/fut-esports (2026-07-23) — page displays 'FUT Esports' / 'FUT'."),
+  verifiedEntry2("12694", "gentle-mates", "gentle-mates", "Verified via live fetch of /team/12694/gentle-mates (2026-07-23) — page displays 'Gentle Mates' / 'M8'."),
+  verifiedEntry2("11060", "nongshim-redforce", "nongshim-redforce", "Verified via live fetch of /team/11060/nongshim-redforce (2026-07-23) — page displays 'Nongshim RedForce' / 'NS'."),
+  verifiedEntry2("4050", "full-sense", "full-sense", "Verified via live fetch of /team/4050/full-sense (2026-07-23) — page displays 'FULL SENSE' / 'FS'."),
+  verifiedEntry2("278", "detonation-focusme", "detonation-focusme", "Verified via live fetch of /team/278/detonation-focusme (2026-07-23) — page displays 'DetonatioN FocusMe' / 'DFM'."),
+  verifiedEntry2("6961", "loud", "loud", "Verified via live fetch of /team/6961/loud (2026-07-23) — page displays 'LOUD'."),
+  verifiedEntry2("2406", "furia", "furia", "Verified via live fetch of /team/2406/furia (2026-07-23) — page displays 'FURIA' / 'FUR'."),
+  verifiedEntry2("2359", "leviatan", "leviatan", "Verified via live fetch of /team/2359/leviatan (2026-07-23) — page displays 'LEVIATÁN' / 'LEV'."),
+  verifiedEntry2("13576", "jdg-esports", "jdg-esports", "Verified via live fetch of /team/13576/jdg-esports (2026-07-23) — page displays 'JDG Esports' / 'JDG'."),
+  verifiedEntry2("14137", "titan-esports-club", "titan-esports-club", "Verified via live fetch of /team/14137/titan-esports-club (2026-07-23) — page displays 'Titan Esports Club' / 'TEC'."),
+  verifiedEntry2("731", "tyloo", "tyloo", "Verified via live fetch of /team/731/tyloo (2026-07-23) — page displays 'TYLOO' / 'TYL'."),
+  verifiedEntry2("6392", "eternal-fire", "eternal-fire", "Verified via live fetch of /team/6392/eternal-fire (2026-07-23) — page displays 'Eternal Fire' / 'EF'."),
 ];

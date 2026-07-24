@@ -3,7 +3,9 @@ import { runFeatureStateEngine } from "./stateEngine";
 import type { RejectedMatch } from "./stateEngine";
 import { buildFeatureFeasibilityAudit } from "./featureAudit";
 import type { FeatureFeasibilityAudit } from "./featureAudit";
-import { assignSplits, computeSplitBoundaries, computeWalkForwardFolds, summarizeSplits } from "./splits";
+import { deriveCanonicalWindow } from "./canonicalWindow";
+import type { CanonicalWindow } from "./canonicalWindow";
+import { assignExcludedSplits, assignSplits, computeSplitBoundaries, computeWalkForwardFolds, partitionEligibleForSplitting, summarizeSplits } from "./splits";
 import type { SplitAssignment, SplitSummary, WalkForwardFold } from "./splits";
 import { validateFeatureRows, validateSplitAssignments } from "./featureValidation";
 import type { ValidationResult } from "./featureValidation";
@@ -29,12 +31,15 @@ import type { EloConfig } from "./versions";
 export interface FeatureBuildOptions {
   readonly eloConfig?: EloConfig;
   readonly generatedAt?: string;
+  /** Overrides the canonical-window anchor event name. Defaults to the real Masters Toronto 2025 anchor; only tests exercising unrelated pipeline behavior with their own synthetic events should override this. */
+  readonly canonicalWindowEventName?: string;
 }
 
 export interface FeatureBuildResult {
   readonly rows: readonly FeatureRow[];
   readonly rejected: readonly RejectedMatch[];
   readonly featureAudit: FeatureFeasibilityAudit;
+  readonly canonicalWindow: CanonicalWindow;
   readonly splitSummary: SplitSummary;
   readonly splitAssignments: readonly SplitAssignment[];
   readonly walkForwardFolds: readonly WalkForwardFold[];
@@ -58,10 +63,21 @@ export async function runFeatureBuild(dataDir: string, options: FeatureBuildOpti
 
   const featureAudit = buildFeatureFeasibilityAudit(source.matches, source.events, generatedAt);
 
-  const boundaries = computeSplitBoundaries(rows);
-  const splitAssignments = assignSplits(rows, boundaries);
-  const splitSummary = summarizeSplits(rows, boundaries);
-  const walkForwardFolds = computeWalkForwardFolds(rows);
+  // Feature computation above already replayed the FULL curated history
+  // (so Elo/form entering the canonical window are real and warmed up, not
+  // reset) — only which rows are *eligible* for the split/ranking/replay
+  // exposure is restricted here.
+  const canonicalWindow = options.canonicalWindowEventName
+    ? deriveCanonicalWindow(source.events, source.matches, options.canonicalWindowEventName)
+    : deriveCanonicalWindow(source.events, source.matches);
+  const { eligible, excluded } = partitionEligibleForSplitting(rows, canonicalWindow);
+
+  const boundaries = computeSplitBoundaries(eligible);
+  const eligibleSplitAssignments = assignSplits(eligible, boundaries);
+  const excludedSplitAssignments = assignExcludedSplits(excluded);
+  const splitAssignments = [...excludedSplitAssignments, ...eligibleSplitAssignments];
+  const splitSummary = summarizeSplits(eligible, boundaries);
+  const walkForwardFolds = computeWalkForwardFolds(eligible);
 
   const rowValidation = validateFeatureRows(rows, source.matches);
   const splitValidation = validateSplitAssignments(rows, splitAssignments);
@@ -84,6 +100,7 @@ export async function runFeatureBuild(dataDir: string, options: FeatureBuildOpti
     rows,
     rejected,
     featureCatalog: FEATURE_CATALOG,
+    canonicalWindow,
     splitSummary,
     splitAssignments,
     walkForwardFolds,
@@ -94,7 +111,7 @@ export async function runFeatureBuild(dataDir: string, options: FeatureBuildOpti
     generatedAt,
   });
 
-  return { rows, rejected, featureAudit, splitSummary, splitAssignments, walkForwardFolds, rowValidation, splitValidation, version, files };
+  return { rows, rejected, featureAudit, canonicalWindow, splitSummary, splitAssignments, walkForwardFolds, rowValidation, splitValidation, version, files };
 }
 
 /** Runs the full build and writes every file under `<dataDir>/features/`. Returns the build result plus each file's content hash (for idempotency verification). */

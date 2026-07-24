@@ -6,7 +6,7 @@ import { PredictionSummary } from "./PredictionSummary";
 import { ResultTimeline } from "./ResultTimeline";
 import { InteractivePredictionBreakdown } from "./breakdown/InteractivePredictionBreakdown";
 import { useBreakdownState } from "./breakdown/useBreakdownState";
-import { WhatIfSimulator } from "./simulator/WhatIfSimulator";
+import { WhatIfSimulator, type WhatIfSimulatorProps } from "./simulator/WhatIfSimulator";
 import { MatchDnaSection } from "../match-dna/MatchDnaSection";
 import { ExplanationCard } from "../insights/ExplanationCard";
 import { FeatureContribution } from "../insights/FeatureContribution";
@@ -19,6 +19,13 @@ export interface PredictionResultExperienceProps {
   teamA: Team;
   teamB: Team;
   maps: GameMap[];
+  /**
+   * Prediction Studio mode-correction task — optional What-if Simulator
+   * engine overrides. Omitted (the default), the simulator behaves exactly
+   * as before (synthetic HTTP baseline fetch + `/api/simulate-prediction`).
+   * Real Model 2.0 passes its own real-data baseline/recompute here instead.
+   */
+  simulatorOverrides?: Pick<WhatIfSimulatorProps, "simulatorMapIds" | "getBaseline" | "runSimulation" | "controls" | "presets">;
 }
 
 /** Identical shape to the engine's own `scenarioCacheKey` — used only to remount `WhatIfSimulator` when the underlying scenario genuinely changes, never for caching. */
@@ -27,7 +34,7 @@ function scenarioKey(result: PredictionResult): string {
   return [teamAId, teamBId, seriesFormat, [...mapIds].sort().join(",")].join("|");
 }
 
-export function PredictionResultExperience({ result, teamA, teamB, maps }: PredictionResultExperienceProps) {
+export function PredictionResultExperience({ result, teamA, teamB, maps, simulatorOverrides }: PredictionResultExperienceProps) {
   const breakdown = useBreakdownState();
   const explanationFragments = useMemo(() => splitExplanationFragments(result), [result]);
 
@@ -35,7 +42,7 @@ export function PredictionResultExperience({ result, teamA, teamB, maps }: Predi
     <div className="flex flex-col gap-lg motion-safe:transition-[opacity,transform] motion-safe:duration-(--duration-panel) motion-safe:ease-(--ease-standard) motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0">
       <PredictionSummary result={result} teamA={teamA} teamB={teamB} />
       <InteractivePredictionBreakdown result={result} teamA={teamA} teamB={teamB} breakdown={breakdown} />
-      <WhatIfSimulator key={scenarioKey(result)} result={result} teamA={teamA} teamB={teamB} maps={maps} />
+      <WhatIfSimulator key={scenarioKey(result)} result={result} teamA={teamA} teamB={teamB} maps={maps} {...simulatorOverrides} />
       <MatchDnaSection result={result} teamA={teamA} teamB={teamB} />
       <ExplanationCard
         explanation={result.explanation}

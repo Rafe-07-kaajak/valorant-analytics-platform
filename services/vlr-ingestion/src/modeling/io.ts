@@ -60,6 +60,10 @@ export function partitionBySplit(rows: readonly FeatureRow[], assignments: reado
     if (split === "train") train.push(row);
     else if (split === "validation") validation.push(row);
     else if (split === "test") test.push(row);
+    // "excluded" rows (before the canonical eligibility window — see
+    // canonicalWindow.ts) are intentionally absent from every split, not an
+    // error condition; only a genuinely missing assignment is.
+    else if (split === "excluded") continue;
     else throw new ModelingError("schema_validation_failed", `Row ${row.matchInternalId} has no split assignment.`);
   }
   return { train, validation, test };

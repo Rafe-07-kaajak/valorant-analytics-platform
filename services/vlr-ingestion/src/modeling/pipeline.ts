@@ -72,6 +72,8 @@ export interface PipelineResult {
   readonly errorAnalysis: ErrorAnalysisReport;
   readonly featureContract: FeatureContract;
   readonly modelVersion: string;
+  /** The true train-split's own earliest row, not the whole dataset's earliest row (which may include canonical-window-excluded rows never used for training). */
+  readonly trainDateRangeStartIso: string | null;
   readonly totalModelFits: number;
   readonly trainingRuntimeMs: number;
   readonly generatedAt: string;
@@ -336,6 +338,7 @@ export async function runModelTrainingPipeline(dataDir: string, generatedAt: str
     errorAnalysis,
     featureContract,
     modelVersion,
+    trainDateRangeStartIso: splitRows.train[0]?.scheduledAt ?? null,
     totalModelFits,
     trainingRuntimeMs,
     generatedAt,
@@ -355,7 +358,7 @@ export function buildModelManifest(result: PipelineResult): ModelManifest {
     trainRowCount: result.source.splitSummary.boundaries.trainRowCount,
     validationRowCount: result.source.splitSummary.boundaries.validationRowCount,
     testRowCount: result.source.splitSummary.boundaries.testRowCount,
-    trainDateRangeStartIso: result.source.rows[0]?.scheduledAt ?? null,
+    trainDateRangeStartIso: result.trainDateRangeStartIso,
     trainDateRangeEndIso: result.source.splitSummary.boundaries.trainEndIso,
     reportingThreshold: REPORTING_THRESHOLD,
     probabilityClippingEpsilon: PROBABILITY_CLIPPING_EPSILON,

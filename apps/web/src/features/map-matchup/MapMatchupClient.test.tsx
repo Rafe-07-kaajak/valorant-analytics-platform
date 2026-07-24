@@ -238,6 +238,7 @@ describe("MapMatchupClient", () => {
       teamB: "g2-esports",
       maps: ["ascent", "haven"],
       format: null,
+      mode: null,
     });
 
     const poolGroup = screen.getByRole("group", { name: /Map Pool/ });
@@ -254,6 +255,7 @@ describe("MapMatchupClient", () => {
       teamB: "g2-esports",
       maps: [],
       format: null,
+      mode: null,
     });
 
     const poolGroup = screen.getByRole("group", { name: /Map Pool \(0/ });

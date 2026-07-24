@@ -16,11 +16,25 @@ describe("parseUrlState", () => {
       teamB: "g2-esports",
       maps: ["ascent", "haven", "bind"],
       format: "BO3",
+      mode: null,
     });
   });
 
   it("returns the empty canonical state for an empty query", () => {
-    expect(parse("")).toEqual({ regionA: null, teamA: null, regionB: null, teamB: null, maps: [], format: null });
+    expect(parse("")).toEqual({ regionA: null, teamA: null, regionB: null, teamB: null, maps: [], format: null, mode: null });
+  });
+
+  it("parses a valid mode", () => {
+    expect(parse("mode=real").mode).toBe("real");
+    expect(parse("mode=synthetic").mode).toBe("synthetic");
+  });
+
+  it("drops an invalid mode to null rather than crashing", () => {
+    expect(parse("mode=not-a-mode").mode).toBeNull();
+  });
+
+  it("defaults mode to null when absent", () => {
+    expect(parse("teamA=paper-rex").mode).toBeNull();
   });
 
   it("ignores an unknown team id entirely", () => {

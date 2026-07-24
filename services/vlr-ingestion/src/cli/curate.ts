@@ -9,7 +9,7 @@ import { loadQualityReport } from "../quality/qualityAudit";
 import { evaluateQuarantine, saveQuarantineLedger } from "../quality/quarantine";
 import type { QuarantineRecord } from "../quality/quarantine";
 import type { QualityIssue } from "../quality/qualityIssue";
-import { INITIAL_TEAM_MAPPING_REGISTRY } from "../identity/teamMapping";
+import { INITIAL_TEAM_MAPPING_REGISTRY, validateTeamMappingRegistry } from "../identity/teamMapping";
 import { INITIAL_TEAM_ALIAS_REGISTRY } from "../identity/teamAliasRegistry";
 import { runFullReconciliation } from "../reconciliation/runReconciliation";
 import { buildCategoryByExternalId } from "../reconciliation/reconciliationTypes";
@@ -24,6 +24,14 @@ import { runCli } from "./cliSupport";
  * normalized/raw record.
  */
 async function main(): Promise<void> {
+  const registryValidation = validateTeamMappingRegistry(INITIAL_TEAM_MAPPING_REGISTRY);
+  if (!registryValidation.valid) {
+    console.error("Team mapping registry is invalid — refusing to curate against it:");
+    console.error(JSON.stringify(registryValidation, null, 2));
+    process.exitCode = 1;
+    return;
+  }
+
   const config = loadVlrIngestionConfig();
   const store = new FilesystemIngestionStore(config.dataDir);
 

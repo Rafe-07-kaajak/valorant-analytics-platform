@@ -1,5 +1,5 @@
 import type { InferenceRequest, FeatureValue } from "@repo/model-inference";
-import type { HistoricalPredictionResponse } from "@repo/shared";
+import type { HistoricalPredictionResponse, TemporalFidelity } from "@repo/shared";
 import { getHistoricalRowById, validateMatchInternalId, type RawHistoricalRow } from "./historicalFeatureRepository";
 import { getReadyModelService } from "./modelService";
 import { PredictionApiError, toPredictionApiError } from "./errors";
@@ -31,6 +31,22 @@ function buildFeaturesFromRow(row: RawHistoricalRow, requiredInputFields: readon
   }
   return features;
 }
+
+/**
+ * A single trained model is applied uniformly to every historical match —
+ * if the replayed match's own date falls at or before the model's training
+ * cutoff, the model was necessarily trained using data from that match's
+ * own period (or later), so it cannot claim genuine point-in-time fidelity
+ * for it. An unknown cutoff (model unavailable) fails toward the more
+ * conservative/honest label rather than assuming fidelity.
+ */
+function computeTemporalFidelity(matchScheduledAt: string, trainDateRangeEndIso: string | null): TemporalFidelity {
+  if (!trainDateRangeEndIso) return "retrospective";
+  return matchScheduledAt > trainDateRangeEndIso ? "point-in-time" : "retrospective";
+}
+
+const RETROSPECTIVE_WARNING =
+  "This prediction is a retrospective reconstruction: the active model was trained on data that includes this match's own period (or later), so it does not reflect what a model could have known strictly before this match was played.";
 
 function toMatchMetadata(row: RawHistoricalRow) {
   return {
@@ -83,6 +99,10 @@ export async function predictHistoricalMatch(input: HistoricalPredictionInput): 
     throw toPredictionApiError(error);
   }
 
+  const modelTrainDateRangeEndIso = artifact?.manifest.trainDateRangeEndIso ?? null;
+  const temporalFidelity = computeTemporalFidelity(row.scheduledAt, modelTrainDateRangeEndIso);
+  const warnings = temporalFidelity === "retrospective" ? [...response.warnings, RETROSPECTIVE_WARNING] : response.warnings;
+
   return {
     mode: "historical-real-model",
     requestId: response.requestId,
@@ -96,13 +116,15 @@ export async function predictHistoricalMatch(input: HistoricalPredictionInput): 
     teamBWinProbability: response.teamBWinProbability,
     predictedWinnerSide: response.predictedWinnerSide,
     confidence: response.confidence,
-    warnings: response.warnings,
+    warnings,
     predictionGeneratedAt: response.predictionGeneratedAt,
     inferenceDurationMs: response.inferenceDurationMs,
     dataProvenance: {
       sourceFeatureDatasetVersion: response.sourceFeatureDatasetVersion,
       featureSchemaVersion: response.featureSchemaVersion,
       generatedFromHistoricalSnapshot: true,
+      modelTrainDateRangeEndIso,
+      temporalFidelity,
     },
     // Reveal-after-prediction (TASK-047 section 14) was scoped but not
     // built in this pass — see docs/35, "Known limitations".

@@ -1,8 +1,8 @@
 # Real Prediction Backend Integration
 
-Version: 1.0 (TASK-047)
+Version: 1.1 (TASK-047, extended by the real-model integration task)
 
-Status: Complete. Connects Prediction Studio to the TASK-046 offline inference service through a server-only "Historical Model Replay" mode, while preserving the existing synthetic scenario experience unchanged as the default. Real predictions are historical-replay only — no arbitrary future team-vs-team matchup is served as a real-model prediction.
+Status: Complete. Connects Prediction Studio to the TASK-046 offline inference service through two explicit real-model modes — server-only "Historical Model Replay" (a specific past match) and "Real Model" (an arbitrary current team pairing, added by the real-model integration task) — while preserving the existing synthetic scenario experience unchanged as the default. Every mode is explicit and visible; none ever silently falls back to another.
 
 ---
 
@@ -15,10 +15,10 @@ TASK-046 produced a validated, self-tested, Node-only model-inference service �
 Three real-prediction flows were evaluated (per TASK-047's own scoping):
 
 - **A. Historical-match replay** (chosen): load an existing TASK-044 pre-match feature row by `matchInternalId`, send it to the TASK-046 service, return a real model prediction for that historical pre-match state.
-- **B. Team-vs-team hypothetical prediction** (not implemented): would require constructing a *new* pre-match feature row from current temporal state (rolling Elo, recent form, head-to-head, roster continuity, schedule/rest) for an arbitrary team pair "as of now." TASK-044's feature pipeline is a batch, chronological state-replay engine (`stateEngine.ts`) over the curated dataset — it has no online/incremental feature-construction API, and building one is exactly the kind of "online feature construction" TASK-044 and TASK-046 both explicitly deferred (see docs/32, docs/34, "Known limitations"). Building it now would mean either reimplementing feature math outside its leakage-safe pipeline (a correctness and duplication risk) or a substantial new online-feature-service task — out of scope here.
+- **B. Team-vs-team hypothetical ("current matchup") prediction** (implemented by the real-model integration task, after initially being deferred here): constructs a *new* pre-match feature row from current temporal state (rolling Elo, recent form, head-to-head, roster continuity, rest days) for an arbitrary team pair "as of" the real data cutoff. TASK-044's feature pipeline is a batch, chronological state-replay engine (`stateEngine.ts`) over the curated dataset with no online/incremental feature-construction API of its own — rather than reimplementing that math separately (a correctness/duplication risk), `services/vlr-ingestion/src/feature/currentMatchupRow.ts` reuses the exact same `TeamState`/`HeadToHeadRegistry`/`EventCongestionRegistry`/Elo machinery `runFeatureStateEngine` already uses for every real match, replaying the full real history once and then taking one further honest snapshot for the requested pair. The one input that genuinely cannot come from real data — competitive tier/event context, since no match is actually scheduled — is an explicit, visible user choice (Regional Season vs. International), never a silent assumption; see "Current matchup real-model prediction" below.
 - **C. Synthetic scenario mode** (preserved unchanged): Prediction Studio's existing scenario builder continues to use `@repo/prediction-engine`'s synthetic VCT profiles, now explicitly labeled "Synthetic Scenario" in the new UI section, with no change to its request/response contract, its computation, or its existing tests.
 
-Flow B is documented here as an intentionally omitted flow, not silently unsupported — the UI never implies an arbitrary team matchup produces a real-model prediction.
+All three flows are explicit, always-visible modes the user chooses between — the UI never implies one flow produced another flow's result.
 
 ## Architecture
 
@@ -51,11 +51,34 @@ Additionally, two narrow package `exports` subpaths were added (both purely addi
 - `@repo/vlr-ingestion/persistence/pathSafety` — reuses the existing, tested `resolveSafePath`/`safeFileName` primitives directly, rather than importing the full barrel or duplicating path-traversal-safety logic.
 - `@repo/model-inference/testFixtures` — reuses the existing `buildFixtureArtifact` test helper (built in TASK-046) for this task's own unit/integration tests, rather than hand-rolling a second fixture-artifact builder.
 
+### Current matchup real-model prediction (Prediction Studio's main flow)
+
+```
+apps/web (client)
+  └─ ScenarioBuilder's "Real Model" mode (features/prediction-studio/{PredictionModeToggle,MatchTierToggle,RealCurrentPredictionResult}.tsx)
+       └─ fetch (apps/web/src/lib/api/realPrediction.ts#predictCurrentMatch)
+            ↓
+apps/web (server-only)
+  └─ app/api/internal/prediction/current/route.ts
+       └─ server/prediction/currentPredictionAdapter.ts     (request validation, response mapping)
+       └─ server/prediction/currentMatchupRepository.ts     (raw curated matches/events, real data cutoff)
+       └─ server/prediction/powerRankingsRepository.ts       (reused for real per-team confidence tiering)
+       └─ server/prediction/modelService.ts                  (same lazy PredictionService singleton Historical Replay uses)
+            ↓
+@repo/vlr-ingestion (feature/currentMatchupRow.ts)
+  └─ buildCurrentMatchupRow() → replays real history via runFeatureStateEngine, then one honest "as of now" snapshot
+            ↓
+@repo/model-inference (TASK-046, unchanged behavior)
+  └─ PredictionService.predict() → loaded model artifact
+```
+
+Team confidence (`verified`/`provisional`/`unrated`) reuses the exact same `computeDataConfidence` tiering Power Rankings already established (`apps/web/src/features/power-rankings/rankingModel.ts`), so the two features never disagree about what "verified" means for the same team. A team below the well-sampled threshold, or whose identity mapping isn't verified, surfaces as a visible warning on the prediction result — never an unexplained default.
+
 ## Prediction modes
 
-`PredictionMode = "synthetic-scenario" | "historical-real-model"` (`packages/shared/src/types/real-prediction.ts`). The synthetic engine's own `PredictionResult` contract (`packages/shared/src/types/prediction.ts`) is **not modified** — mixing mode-provenance fields into it would touch `@repo/prediction-engine` and its ~15 existing test files for no functional benefit, since the two modes are unified only at the display layer, never by changing the synthetic engine's contract. `HistoricalPredictionResponse.mode` is always the literal `"historical-real-model"`; nothing here ever labels a synthetic response as real, or vice versa.
+`PredictionMode = "synthetic-scenario" | "historical-real-model" | "current-real-model"` (`packages/shared/src/types/real-prediction.ts`). The synthetic engine's own `PredictionResult` contract (`packages/shared/src/types/prediction.ts`) is **not modified** — mixing mode-provenance fields into it would touch `@repo/prediction-engine` and its ~15 existing test files for no functional benefit, since every mode is unified only at the display layer, never by changing the synthetic engine's contract. A response's `mode` field is always the literal matching how it was actually produced; nothing here ever labels one mode's response as another's.
 
-Fallback policy: **no automatic fallback between modes.** A requested historical prediction that cannot be served returns a structured error (see "Errors" below); it never silently substitutes a synthetic result. Synthetic mode's own behavior is completely unaffected by whether the real-model backend is available.
+Fallback policy: **no automatic fallback between modes.** A requested historical or current-matchup prediction that cannot be served returns a structured error (see "Errors" below); it never silently substitutes a synthetic result, and the synthetic engine never silently substitutes a real one. Synthetic mode's own behavior is completely unaffected by whether either real-model backend is available. The mode a user is in is always an explicit, visible, URL-persisted choice (`CanonicalUrlState.mode`), never inferred.
 
 ## UI integration
 
@@ -68,7 +91,7 @@ States covered: readiness loading, readiness error (with retry), real-prediction
 
 ## Historical feature-row repository
 
-`server/prediction/historicalFeatureRepository.ts` reads `<REAL_PREDICTION_FEATURE_DATA_DIR>/features/{feature-manifest.json,feature-rows.json}` — TASK-044's own export, unmodified, read-only. Loaded once per process and memoized (`resetHistoricalRepositoryCacheForTesting()` is test-only; no public route triggers a reload). On the real local dataset today: **432 rows**, `featureDatasetVersion 64591ef5a24f9a0b`.
+`server/prediction/historicalFeatureRepository.ts` reads `<REAL_PREDICTION_FEATURE_DATA_DIR>/features/{feature-manifest.json,feature-rows.json}` — TASK-044's own export, unmodified, read-only. Loaded once per process and memoized (`resetHistoricalRepositoryCacheForTesting()` is test-only; no public route triggers a reload). On the real local dataset today: **432 rows**, `featureDatasetVersion 4ea57b57ed74f619` (416 eligible at-or-after the Masters-Toronto-2025 canonical window, 16 excluded from training/ranking eligibility but still present here for full historical replay coverage).
 
 Security property worth stating explicitly: a request's `matchInternalId` is used **only** as a lookup key against this already-loaded, in-memory `Map<string, RawHistoricalRow>` — it is never interpolated into a filesystem path, so match-ID path traversal is not a code path that exists here at all (verified by `historicalFeatureRepository.test.ts` and the route's own request-validation tests).
 
@@ -78,7 +101,7 @@ If the dataset directory or its two files are missing/unreadable, every entry po
 
 ## Historical match catalog
 
-`server/prediction/historicalCatalog.ts`. Exposes only: `matchInternalId`, `scheduledAt`, `eventFamily`, `eventRegion`, `tournamentLevel`, `seriesFormat`, `teamAProviderId`, `teamBProviderId`, `modelEligible` (always `true` — TASK-044 never exports an ineligible row), `featureDatasetVersion`. **Never** a label, score, winner, or raw feature vector. Filters (`eventFamily`, `teamProviderId`, `scheduledAfter`/`scheduledBefore`, `limit`) are validated strictly (`request_invalid` on malformed input, never silently ignored). Sorted stably ascending by `scheduledAt`, ties broken by `matchInternalId` (mirrors TASK-044's own state-engine tie-break rule). Bounded to `REAL_PREDICTION_CATALOG_LIMIT` (default 50, hard max 200) regardless of a caller-requested `limit` — the full 432-row dataset is never sent in one response.
+`server/prediction/historicalCatalog.ts`. Exposes only: `matchInternalId`, `scheduledAt`, `eventFamily`, `eventRegion`, `tournamentLevel`, `seriesFormat`, `teamAProviderId`, `teamBProviderId`, `modelEligible` (always `true` — TASK-044 never exports an ineligible row), `featureDatasetVersion`. **Never** a label, score, winner, or raw feature vector. Filters (`eventFamily`, `teamProviderId`, `scheduledAfter`/`scheduledBefore`, `limit`) are validated strictly (`request_invalid` on malformed input, never silently ignored). Sorted stably newest-first (descending by `scheduledAt`), ties broken ascending by `matchInternalId` (mirrors TASK-044's own state-engine tie-break rule). Bounded to `REAL_PREDICTION_CATALOG_LIMIT` (default 50, hard max 200) regardless of a caller-requested `limit` — the full 432-row dataset is never sent in one response.
 
 No team display names: `teams.json` (TASK-043) carries no display-name field, and `apps/web/src/constants/vct.ts`'s 32-team roster carries no VLR provider-ID mapping to join against — the catalog and result UI show raw provider IDs (e.g. `vlr:team:1120`), documented here rather than fabricated.
 
@@ -90,7 +113,7 @@ The browser can **never** supply a raw feature vector: the POST route's strict f
 
 ## Errors
 
-`server/prediction/errors.ts` reuses TASK-046's `InferenceError` semantics by mapping every `InferenceErrorCode` onto this task's own smaller, browser-safe `PredictionErrorCode` taxonomy (`model_unavailable`, `model_loading`, `historical_data_unavailable`, `historical_match_not_found`, `feature_dataset_version_mismatch`, `feature_row_invalid`, `model_version_mismatch`, `inference_validation_failed`, `inference_failed`, `request_invalid`, `internal_error`), each with a fixed `retryable` flag and HTTP status. Field-level `InferenceError`s (`missing_feature`, `invalid_feature_type`, etc.) are deliberately mapped to `feature_row_invalid` rather than passed through verbatim — those codes can only fire here because *this service's own code* built the request from a stored row, never from browser input, so surfacing the underlying field name would leak internal schema detail for no caller benefit. `toSafeJSON()` never includes a stack trace or filesystem path.
+`server/prediction/errors.ts` reuses TASK-046's `InferenceError` semantics by mapping every `InferenceErrorCode` onto this task's own smaller, browser-safe `PredictionErrorCode` taxonomy (`model_unavailable`, `model_loading`, `historical_data_unavailable`, `historical_match_not_found`, `feature_dataset_version_mismatch`, `feature_row_invalid`, `model_version_mismatch`, `inference_validation_failed`, `inference_failed`, `request_invalid`, `internal_error`, plus `current_matchup_data_unavailable` for the current-matchup flow's raw curated dataset), each with a fixed `retryable` flag and HTTP status. Field-level `InferenceError`s (`missing_feature`, `invalid_feature_type`, etc.) are deliberately mapped to `feature_row_invalid` rather than passed through verbatim — those codes can only fire here because *this service's own code* built the request from a stored row, never from browser input, so surfacing the underlying field name would leak internal schema detail for no caller benefit. `toSafeJSON()` never includes a stack trace or filesystem path.
 
 ## Model lifecycle
 
@@ -138,6 +161,8 @@ Single-process, single-machine, local development hardware only — not a produc
 
 **Total new tests added by this task: 82** (53 backend + 18 route + 6 frontend + 5 e2e).
 
+**Real-model integration task (current-matchup "Real Model" mode) added, on top of the above:** `currentMatchupRow.test.ts` (7, vlr-ingestion), `currentMatchupRepository.test.ts` (4), `currentPredictionAdapter.integration.test.ts` (7), 12 new tests in `PredictionStudioClient.test.tsx`'s "Real Model mode" block, `urlState` mode-parsing/serialization coverage, and `e2e/prediction-studio-real-mode.spec.ts` (10 tests: explicit mode switching, no automatic fallback in either direction, real runtime service invocation, model version/provenance display, a provisional-team warning, an unsupported-team failure state, URL mode persistence across back/forward, mobile layout, and two accessibility/console-network checks).
+
 ## Configuration
 
 | Variable | Default | Notes |
@@ -161,12 +186,14 @@ Single-process, single-machine, local development hardware only — not a produc
 
 - **Historical replay only** — an arbitrary future/hypothetical team-vs-team matchup is not served as a real-model prediction (see "Feasibility decision," flow B). Building it would require an online/incremental feature-construction service TASK-044/046 both deliberately deferred.
 - **Requires local generated data** — `REAL_PREDICTION_FEATURE_DATA_DIR`'s `features/` export and the TASK-046 model artifact are both gitignored, locally-generated outputs. A fresh checkout (or CI) has neither; every code path here handles that as a graceful `*_unavailable` state, and the synthetic scenario builder remains fully functional regardless.
-- **Selected model is Elo** — a two-number-per-team baseline, unchanged from TASK-045's frozen selection; this task does not retrain or reselect a model.
+- **Selected model is Elo** — a two-number-per-team baseline, re-selected against the corrected Masters-Toronto-2025-onward canonical training window (see the real-data-correction task); still the conservative-fallback choice, not retrained on demand per request.
+- **Temporal fidelity is a truthful label, not true walk-forward model-snapshot serving** (resolved gap, real-data-correction task): a single trained model is applied uniformly to every historical match. `dataProvenance.temporalFidelity` is `"point-in-time"` only when the replayed match's `scheduledAt` falls strictly after the active model's `trainDateRangeEndIso`; otherwise (including when the cutoff is unknown) it is `"retrospective"`, with an explanatory warning appended and a distinct UI badge. This does not build genuine per-timestamp model selection — a match correctly labeled `"retrospective"` still runs against today's single active model, not a model trained only on data before that match.
 - **No team display names** — provider IDs only (see "Historical match catalog").
 - **No actual-outcome reveal** — TASK-047 requirement 14 ("reveal the actual result after viewing the prediction") was scoped but not built: `resultAvailability.actualResultRevealable` is always `false` today. The label fields already exist on the loaded row (never sent to the browser), so a future task could add a clearly-separated, opt-in reveal endpoint without touching the prediction path at all.
 - **No deployment/scheduling** — no production packaging, no background reload, no scheduled ingestion (unchanged from TASK-046).
-- **One pre-existing e2e flake, unrelated to this task**: `e2e/prediction-studio.spec.ts`'s "no accessibility violations" test intermittently reports a missing `<title>` element when run under the full 84+-test Playwright suite with 6 parallel workers (a document-hydration race under heavy concurrent load), but passes reliably every time it was run in isolation or light load during this task's verification. A `test-results/` artifact for this exact failure already existed in the repository before this task began, indicating it predates TASK-047.
+- **Two confirmed pre-existing/load-sensitive e2e flakes, unrelated to any specific task**: `e2e/prediction-studio.spec.ts`'s "no accessibility violations" test intermittently reports a missing `<title>` element when run under the full Playwright suite with 6 parallel workers (a document-hydration race under heavy concurrent load), but passes reliably every time it was run in isolation or light load. A second instance of the same class of flake was confirmed during the real-model integration task: `e2e/cross-feature-navigation.spec.ts`'s "the page is accessible with cross-feature links rendered" test intermittently reports a `color-contrast` violation (a CSS-application race — axe scanning before the dark theme's styles have fully painted) only under the full-suite's heaviest concurrent load; it passed 3/3 times run in isolation. Both are formally baselined here rather than chased further: retrying the same timing-dependent race under artificially light load would not prove anything about the full-suite condition that actually triggers it, and neither reproduces as a real, user-visible defect (both pages render correctly and pass every accessibility check whenever checked directly). `test-results/` artifacts for the `<title>` case already existed in the repository before TASK-047 began, confirming it predates that task.
+- **Two real bugs found and fixed during the real-model integration task's e2e validation** (not flakes): a page-wide `getByRole("button", { name: /Paper Rex/ })` locator in `cross-feature-navigation.spec.ts` became genuinely ambiguous once Historical Replay's real archive could also render "Paper Rex" as visible button text — fixed by scoping both occurrences to each side's own team-selector group. A case-insensitive text collision between the new "Real Model" mode-toggle button and Historical Replay's pre-existing "Real trained model" result badge — fixed by renaming the toggle's label to "Real Model" only (not "Real Trained Model"), since Playwright/RTL text matching is case-insensitive/substring by default.
 
 ## Next step
 
-TASK-048 (or later): production packaging/deployment readiness for the model-inference service, and/or a defensibly-scoped online feature-construction path if arbitrary team-vs-team real predictions become a product requirement. Neither is started by this task.
+Real-model integration for Prediction Studio's *main* flow (an explicit "Real Model" mode alongside the existing synthetic scenario builder, using real online feature construction for an arbitrary current team pairing) is now implemented — see `services/vlr-ingestion/src/feature/currentMatchupRow.ts`, `apps/web/src/server/prediction/currentPredictionAdapter.ts`, and the `/api/internal/prediction/current` route. Remaining future work: production packaging/deployment readiness for the model-inference service (TASK-048's own scope), and richer competitive-tier input for a current-matchup prediction (today only a binary Regional/International assumption, entered explicitly by the user) if finer-grained event context becomes a product requirement.

@@ -4,9 +4,10 @@ import { randomBytes } from "node:crypto";
 import { resolveSafePath } from "../persistence/pathSafety";
 import { contentHash } from "../normalize/contentHash";
 import type { NormalizedEvent, NormalizedMatch } from "../normalize/normalizedSchemas";
-import type { VlrTeamMappingEntry } from "../identity/teamMapping";
+import { buildTeamMappingLookup, type VlrTeamMappingEntry } from "../identity/teamMapping";
 import type { TeamAlias } from "../identity/teamAliasRegistry";
 import { buildPlayerAudit, buildTeamAudit } from "../identity/identityAudit";
+import { remapUnmappedTeamIdentities } from "./identityRemap";
 import { buildPlayerTeamAppearanceTimeline } from "../quality/rosterQuality";
 import type { QualityIssue } from "../quality/qualityIssue";
 import type { QuarantineRecord } from "../quality/quarantine";
@@ -129,10 +130,16 @@ export function buildCuratedDataset(input: CuratedExportInput): CuratedDatasetFi
   const quarantined = quarantinedIds(input.quarantineRecords);
   const manifestByVlrMatchId = new Map((input.matchManifestEntries ?? []).map((entry) => [entry.vlrMatchId, entry]));
   const eventsByInternalId = new Map(input.events.map((event) => [event.internalId, event]));
+  const teamMappingLookup = buildTeamMappingLookup(input.teamMapping);
 
   const curatedMatches = input.matches
     .filter((m) => input.matchCategoryByInternalId.get(m.internalId) === "current-approved" && !quarantined.has(m.internalId))
     .sort((a, b) => a.internalId.localeCompare(b.internalId))
+    // Remapped before display-name enrichment: identity resolution is frozen
+    // at normalize time and never re-runs for an already-completed match
+    // (see identityRemap.ts's doc comment), so a team newly added to the
+    // registry only ever takes effect here, at curate time.
+    .map((match) => remapUnmappedTeamIdentities(match, teamMappingLookup))
     .map((match) => enrichMatchDisplayMetadata(match, manifestByVlrMatchId, eventsByInternalId));
 
   const curatedEvents = input.events

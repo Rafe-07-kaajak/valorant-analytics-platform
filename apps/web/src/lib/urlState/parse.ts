@@ -1,7 +1,7 @@
 import { SERIES_MAP_LIMITS } from "@repo/shared";
 import { parseMapIdsParam } from "./mapIds";
 import type { CanonicalUrlState } from "./types";
-import { isValidRegionId, isValidSeriesFormat, isValidTeamId, MAX_PARAM_LENGTH, regionForTeam } from "./validation";
+import { isValidRegionId, isValidScenarioMode, isValidSeriesFormat, isValidTeamId, MAX_PARAM_LENGTH, regionForTeam } from "./validation";
 
 export interface ParseUrlStateOptions {
   /** The full set of ids `maps=` may reference — callers derive this from the same `GameMap[]` list already passed down from the server page, never imported directly here (this module must stay free of `@repo/prediction-engine`). */
@@ -38,6 +38,7 @@ export function parseUrlState(searchParams: URLSearchParams, options: ParseUrlSt
   const rawRegionB = readParam(searchParams, "regionB");
   const rawMaps = readParam(searchParams, "maps");
   const rawFormat = readParam(searchParams, "format");
+  const rawMode = readParam(searchParams, "mode");
 
   const teamA = isValidTeamId(rawTeamA) ? rawTeamA : null;
   let teamB = isValidTeamId(rawTeamB) ? rawTeamB : null;
@@ -52,6 +53,7 @@ export function parseUrlState(searchParams: URLSearchParams, options: ParseUrlSt
   const format = isValidSeriesFormat(rawFormat) ? rawFormat : null;
   const parsedMaps = parseMapIdsParam(rawMaps, options.validMapIds);
   const maps = format ? parsedMaps.slice(0, SERIES_MAP_LIMITS[format]) : parsedMaps;
+  const mode = isValidScenarioMode(rawMode) ? rawMode : null;
 
-  return { regionA, teamA, regionB, teamB, maps, format };
+  return { regionA, teamA, regionB, teamB, maps, format, mode };
 }

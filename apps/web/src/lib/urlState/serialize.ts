@@ -8,6 +8,7 @@ export const CANONICAL_FIELD_ORDER: readonly CanonicalFieldKey[] = [
   "teamB",
   "maps",
   "format",
+  "mode",
 ];
 
 /** Projects a full canonical state down to only the fields a given route understands — the "merge existing state with a navigation target" step used by both href generation and the URL-sync hook. */

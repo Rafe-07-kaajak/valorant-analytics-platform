@@ -26,17 +26,16 @@ afterEach(() => {
   mockSearch = "";
 });
 
-const DISCLOSURE_TEXT = "Predictions use simulated team profiles for demonstration purposes.";
-
-function renderBuilder(onSubmit = vi.fn()) {
+function renderBuilder(onSubmit = vi.fn(), onSubmitReal = vi.fn()) {
   render(
     <ScenarioBuilder
       regions={VCT_REGIONS}
       teams={VCT_TEAMS}
       maps={maps}
-      disclosure={DISCLOSURE_TEXT}
       isSubmitting={false}
       onSubmit={onSubmit}
+      isSubmittingReal={false}
+      onSubmitReal={onSubmitReal}
     />,
   );
   return onSubmit;
@@ -51,9 +50,10 @@ function selectTeam(side: "A" | "B", regionName: string, teamName: string) {
 }
 
 describe("ScenarioBuilder", () => {
-  it("shows the disclosure text near the controls", () => {
+  it("shows the Real Model 2.0 disclosure near the controls, never the old synthetic copy", () => {
     renderBuilder();
-    expect(screen.getByText(new RegExp(DISCLOSURE_TEXT))).toBeInTheDocument();
+    expect(screen.getByText(/real curated historical VCT match data/)).toBeInTheDocument();
+    expect(screen.queryByText(/simulated team profiles/)).not.toBeInTheDocument();
   });
 
   it("keeps Team A and Team B region state independent", () => {

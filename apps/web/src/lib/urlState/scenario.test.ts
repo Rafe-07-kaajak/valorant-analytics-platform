@@ -18,6 +18,7 @@ describe("scenarioToCanonicalState", () => {
       teamB: "g2-esports",
       maps: ["ascent", "haven", "bind"],
       format: "BO3",
+      mode: null,
     });
   });
 

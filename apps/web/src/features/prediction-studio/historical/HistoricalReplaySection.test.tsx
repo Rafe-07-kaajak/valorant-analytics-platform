@@ -87,7 +87,13 @@ function predictionResult(): HistoricalPredictionResponse {
     warnings: [],
     predictionGeneratedAt: new Date().toISOString(),
     inferenceDurationMs: 0.5,
-    dataProvenance: { sourceFeatureDatasetVersion: "64591ef5a24f9a0b", featureSchemaVersion: "vlr-feature-schema@1.0.0", generatedFromHistoricalSnapshot: true },
+    dataProvenance: {
+      sourceFeatureDatasetVersion: "64591ef5a24f9a0b",
+      featureSchemaVersion: "vlr-feature-schema@1.0.0",
+      generatedFromHistoricalSnapshot: true,
+      modelTrainDateRangeEndIso: "2026-04-24T11:00:00.000Z",
+      temporalFidelity: "point-in-time",
+    },
     resultAvailability: { actualResultRevealable: false },
   };
 }
@@ -144,6 +150,7 @@ describe("HistoricalReplaySection", () => {
     fireEvent.click(matchButton);
 
     await screen.findByText("Real trained model");
+    expect(screen.getByText("Point-in-time")).toBeInTheDocument();
     expect(screen.getByText("62%")).toBeInTheDocument();
     expect(screen.getByText("38%")).toBeInTheDocument();
     expect(screen.getByText("aa85997f41de1264")).toBeInTheDocument();

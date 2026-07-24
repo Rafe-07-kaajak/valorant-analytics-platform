@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { assignSplits, computeSplitBoundaries, computeWalkForwardFolds, summarizeSplits } from "./splits";
+import { assignExcludedSplits, assignSplits, computeSplitBoundaries, computeWalkForwardFolds, partitionEligibleForSplitting, summarizeSplits } from "./splits";
 import type { FeatureRow } from "./types";
+import type { CanonicalWindow } from "./canonicalWindow";
 
 function buildRows(count: number): FeatureRow[] {
   const rows: FeatureRow[] = [];
@@ -94,5 +95,45 @@ describe("computeWalkForwardFolds", () => {
   it("is deterministic across repeated calls", () => {
     const rows = buildRows(60);
     expect(computeWalkForwardFolds(rows)).toEqual(computeWalkForwardFolds(rows));
+  });
+});
+
+describe("partitionEligibleForSplitting / assignExcludedSplits", () => {
+  it("splits rows into eligible (at-or-after window start) and excluded (before it), preserving order in both", () => {
+    const rows = buildRows(10);
+    const window: CanonicalWindow = { windowStartIso: rows[4]!.scheduledAt, sourceEventInternalId: "vlr:event:1", sourceEventName: "test" };
+
+    const { eligible, excluded } = partitionEligibleForSplitting(rows, window);
+    expect(excluded.map((r) => r.matchInternalId)).toEqual(rows.slice(0, 4).map((r) => r.matchInternalId));
+    expect(eligible.map((r) => r.matchInternalId)).toEqual(rows.slice(4).map((r) => r.matchInternalId));
+  });
+
+  it("treats the exact window-start row as eligible, not excluded", () => {
+    const rows = buildRows(3);
+    const window: CanonicalWindow = { windowStartIso: rows[0]!.scheduledAt, sourceEventInternalId: "vlr:event:1", sourceEventName: "test" };
+    const { eligible, excluded } = partitionEligibleForSplitting(rows, window);
+    expect(excluded).toHaveLength(0);
+    expect(eligible).toHaveLength(3);
+  });
+
+  it("assignExcludedSplits gives every excluded row a traceable split: \"excluded\" record", () => {
+    const rows = buildRows(4);
+    const assignments = assignExcludedSplits(rows);
+    expect(assignments).toHaveLength(4);
+    expect(assignments.every((a) => a.split === "excluded")).toBe(true);
+    expect(assignments.map((a) => a.matchInternalId)).toEqual(rows.map((r) => r.matchInternalId));
+  });
+
+  it("every row across eligible+excluded still gets exactly one split assignment (full traceability)", () => {
+    const rows = buildRows(20);
+    const window: CanonicalWindow = { windowStartIso: rows[8]!.scheduledAt, sourceEventInternalId: "vlr:event:1", sourceEventName: "test" };
+    const { eligible, excluded } = partitionEligibleForSplitting(rows, window);
+    const boundaries = computeSplitBoundaries(eligible);
+    const eligibleAssignments = assignSplits(eligible, boundaries);
+    const excludedAssignments = assignExcludedSplits(excluded);
+
+    const allAssignments = [...excludedAssignments, ...eligibleAssignments];
+    expect(allAssignments).toHaveLength(20);
+    expect(new Set(allAssignments.map((a) => a.matchInternalId)).size).toBe(20);
   });
 });

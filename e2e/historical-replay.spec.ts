@@ -61,6 +61,47 @@ function catalogBody() {
   };
 }
 
+function multiMatchCatalogBody() {
+  return {
+    matches: [
+      {
+        matchInternalId: "vlr:match:2002",
+        scheduledAt: "2026-07-18T04:00:00.000Z",
+        eventFamily: "vct-pacific",
+        eventName: "VCT 2026: Pacific Stage 2",
+        eventRegion: "pacific",
+        tournamentLevel: "tier-1",
+        matchStageDisplay: "Group Stage",
+        seriesFormat: "BO3",
+        teamAProviderId: "vlr:team:2593",
+        teamBProviderId: "vlr:team:878",
+        teamADisplayName: "Fnatic",
+        teamBDisplayName: "Rex Regum Qeon",
+        modelEligible: true,
+        featureDatasetVersion: "fixture-feature-dataset-v1",
+      },
+      {
+        matchInternalId: "vlr:match:1001",
+        scheduledAt: "2026-02-20T05:00:00.000Z",
+        eventFamily: "masters",
+        eventName: "Valorant Masters Bangkok 2025",
+        eventRegion: "international",
+        tournamentLevel: "tier-1",
+        matchStageDisplay: "Grand Final",
+        seriesFormat: "BO3",
+        teamAProviderId: "vlr:team:1120",
+        teamBProviderId: "vlr:team:474",
+        teamADisplayName: "Sentinels",
+        teamBDisplayName: "Paper Rex",
+        modelEligible: true,
+        featureDatasetVersion: "fixture-feature-dataset-v1",
+      },
+    ],
+    total: 2,
+    featureDatasetVersion: "fixture-feature-dataset-v1",
+  };
+}
+
 function predictionBody() {
   return {
     mode: "historical-real-model",
@@ -91,7 +132,13 @@ function predictionBody() {
     warnings: [],
     predictionGeneratedAt: new Date().toISOString(),
     inferenceDurationMs: 0.5,
-    dataProvenance: { sourceFeatureDatasetVersion: "fixture-feature-dataset-v1", featureSchemaVersion: "fixture-feature-schema@1.0.0", generatedFromHistoricalSnapshot: true },
+    dataProvenance: {
+      sourceFeatureDatasetVersion: "fixture-feature-dataset-v1",
+      featureSchemaVersion: "fixture-feature-schema@1.0.0",
+      generatedFromHistoricalSnapshot: true,
+      modelTrainDateRangeEndIso: "2026-04-24T11:00:00.000Z",
+      temporalFidelity: "point-in-time",
+    },
     resultAvailability: { actualResultRevealable: false },
   };
 }
@@ -138,10 +185,28 @@ test("selecting a historical match runs a fixture real-model prediction labeled 
 
   await page.getByRole("button", { name: /Sentinels vs Paper Rex/ }).click();
 
-  await expect(page.getByText("Real trained model")).toBeVisible();
+  // Exact match: Real Model 2.0's own pre-submission disclosure badge (always
+  // present on this page, since Real Model 2.0 is the default mode) also
+  // mentions "real trained model" in prose, case-insensitively colliding with
+  // this exact historical-replay badge text without `exact: true`.
+  await expect(page.getByText("Real trained model", { exact: true })).toBeVisible();
   await expect(page.getByText("fixture-model-v1")).toBeVisible();
   await expect(page.getByText("elo-baseline")).toBeVisible();
   await expect(page.getByText("62%")).toBeVisible();
+});
+
+test("the archive renders matches newest-first, matching the server's sort order", async ({ page }) => {
+  await page.route(READINESS_URL, (route) => fulfillJson(route, availableReadinessBody()));
+  await page.route(CATALOG_URL, (route) => fulfillJson(route, multiMatchCatalogBody()));
+  await page.route(PREDICT_URL, (route) => fulfillJson(route, predictionBody()));
+  await page.goto("/prediction-studio");
+
+  const matchesGroup = page.getByRole("group", { name: "Historical matches" });
+  await expect(matchesGroup).toBeVisible();
+  const rows = matchesGroup.getByRole("button");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText("Fnatic vs Rex Regum Qeon");
+  await expect(rows.nth(1)).toContainText("Sentinels vs Paper Rex");
 });
 
 test("an unavailable real-prediction state never breaks the page and offers a retry", async ({ page }) => {

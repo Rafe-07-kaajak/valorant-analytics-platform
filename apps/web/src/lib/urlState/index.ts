@@ -1,7 +1,7 @@
-export type { AnalyticsFeature, CanonicalFieldKey, CanonicalUrlState } from "./types";
+export type { AnalyticsFeature, CanonicalFieldKey, CanonicalUrlState, ScenarioMode } from "./types";
 export { EMPTY_CANONICAL_URL_STATE } from "./types";
 
-export { isValidTeamId, isValidRegionId, isValidSeriesFormat, regionForTeam, MAX_PARAM_LENGTH } from "./validation";
+export { isValidTeamId, isValidRegionId, isValidSeriesFormat, isValidScenarioMode, regionForTeam, MAX_PARAM_LENGTH } from "./validation";
 export { parseMapIdsParam, sortMapIdsCanonically, MAX_RAW_MAP_TOKENS } from "./mapIds";
 export { parseUrlState, type ParseUrlStateOptions } from "./parse";
 export {
@@ -11,7 +11,7 @@ export {
   toUrlSearchParams,
   CANONICAL_FIELD_ORDER,
 } from "./serialize";
-export { withRegionA, withTeamA, withRegionB, withTeamB, withMaps, withFormat } from "./transitions";
+export { withRegionA, withTeamA, withRegionB, withTeamB, withMaps, withFormat, withMode } from "./transitions";
 export { canonicalStatesEqual } from "./compare";
 export {
   buildFeatureHref,
