@@ -183,6 +183,16 @@ export const MEDIA_ASSETS = {
     role: "inset",
     integrated: true,
   },
+  powerRankingsVisual: {
+    id: "power-rankings-visual",
+    path: "/assets/redesign/supporting/tournament-coverage-visual.png",
+    type: "image",
+    width: 1920,
+    height: 1200,
+    section: "powerRankings.page",
+    role: "inset",
+    integrated: true,
+  },
   tacticalMapLoop: {
     id: "tactical-map-loop",
     path: "/assets/16-tactical-map-loop.mp4",
@@ -286,6 +296,54 @@ export const MEDIA_ASSETS = {
     width: 2816,
     height: 1536,
     section: "predictionStudio.resultHeader",
+    role: "background",
+    integrated: true,
+  },
+  // Page-persistent ambient backgrounds (FeatureAmbientBackground) — four
+  // feature-specific loops supplied directly at
+  // apps/web/public/assets/redesign/Background/. Width/height are
+  // approximate (the source files' exact pixel dimensions weren't
+  // extractable in this environment) and, as this file's own header notes,
+  // are only ever used to size a CSS aspect-ratio box — `object-fit: cover`
+  // governs the actual on-screen crop regardless, so the approximation
+  // carries no visual risk.
+  predictionStudioAmbientVideo: {
+    id: "prediction-studio-ambient-video",
+    path: "/assets/redesign/Background/prediction%20studio.mp4",
+    type: "video",
+    width: 1581,
+    height: 892,
+    section: "predictionStudio.pageBackground",
+    role: "background",
+    integrated: true,
+  },
+  comparisonLabAmbientVideo: {
+    id: "comparison-lab-ambient-video",
+    path: "/assets/redesign/Background/comparison%20lab.mp4",
+    type: "video",
+    width: 1581,
+    height: 892,
+    section: "teamComparison.pageBackground",
+    role: "background",
+    integrated: true,
+  },
+  mapExplorerAmbientVideo: {
+    id: "map-explorer-ambient-video",
+    path: "/assets/redesign/Background/map%20explorer.mp4",
+    type: "video",
+    width: 1581,
+    height: 892,
+    section: "mapMatchup.pageBackground",
+    role: "background",
+    integrated: true,
+  },
+  powerRankingsAmbientVideo: {
+    id: "power-rankings-ambient-video",
+    path: "/assets/redesign/Background/power%20rankings.mp4",
+    type: "video",
+    width: 1581,
+    height: 892,
+    section: "powerRankings.pageBackground",
     role: "background",
     integrated: true,
   },

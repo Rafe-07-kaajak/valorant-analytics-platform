@@ -1,11 +1,136 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Route } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 /**
  * TASK-034 — cursor-reactive effects (global spotlight, tactical grid
  * parallax, card-local spotlight). Assertions target computed styles and
  * CSS custom properties rather than exact animation-frame timing.
+ *
+ * Prediction Studio mode-correction task: `/prediction-studio`'s default
+ * mode ("Real Model 2.0") now calls the real `/api/internal/prediction/current`
+ * endpoint, so the one test here that submits a prediction mocks it —
+ * mirroring `e2e/prediction-studio-real-mode.spec.ts`'s own pattern.
  */
+const CURRENT_PREDICTION_URL = "**/api/internal/prediction/current";
+
+function realResultBody(overrides: Record<string, unknown> = {}) {
+  return {
+    mode: "current-real-model",
+    requestId: "req-e2e",
+    teamAId: "paper-rex",
+    teamBId: "g2-esports",
+    seriesFormat: "BO3",
+    tournamentTier: "international",
+    eventRegion: "international",
+    modelVersion: "fixture-model-v1",
+    estimatorType: "elo-baseline",
+    calibrationMethod: "none",
+    teamAWinProbability: 0.58,
+    teamBWinProbability: 0.42,
+    predictedWinnerSide: "teamA",
+    confidence: 0.2,
+    warnings: [],
+    predictionGeneratedAt: new Date().toISOString(),
+    inferenceDurationMs: 0.6,
+    dataProvenance: {
+      sourceFeatureDatasetVersion: "fixture-feature-dataset-v1",
+      featureSchemaVersion: "fixture-feature-schema@1.0.0",
+      canonicalWindowStartIso: "2025-06-07T12:00:00.000Z",
+      modelTrainDateRangeEndIso: "2026-04-24T11:00:00.000Z",
+      asOfIso: "2026-07-18T04:00:00.000Z",
+      constructedFromRealFeatureData: true,
+    },
+    teamAConfidence: { teamId: "paper-rex", confidence: "verified", seriesCountInWindow: 30 },
+    teamBConfidence: { teamId: "g2-esports", confidence: "verified", seriesCountInWindow: 25 },
+    teamAState: {
+      teamId: "paper-rex",
+      isColdStart: false,
+      eloRating: 1550,
+      recentFormWinRate: 0.6,
+      formTrend: 0.05,
+      opponentAdjustedRating: 1500,
+      strengthOfSchedule: 1480,
+      mapPoolBreadth: 7,
+      recentMapWinRate: 0.55,
+      avgRoundsWonPerMap: 13,
+      avgRoundsLostPerMap: 10,
+      daysSinceLastMatch: 5,
+      isBackToBack: false,
+      priorInternationalAppearances: 3,
+      priorMastersChampionsAppearances: 1,
+      seriesCountInWindow: 30,
+    },
+    teamBState: {
+      teamId: "g2-esports",
+      isColdStart: false,
+      eloRating: 1480,
+      recentFormWinRate: 0.5,
+      formTrend: -0.02,
+      opponentAdjustedRating: 1470,
+      strengthOfSchedule: 1460,
+      mapPoolBreadth: 6,
+      recentMapWinRate: 0.5,
+      avgRoundsWonPerMap: 12,
+      avgRoundsLostPerMap: 11,
+      daysSinceLastMatch: 8,
+      isBackToBack: false,
+      priorInternationalAppearances: 2,
+      priorMastersChampionsAppearances: 0,
+      seriesCountInWindow: 25,
+    },
+    contribution: {
+      driverLabel: "Elo rating differential",
+      driverDifferential: 70,
+      uncalibratedProbability: 0.58,
+      calibrationAdjustment: 0,
+      finalProbability: 0.58,
+      isSoleDriver: true,
+    },
+    supportingContext: [
+      { id: "recent-form", label: "Recent Form", favoredSide: "teamA", teamAValue: 0.6, teamBValue: 0.5, description: "Win rate across each team's last 10 real matches. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "opponent-adjusted-strength", label: "Opponent-Adjusted Strength", favoredSide: "teamA", teamAValue: 1500, teamBValue: 1470, description: "Average real opponent Elo faced in each team's last 10 matches. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "map-pool-breadth", label: "Map Pool Breadth", favoredSide: "teamA", teamAValue: 7, teamBValue: 6, description: "Count of distinct real maps each team has recorded matches on. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "schedule-strength", label: "Strength of Schedule", favoredSide: "teamA", teamAValue: 1480, teamBValue: 1460, description: "Average real opponent Elo across each team's entire match history. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "activity-rest", label: "Activity & Rest", favoredSide: "teamA", teamAValue: 5, teamBValue: 8, description: "Days since each team's last real match (-1 means no real match history). Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+      { id: "competition-experience", label: "Competition Experience", favoredSide: "teamA", teamAValue: 4, teamBValue: 2, description: "Combined real prior International/Masters/Champions roster appearances. Context only, not a direct input to the currently selected estimator.", isDirectModelInput: false },
+    ],
+    evidenceTrust: {
+      score: 78,
+      explanation: "30 real series for team A and 25 for team B in the canonical data window. 2 prior real meeting(s) between these exact teams.",
+      teamASeriesCount: 30,
+      teamBSeriesCount: 25,
+      teamAIdentityConfidence: "verified",
+      teamBIdentityConfidence: "verified",
+      h2hMeetingCount: 2,
+    },
+    headToHead: { priorMeetingCount: 2, teamAWins: 1, teamBWins: 1, teamAWinRate: 0.5, priorMapDifferential: 0, meetingsLast365Days: 2 },
+    mapEvidence: {
+      teamAMapPoolBreadth: 7,
+      teamBMapPoolBreadth: 6,
+      teamARecentMapWinRate: 0.55,
+      teamBRecentMapWinRate: 0.5,
+      teamACumulativeMapWinRate: 0.52,
+      teamBCumulativeMapWinRate: 0.48,
+      teamAAvgRoundsWonPerMap: 13,
+      teamBAvgRoundsWonPerMap: 12,
+      teamAAvgRoundsLostPerMap: 10,
+      teamBAvgRoundsLostPerMap: 11,
+      knownMapPoolOverlapCount: 5,
+      mapStrengthDifferential: 0.04,
+      evidenceLevel: "sufficient",
+    },
+    pipeline: [
+      { id: "match-request", label: "Match Request", description: "Received the selected teams, series format, and tournament tier.", durationMs: null },
+      { id: "run-estimator", label: "Run Selected Estimator", description: "Scored the encoded row with the currently selected estimator.", durationMs: 0.6 },
+      { id: "generate-explanation", label: "Generate Human-Readable Explanation", description: "Built the deterministic explanation from the estimator's actual driver and supporting real context.", durationMs: null },
+    ],
+    ...overrides,
+  };
+}
+
+async function fulfillJson(route: Route, body: unknown, status = 200) {
+  await route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+}
 
 test("global spotlight activates on pointer move and deactivates on pointer leave", async ({ page }) => {
   await page.goto("/");
@@ -144,6 +269,7 @@ test("keyboard-only navigation still shows focus states with no pointer movement
 });
 
 test("reduced motion removes grid parallax and card-local glow transforms", async ({ page }) => {
+  await page.route(CURRENT_PREDICTION_URL, (route) => fulfillJson(route, realResultBody()));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/prediction-studio");
 

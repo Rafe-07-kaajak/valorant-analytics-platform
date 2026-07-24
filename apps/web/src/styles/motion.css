@@ -26,6 +26,51 @@
   }
 }
 
+/* Background-video refinement task — ambient feature-video drift, kept
+   tighter than the `drift` keyframe above (that one is tuned for flatter
+   gradient/section panels). Two variants: `normal` for the three feature
+   videos whose own footage is already calm (Comparison Lab, Map Explorer,
+   Power Rankings), and `restrained` for Prediction Studio specifically,
+   whose source clip already carries more internal motion than the other
+   three — stacking the full-strength drift on top of that would compete
+   with foreground content rather than just help conceal the loop seam.
+   Scale-only + a small translate, no rotation, per the design brief.
+   Disabled under `prefers-reduced-motion` explicitly below (redundant with
+   tokens.css's global near-zero-duration rule, matching the explicit-rule
+   convention already used by `.animate-hero-*` above rather than the
+   implicit-only approach in gradients.css's `.motion-gradient-drift`). */
+@keyframes video-drift {
+  0%,
+  100% {
+    transform: scale(1.03) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate(1.2%, -0.9%);
+  }
+}
+
+@keyframes video-drift-restrained {
+  0%,
+  100% {
+    transform: scale(1.015) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.03) translate(0.5%, -0.35%);
+  }
+}
+
+@theme {
+  --animate-video-drift: video-drift 42s ease-in-out infinite;
+  --animate-video-drift-restrained: video-drift-restrained 48s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-video-drift,
+  .animate-video-drift-restrained {
+    animation: none;
+  }
+}
+
 /* TASK-052 — Hero layer motion. A short, seamless, restrained loop applied
    to the desktop hero's Jett/Omen/map-core/HUD/foreground layers (never the
    background layer, which stays static). Transform/opacity/filter only

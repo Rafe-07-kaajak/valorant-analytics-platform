@@ -61,6 +61,7 @@ const navLinks = [
   { label: "Prediction Studio", href: "/prediction-studio" },
   { label: "Comparison Lab", href: "/team-comparison" },
   { label: "Map Explorer", href: "/map-matchup" },
+  { label: "Power Rankings", href: "/power-rankings" },
 ];
 
 export default function RootLayout({

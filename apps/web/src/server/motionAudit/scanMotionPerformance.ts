@@ -27,6 +27,7 @@ const NEW_MOTION_FILES = [
   join("packages", "ui", "src", "components", "MotionNumber", "MotionNumber.tsx"),
   join("packages", "ui", "src", "components", "ScrollProgress", "ScrollProgress.tsx"),
   join("apps", "web", "src", "components", "effects", "CardSpotlight.tsx"),
+  join("apps", "web", "src", "features", "power-rankings", "SealedRankingCard.tsx"),
 ] as const;
 
 /**
@@ -70,6 +71,7 @@ const REDUCED_MOTION_MECHANISM: Record<string, "hook" | "motionConfig" | "global
   [join("packages", "ui", "src", "components", "MotionNumber", "MotionNumber.tsx")]: "hook",
   [join("packages", "ui", "src", "components", "ScrollProgress", "ScrollProgress.tsx")]: "delegates",
   [join("apps", "web", "src", "components", "effects", "CardSpotlight.tsx")]: "delegates",
+  [join("apps", "web", "src", "features", "power-rankings", "SealedRankingCard.tsx")]: "hook",
 };
 
 // Excludes `max-width:`/`min-width:` (and the height equivalents): these are

@@ -9,6 +9,7 @@ import {
   Map,
   MessageSquareText,
   Target,
+  Trophy,
 } from "lucide-react";
 import { buttonVariants, Section } from "@repo/ui";
 import { AmbientSectionBackground } from "../../components/effects/AmbientSectionBackground";
@@ -49,6 +50,15 @@ const FEATURES = [
       "Complex analytical relationships are presented through tactical maps and visual systems designed to improve understanding rather than decorate a dashboard.",
     image: "/assets/redesign/supporting/map-hologram-visual.png",
     href: "/map-matchup",
+  },
+  {
+    icon: Trophy,
+    eyebrow: "Competitive Standings",
+    title: "Power Rankings",
+    description:
+      "All 32 VCT Stage 1 teams ranked by a transparent, modeled composite score, viewable globally or by region.",
+    image: "/assets/redesign/supporting/tournament-coverage-visual.png",
+    href: "/power-rankings",
   },
 ] as const;
 

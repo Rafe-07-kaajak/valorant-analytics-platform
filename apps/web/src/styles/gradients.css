@@ -127,16 +127,18 @@
     transparent 100%
   );
 
-  /* TASK-055 — Prediction Studio's page-level ambient identity: electric
-     cyan into royal blue, distinct from the site-wide violet-leaning
-     --gradient-ambient. Same restrained vertical-wash shape as
-     --gradient-pipeline-ambient above, capped low since this sits behind
-     the entire page (header through results), not one bounded section. */
-  --gradient-prediction-studio-ambient: linear-gradient(
+  /* Prediction Studio's page-level ambient identity — retuned for the
+     video-backed FeatureAmbientBackground system: red/magenta tactical
+     intensity (coral leading into magenta) rather than the earlier cyan/
+     blue wash, per the feature-specific mood guidance for that system. Used
+     as the `tint` layer stacked over the ambient video, not a standalone
+     section wash — capped low so it reads as a mood tint, not a flat color
+     fighting the footage underneath. */
+  --gradient-prediction-studio-video-tint: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
-    color-mix(in oklab, var(--color-accent-blue) 14%, transparent) 45%,
-    transparent 85%
+    color-mix(in oklab, var(--color-accent-coral) 22%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-magenta) 16%, transparent) 50%,
+    transparent 100%
   );
 
   /* TASK-056 — Historical Model Replay's own ambient identity, nested
@@ -160,62 +162,41 @@
       transparent 92%
     );
 
-  /* TASK-057 — Comparison Lab's page-level ambient identity: a "split-energy"
-     wash rather than the single-hue vertical sweep used by Prediction
-     Studio/Historical Replay, matching this page's versus framing (Team A
-     cyan/blue on the left, Team B magenta/coral on the right, a graphite/
-     indigo neutral field behind both). A soft vertical seam sits at center so
-     the two halves visibly meet rather than blend into a muddy middle. Capped
-     at the same 14-20% range the rest of this file uses for page-level washes. */
-  --gradient-comparison-lab-ambient: radial-gradient(
-      at 15% 25%,
-      color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 85% 30%,
-      color-mix(in oklab, var(--color-accent-magenta) 18%, transparent) 0%,
-      transparent 50%
-    ),
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in oklab, var(--color-brand-400) 10%, transparent) 50%,
-      transparent 100%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--color-accent-blue) 10%, transparent) 0%,
-      transparent 60%
-    );
+  /* Comparison Lab's page-level ambient identity — retuned for
+     FeatureAmbientBackground: warm amber/copper rivalry energy, replacing
+     the earlier cyan/magenta split-seam wash (that framing suited a flat
+     section backdrop; the video itself now supplies the visual interest,
+     so the tint's job is mood, not composition). */
+  --gradient-comparison-lab-video-tint: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-amber) 22%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-coral) 14%, transparent) 55%,
+    transparent 100%
+  );
 
-  /* TASK-058 — Map Explorer's page-level ambient identity: a "spatial
-     console" wash distinct from Prediction Studio's single cyan/blue sweep,
-     Historical Replay's archival amber glow, and Comparison Lab's
-     split-seam versus framing. A broad cyan glow sits high (behind the
-     selected-map hero), a more restrained acid-green glow (--color-accent-
-     lime, otherwise unused in this file) sits lower behind the filter
-     console/analysis zone, mirroring this feature's own attack (cyan) /
-     defense (acid-green) color language, over a low, cool vertical base so
-     the page reads as a dark tactical console rather than a lit dashboard.
-     Capped at the same 10-20% range the rest of this file uses for
-     page-level washes. */
-  --gradient-map-explorer-ambient: radial-gradient(
-      at 28% 14%,
-      color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 78% 58%,
-      color-mix(in oklab, var(--color-accent-lime) 14%, transparent) 0%,
-      transparent 50%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--color-brand-600) 12%, transparent) 0%,
-      transparent 55%,
-      transparent 100%
-    );
+  /* Map Explorer's page-level ambient identity — retuned for
+     FeatureAmbientBackground: cyan/blue spatial-intelligence mood, kept in
+     the same hue family as the original section wash (this page's identity
+     was already correctly cyan-led) but simplified to a single directional
+     tint now that the video supplies the visual texture. */
+  --gradient-map-explorer-video-tint: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-cyan) 20%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-blue) 16%, transparent) 55%,
+    transparent 100%
+  );
+
+  /* Power Rankings' page-level ambient identity — retuned for
+     FeatureAmbientBackground: indigo/violet prestige energy, replacing the
+     earlier four-region-color wash (that made sense as a flat section
+     backdrop; over real footage a single restrained violet/indigo tint
+     reads as "prestige," not "which region is this"). */
+  --gradient-power-rankings-video-tint: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-violet) 24%, transparent) 0%,
+    color-mix(in oklab, var(--color-brand-600) 14%, transparent) 55%,
+    transparent 100%
+  );
 }
 
 /* Dark ambient gradient — a page-level backdrop wash, authored for the
