@@ -301,6 +301,12 @@ test("Real Model 1.0 mode is accessible before and after a result is shown", asy
   await selectTeam(page, "B", "Americas", "G2 Esports");
   await page.getByRole("button", { name: "Generate Prediction" }).click();
   await expect(page.getByText("Real-model prediction")).toBeVisible();
+  // Let the result panel's motion-safe entrance transition
+  // (`--duration-panel`, 280ms) settle before scanning — mid-transition text
+  // and badges are briefly lower-opacity, which reads as a false-positive
+  // contrast violation (same rationale as team-comparison.spec.ts,
+  // prediction-breakdown.spec.ts, and power-rankings.spec.ts's axe checks).
+  await page.waitForTimeout(400);
 
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

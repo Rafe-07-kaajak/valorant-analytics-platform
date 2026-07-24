@@ -77,7 +77,18 @@ export function RealTeamStateSection({ result, teamAName, teamBName }: RealTeamS
         {profile.strongestConflict ? (
           <div className="flex flex-col gap-2xs">
             <span className="text-sm font-medium text-foreground">Strongest Conflict</span>
-            <Badge tone="danger">{profile.strongestConflict.label}</Badge>
+            {/* Real Model 1.0-scoped override of `tone="danger"`'s text color —
+                the default `--badge-danger-text` (#f87171 in dark theme) is
+                compliant at rest (~6:1) but this badge sits inside the same
+                motion-safe entrance transition as the rest of this result
+                panel (see `RealModelContributionsTab.tsx`'s equivalent note),
+                so a brighter, higher-margin red (~9:1 at rest) keeps it
+                comfortably clear of 4.5:1 without touching the shared
+                `--badge-danger-*` tokens every other danger badge in the app
+                also uses. */}
+            <Badge tone="danger" className="text-[#fca5a5]">
+              {profile.strongestConflict.label}
+            </Badge>
           </div>
         ) : null}
       </Card>

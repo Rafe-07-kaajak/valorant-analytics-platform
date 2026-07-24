@@ -101,6 +101,21 @@ export function SealedRankingCard({
 
   const faceClassName = "absolute inset-0 [backface-visibility:hidden] flex flex-col rounded-xl border border-surface-border";
 
+  // `backface-visibility: hidden` alone hides the away-facing side visually
+  // in a real browser, but axe-core's color-contrast check doesn't reason
+  // about 3D transforms/backface culling (or `aria-hidden`, which only
+  // affects the accessibility tree, not sightedness) — it happily measures
+  // contrast on whichever face's text is technically painted, including one
+  // rotated 180deg away from the viewer or still mid-entrance-fade. Toggling
+  // `visibility` per face is the actual signal axe (and non-3D browsers)
+  // respect for "not currently visible." The delay equals half the flip
+  // duration so each face keeps its prior visibility through its own half of
+  // the rotation (matching when it's actually facing the viewer) instead of
+  // popping hidden/visible at the start of the flip, which would make the
+  // animation itself look broken. Under reduced motion the flip is instant,
+  // so no delay is needed — the visibility swap can just track it exactly.
+  const faceVisibilityTransition = prefersReducedMotion ? undefined : `visibility 0s linear ${FLIP_DURATION_SECONDS / 2}s`;
+
   return (
     <div
       ref={outerRef}
@@ -133,6 +148,8 @@ export function SealedRankingCard({
           )}
           style={{
             backgroundImage: `linear-gradient(160deg, color-mix(in oklab, ${getRegionAccentVar(entry.team.region)} 35%, var(--surface-raised)) 0%, var(--surface-raised) 70%)`,
+            visibility: revealed ? "hidden" : "visible",
+            transition: faceVisibilityTransition,
           }}
         >
           <span
@@ -150,6 +167,10 @@ export function SealedRankingCard({
         <div
           aria-hidden={!revealed}
           className={cn(faceClassName, "gap-sm bg-surface p-sm [transform:rotateY(180deg)]")}
+          style={{
+            visibility: revealed ? "visible" : "hidden",
+            transition: faceVisibilityTransition,
+          }}
         >
           <div className="flex items-center gap-sm">
             <TeamLogo team={entry.team} size={44} />

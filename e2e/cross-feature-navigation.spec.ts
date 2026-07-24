@@ -319,7 +319,14 @@ test("browser back/forward restores prior URL-backed selections across a real pa
 
   await page.goForward();
   await expect(page).toHaveURL(/prediction-studio/, { timeout: 15_000 });
-  await expect(page.getByRole("button", { name: /G2 Esports/ })).toHaveAttribute("aria-pressed", "true", { timeout: 15_000 });
+  // Scoped to the team-selector group — see the comment on the other
+  // occurrence of this pattern above (Historical Model Replay's archive can
+  // also render a team's display name as visible button text).
+  await expect(page.getByRole("group", { name: "Team B team" }).getByRole("button", { name: /G2 Esports/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+    { timeout: 15_000 },
+  );
 });
 
 test("cross-feature links use normal anchor hrefs, compatible with opening in a new tab", async ({ page }) => {

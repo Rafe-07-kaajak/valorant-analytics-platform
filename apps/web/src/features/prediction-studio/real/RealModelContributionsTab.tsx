@@ -1,4 +1,4 @@
-import { Card } from "@repo/ui";
+import { Card, cn } from "@repo/ui";
 import type { CurrentPredictionResponse } from "@repo/shared";
 
 export interface RealModelContributionsTabProps {
@@ -23,6 +23,21 @@ function formatSignedProbability(value: number): string {
  * `RealMatchContribution` for why this stays estimator-aware rather than
  * hardcoded to Elo.
  */
+/**
+ * Real Model 1.0-scoped replacement for `text-muted-foreground` on this tab
+ * only. `--muted-foreground` itself (#9aa4b8 in dark theme) is compliant at
+ * rest against this Card's background, but this tab's result panel enters
+ * via a motion-safe opacity transition (`RealCurrentPredictionResult`'s
+ * `starting:opacity-0`) — while any partial-opacity frame of that transition
+ * is on screen, ANY text color blends toward the background and reads as
+ * lower contrast, so the fix here is a brighter resting color with enough
+ * margin (~11:1 at rest against `bg-surface` in dark theme, versus the
+ * default muted-foreground's own margin) to keep the visible, settled state
+ * safely clear of 4.5:1, not a global `--muted-foreground` change that would
+ * also affect every other unrelated page using that token.
+ */
+const ACCESSIBLE_MUTED_TEXT = "text-[#c3cbdd]";
+
 export function RealModelContributionsTab({ result, teamAName, teamBName }: RealModelContributionsTabProps) {
   const { contribution } = result;
   const favorsTeamA = contribution.driverDifferential >= 0;
@@ -30,7 +45,7 @@ export function RealModelContributionsTab({ result, teamAName, teamBName }: Real
 
   return (
     <div className="flex flex-col gap-md">
-      <p className="text-sm text-muted-foreground">
+      <p className={cn("text-sm", ACCESSIBLE_MUTED_TEXT)}>
         {contribution.isSoleDriver
           ? `The currently selected ${result.estimatorType} estimator derives its prediction from exactly one real signal below. Every other real metric in this result is supporting context, not a model input.`
           : `The currently selected ${result.estimatorType} estimator's real per-feature contributions are shown below.`}
@@ -39,16 +54,16 @@ export function RealModelContributionsTab({ result, teamAName, teamBName }: Real
       <Card className="flex flex-col gap-sm">
         <div className="flex items-center justify-between gap-sm">
           <span className="font-medium text-foreground">{contribution.driverLabel}</span>
-          <span className="text-sm text-muted-foreground">favors {favoredName}</span>
+          <span className={cn("text-sm", ACCESSIBLE_MUTED_TEXT)}>favors {favoredName}</span>
         </div>
         <dl className="grid grid-cols-2 gap-x-md gap-y-2xs text-sm">
-          <dt className="text-muted-foreground">Elo differential (A minus B)</dt>
+          <dt className={ACCESSIBLE_MUTED_TEXT}>Elo differential (A minus B)</dt>
           <dd className="text-right font-mono text-foreground">{Math.round(contribution.driverDifferential)}</dd>
-          <dt className="text-muted-foreground">Uncalibrated probability (Team A)</dt>
+          <dt className={ACCESSIBLE_MUTED_TEXT}>Uncalibrated probability (Team A)</dt>
           <dd className="text-right font-mono text-foreground">{(contribution.uncalibratedProbability * 100).toFixed(1)}%</dd>
-          <dt className="text-muted-foreground">Calibration adjustment</dt>
+          <dt className={ACCESSIBLE_MUTED_TEXT}>Calibration adjustment</dt>
           <dd className="text-right font-mono text-foreground">{formatSignedProbability(contribution.calibrationAdjustment)}</dd>
-          <dt className="text-muted-foreground">Final probability (Team A)</dt>
+          <dt className={ACCESSIBLE_MUTED_TEXT}>Final probability (Team A)</dt>
           <dd className="text-right font-mono font-semibold text-foreground">{(contribution.finalProbability * 100).toFixed(1)}%</dd>
         </dl>
       </Card>

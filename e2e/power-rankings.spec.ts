@@ -153,15 +153,30 @@ test("reduced motion: revealing a Top 3 card shows the final content immediately
 test("the page is accessible in Global mode, Regional mode, and with the dossier open", async ({ page }) => {
   await page.goto("/power-rankings");
   await expect(page.getByRole("heading", { name: "Power Rankings", level: 1 })).toBeVisible();
+  // Let the podium cards' motion-safe entrance stagger settle before scanning
+  // — mid-fade text is briefly lower-opacity, which reads as a false-positive
+  // contrast violation (same rationale as team-comparison.spec.ts and
+  // prediction-breakdown.spec.ts's axe checks).
+  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.getByRole("tab", { name: "Regional" }).click();
+  await page.waitForTimeout(400);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.getByRole("tab", { name: "Global" }).click();
+  await page.waitForTimeout(400);
   const firstRow = page.getByRole("list", { name: "Global power ranking, rank 4 and below" }).getByRole("listitem").first();
   await firstRow.getByRole("button").click();
   await expect(page.getByRole("dialog")).toBeVisible();
+  // The Global board's 29-row StaggerGroup (rank 4 and below) staggers every
+  // row's own entrance by 0.08s regardless of scroll position — the last row
+  // doesn't finish fading in until roughly (29 - 1) * 0.08s + 0.5s duration
+  // ≈ 2.8s after the tab mounts it, and axe scans the full DOM, not just
+  // what's currently scrolled into view, so a still-fading row well below the
+  // fold can fail contrast just as easily as a visible one. Settle well past
+  // that worst case before this final scan.
+  await page.waitForTimeout(3000);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
