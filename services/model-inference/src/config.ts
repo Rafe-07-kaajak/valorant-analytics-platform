@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -68,10 +69,21 @@ function readOptionalString(name: string): string | undefined {
  * it works out of the box for anyone who has run
  * `pnpm ingest:vlr:model:train` and points at TASK-045's own output
  * location without any configuration.
+ *
+ * Deployment-fix task: prefers the gitignored, freshly-trained
+ * `services/vlr-ingestion/.local/vlr-data/models/selected-model` when
+ * present (a local checkout that has run the real training pipeline always
+ * wins), falling back to `services/vlr-ingestion/data/vlr-data/models/selected-model`
+ * — a small, deterministic, git-committed copy of only the 5 files
+ * `LocalFilesystemArtifactSource`'s `INFERENCE_CRITICAL_FILENAMES` actually
+ * reads, so a serverless deployment with no persisted `.local` directory
+ * still has a real model to load. See docs/36's "Vercel deployment" section.
  */
 function defaultArtifactDir(): string {
   const here = dirname(fileURLToPath(import.meta.url));
-  return resolve(here, "..", "..", "vlr-ingestion", ".local", "vlr-data", "models", "selected-model");
+  const generated = resolve(here, "..", "..", "vlr-ingestion", ".local", "vlr-data", "models", "selected-model");
+  if (existsSync(generated)) return generated;
+  return resolve(here, "..", "..", "vlr-ingestion", "data", "vlr-data", "models", "selected-model");
 }
 
 export function loadModelInferenceConfig(): ModelInferenceConfig {

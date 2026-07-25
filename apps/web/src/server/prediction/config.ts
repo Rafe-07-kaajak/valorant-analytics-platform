@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -55,14 +56,26 @@ function readOptionalString(name: string): string | undefined {
 /**
  * Default feature dataset directory: resolved relative to this module's own
  * location on disk (never a hardcoded developer-machine absolute path) —
- * same pattern as `@repo/model-inference`'s `defaultArtifactDir()`. Points
- * at TASK-044's own output location (`services/vlr-ingestion/.local/vlr-data`)
- * without requiring any configuration for a local checkout that has already
- * run the ingestion/feature pipeline.
+ * same pattern as `@repo/model-inference`'s `defaultArtifactDir()`.
+ *
+ * Deployment-fix task: prefers a developer's own freshly-generated
+ * `services/vlr-ingestion/.local/vlr-data` (TASK-044's gitignored output —
+ * always wins when present, so running the real ingestion pipeline locally
+ * still takes priority) and falls back to
+ * `services/vlr-ingestion/data/vlr-data` — a small, deterministic, git-
+ * committed snapshot of exactly the files `currentMatchupRepository.ts` and
+ * `historicalFeatureRepository.ts`'s local-generated mode read (see
+ * docs/36's "Vercel deployment" section for why: a Vercel serverless
+ * function has no persisted `.local` directory at all, only what's actually
+ * committed to git and traced into the deployed bundle). No env var is
+ * required for either environment; `REAL_PREDICTION_FEATURE_DATA_DIR` still
+ * overrides both when set.
  */
 function defaultFeatureDataDir(): string {
   const here = dirname(fileURLToPath(import.meta.url));
-  return resolve(here, "..", "..", "..", "..", "..", "services", "vlr-ingestion", ".local", "vlr-data");
+  const generated = resolve(here, "..", "..", "..", "..", "..", "services", "vlr-ingestion", ".local", "vlr-data");
+  if (existsSync(generated)) return generated;
+  return resolve(here, "..", "..", "..", "..", "..", "services", "vlr-ingestion", "data", "vlr-data");
 }
 
 /** Default: `services/model-inference/.local/runtime-package`, resolved relative to this module's own location — same staging directory `pnpm runtime:package:build` writes to by default. */

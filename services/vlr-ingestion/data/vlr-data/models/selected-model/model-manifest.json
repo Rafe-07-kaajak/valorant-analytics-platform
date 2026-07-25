@@ -1,0 +1,33 @@
+{
+  "calibrationMethod": "none",
+  "contentHashes": {
+    "calibration.json": "44745e9c6377dbfcfac99a25a7895c5f8fc6b33a05c4661d3f0c9dda579cf543",
+    "evaluation.json": "577fc0c35ba726edf1d4ad44738362f6d1b2d4a43a331f0e450158af808fe0e1",
+    "feature-contract.json": "58c94ef2f46fb803523786199737d9ed4b7121607b029e47465af912917d71ab",
+    "feature-importance.json": "cc12a4767acc668be53b9d736b1420d63de6f59d8da2032db3b6251d4ca83848",
+    "fold-predictions.json": "50188c185accf088bc0722236c701b194e52862160fee6db0fce83e2ee44dc2d",
+    "model-card.json": "f33693dfbb7f88b79c0ecfdb94060cfe68bf7ab8112dce78bf9bff98f736ffe5",
+    "model.json": "76254deab2047d4ec603183c4b77eda4ffc741912cd8722c0e6691860d692e70",
+    "preprocessing.json": "68bb38fec80f45cfdd2cb4eecae8e6ac9ba9c63934211819bff726f3e19915d4",
+    "reliability-data.json": "ebfe13531b52dae110090bc01aabbe0c4b3fa72bb4eb944f10bcaf626b094e0b",
+    "test-predictions.json": "7ae88d871de3b9468aa64790ae66fc667805fcac4af4de2429d2499577afc760"
+  },
+  "estimatorType": "elo-baseline",
+  "featureRulesVersion": "vlr-feature-rules@1.0.0",
+  "featureSchemaVersion": "vlr-feature-schema@1.0.0",
+  "generatedAt": "2026-07-24T04:39:38.955Z",
+  "modelingRulesVersion": "vlr-modeling-rules@1.0.0",
+  "modelVersion": "9fd203eeef4a62e1",
+  "nodeRuntimeVersion": "v24.18.0",
+  "probabilityClippingEpsilon": 1e-15,
+  "randomSeed": 45045,
+  "reportingThreshold": 0.5,
+  "selectionRationale": "Neither learned candidate's walk-forward mean log loss (logistic 0.7875, tree 0.7646) beats the Elo baseline (0.6761) on this dataset; selecting Elo per the conservative-fallback rule (TASK-045 requirement 11) rather than a learned model chosen on noise.",
+  "sourceFeatureDatasetVersion": "4ea57b57ed74f619",
+  "testRowCount": 63,
+  "trainDateRangeEndIso": "2026-04-24T11:00:00.000Z",
+  "trainDateRangeStartIso": "2025-06-07T12:00:00.000Z",
+  "trainRowCount": 291,
+  "typescriptVersion": "5.9.3",
+  "validationRowCount": 62
+}

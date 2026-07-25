@@ -1,0 +1,14 @@
+{
+  "curatedDatasetVersion": "a7834ed1d1a6c60e",
+  "curatedEventCount": 16,
+  "curatedMatchCount": 432,
+  "eligibleMatchCount": 432,
+  "generatedAt": "2026-07-24T04:38:39.724Z",
+  "identityMappingVersion": "vlr-identity-mappings@d15c632f0f46916b",
+  "parserVersion": "vlr-parsers@2.0.0",
+  "qualityIssueCount": 18,
+  "qualityRulesVersion": "vlr-quality-rules@1.0.0",
+  "quarantinedMatchCount": 2,
+  "schemaVersion": "1.0.0",
+  "sourceDatasetVersion": "9c5d5ae55d7d0035"
+}

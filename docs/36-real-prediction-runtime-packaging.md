@@ -2,7 +2,9 @@
 
 Version: 1.0 (TASK-048)
 
-Status: Complete. Defines and implements a reproducible way to package the TASK-045 selected model artifact and a label-stripped TASK-044 historical replay export into a gitignored, hash-verified "runtime package," teaches `apps/web` to optionally source real-prediction data from that package instead of the raw generated directories, and documents/validates deployment-target feasibility. **No deployment occurred.** The generated package remains gitignored and local. Historical replay still requires either the packaged or the local-generated server-side data — synthetic scenario mode remains fully independent either way.
+Status: Complete. Defines and implements a reproducible way to package the TASK-045 selected model artifact and a label-stripped TASK-044 historical replay export into a gitignored, hash-verified "runtime package," teaches `apps/web` to optionally source real-prediction data from that package instead of the raw generated directories, and documents/validates deployment-target feasibility. **No deployment occurred as part of TASK-048 itself.** The generated runtime package remains gitignored and local. Historical replay still requires either the packaged or the local-generated server-side data — synthetic scenario mode remains fully independent either way.
+
+**Update (production-deployment-fix task)**: a real production Vercel deployment surfaced exactly the gap this status note anticipated — see "Vercel deployment" below for the root cause and fix. Vercel is now a **supported** target via a small, committed, non-secret data snapshot (not the gitignored runtime package, which never covered the current-matchup path's raw curated-data dependency).
 
 ---
 
@@ -22,9 +24,38 @@ Evaluated against the current architecture (filesystem-backed model + historical
 | **Docker / container (Linux)** | Supported | See "Container guidance." The runtime package is designed to be mounted read-only, not baked into the image. |
 | **Generic Linux VM** | Supported | Same filesystem-read model as a bare Node server; no VM-specific code exists or is needed. |
 | **Serverless function runtime** (e.g. Lambda-style) | **Conditional** | See "Serverless guidance" — package size and cold-start behavior are documented and measured, but no serverless-specific code path is implemented or claimed to work. |
+| **Vercel** | **Supported** | See "Vercel deployment" below — a real production deployment gap was found and fixed (production-deployment-fix task): the real curated dataset and model artifact are gitignored, developer-machine-only directories, so a fresh Vercel checkout had nothing to read. Fixed via a small, deterministic, git-committed data snapshot plus `outputFileTracingIncludes`. |
 | **Edge runtime** | **Unsupported, explicitly rejected** | See "Edge rejection." Every prediction route now declares `export const runtime = "nodejs"`. |
 
-Default policy (per TASK-048 scope): support Node server / standalone / container paths, explicitly reject Edge, treat serverless as conditional. No target is claimed "universally compatible."
+Default policy (per TASK-048 scope): support Node server / standalone / container paths, explicitly reject Edge, treat generic serverless as conditional (Vercel specifically is now supported — see below). No target is claimed "universally compatible."
+
+## Vercel deployment (production-deployment-fix task)
+
+**Root cause found**: production on Vercel loaded the UI but every real-prediction route failed — Prediction Studio reported `current_matchup_data_unavailable` ("Run the VLR curation pipeline...") and Historical Replay reported "Model failed." Both `apps/web/src/server/prediction/config.ts`'s `defaultFeatureDataDir()` and `services/model-inference/src/config.ts`'s `defaultArtifactDir()` defaulted to `services/vlr-ingestion/.local/vlr-data/**` — a directory this file's own `.gitignore` entries exclude from git entirely. A fresh Vercel checkout (or any fresh clone) has no `.local` directory at all; nothing was ever committed to serve as a fallback, so every filesystem read failed and every route correctly (but unhelpfully) reported its own "unavailable" error rather than fabricating a fallback prediction.
+
+**Exact files that were missing in production**, all read via `resolveSafePath`/`readFile` against `config.featureDataDir`:
+- `curated/{dataset-manifest.json, matches.json, events.json}` — `currentMatchupRepository.ts` (Prediction Studio's real "current matchup" flow, every request).
+- `features/{feature-manifest.json, feature-rows.json}` — `historicalFeatureRepository.ts` in `local-generated` source mode (Historical Replay).
+- `features/canonical-window.json`, `curated/identity-mappings.json` — `powerRankingsRepository.ts` (feeds `teamAConfidence`/`teamBConfidence`/evidence-trust into every current-matchup prediction; without it every team reported `"unrated"`/0 series instead of its real confidence).
+- `models/selected-model/{model.json, preprocessing.json, calibration.json, feature-contract.json, model-manifest.json}` — the 5 files `LocalFilesystemArtifactSource`'s `INFERENCE_CRITICAL_FILENAMES` reads (the trained model artifact itself).
+
+**Fix**: rather than switching to the `runtime-package` source mode (which would still need the raw `curated/` files for the current-matchup path, which it never covered — see "Packaging architecture" above), a small, deterministic, git-committed snapshot of exactly these files (~4.5 MB total, no `test-predictions.json`/`fold-predictions.json`/other diagnostic-only artifact files) now lives at `services/vlr-ingestion/data/vlr-data/{curated,features,models/selected-model}/**` — a sibling of the gitignored `.local/vlr-data`, itself **not** gitignored. `defaultFeatureDataDir()` and `defaultArtifactDir()` now prefer the gitignored `.local` directory when present (so a local checkout that has run the real ingestion/training pipeline is unaffected and always wins) and fall back to this committed snapshot otherwise — zero required environment variables, identical behavior in local dev and production.
+
+**Labels**: `features/feature-rows.json` still carries the optional `labelTeamAWin`/etc. fields server-side (unlike the label-stripped `runtime-package` export), but `predictionAdapter.ts`/`currentPredictionAdapter.ts` only ever copy a fixed, explicit field allowlist into the client-facing response — labels were never reachable from the browser in `local-generated` mode before this fix either, so committing this snapshot introduces no new client-facing leak. Match results are already public information (vlr.gg, and this app's own Historical Archive), so this is not new "secret" data becoming public.
+
+**Vercel/Next.js file tracing**: all four real-prediction routes read these files via a fully dynamic `fs.readFile(resolveSafePath(configuredDir, ...))` call — Next's build-time file tracer (`@vercel/nft`, the same mechanism Vercel's own build uses to decide what to bundle into each serverless function) only follows static `import`/`require` graphs, so it cannot discover a dynamically-computed path on its own. Without an explicit hint, Vercel's deployed function bundle would silently omit these files even though they're committed to git. `apps/web/next.config.ts` now declares:
+
+```ts
+outputFileTracingIncludes: {
+  "/api/internal/prediction/**": ["../../services/vlr-ingestion/data/vlr-data/**"],
+}
+```
+
+Verified directly: after building, `apps/web/.next/server/app/api/internal/prediction/{current,historical,catalog,readiness}/route.js.nft.json` each list every file under the committed snapshot — the same manifests Vercel's build step reads to assemble each function's deployment bundle.
+
+**Verified live**: with both `.local` directories temporarily moved aside (simulating a fresh Vercel checkout) and the app rebuilt/restarted, `/api/internal/prediction/readiness` reported `realPredictionAvailable: true, modelStatus: "ready", historicalDataAvailable: true`; `POST /api/internal/prediction/current` returned a full real prediction with `teamAConfidence`/`teamBConfidence` both `"verified"` (not `"unrated"`); `POST /api/internal/prediction/historical` returned a full real historical replay prediction. Both `.local` directories were restored afterward and confirmed byte-identical to before.
+
+**No deployment-pipeline changes were needed** — no Vercel build command customization, no `vercel.json`, no new environment variables. `pnpm --filter web build` and Vercel's own zero-config Next.js build both pick this up automatically.
 
 ## Packaging architecture
 
@@ -212,7 +243,7 @@ Single-process, single-machine, local development hardware only — consistent w
 
 ## Known limitations
 
-- **No actual deployment** — this task packages and validates locally; nothing was deployed, published, or uploaded anywhere.
+- **No actual deployment (TASK-048 itself)** — TASK-048 packages and validates locally only; nothing was deployed, published, or uploaded anywhere by that task. The production-deployment-fix task (see "Vercel deployment" above) verified the fix against a real production Vercel deployment's reported symptoms and locally simulated the exact fresh-checkout condition (both `.local` directories absent) end to end, including inspecting the actual `.nft.json` trace manifests Vercel's build reads — but did not itself trigger a live Vercel deploy from this session.
 - **`output: "standalone"` not enabled by default** — a real Windows-symlink-privilege limitation was found and documented rather than silently worked around; a container build sidesteps it (see "Next.js integration").
 - **Serverless remains conditional** — plausible on size/latency grounds, not implemented or proven against any specific provider.
 - **Edge remains unsupported** — enforced by explicit route markers, not by a runtime-detection guard (the reserved `runtime_package_unsupported_target` code is not currently thrown by any code path).

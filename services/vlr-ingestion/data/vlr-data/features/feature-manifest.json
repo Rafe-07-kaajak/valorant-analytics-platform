@@ -1,0 +1,19 @@
+{
+  "excludedRowCount": 16,
+  "featureCount": 166,
+  "featureDatasetVersion": "4ea57b57ed74f619",
+  "featureRulesVersion": "vlr-feature-rules@1.0.0",
+  "featureSchemaVersion": "vlr-feature-schema@1.0.0",
+  "generatedAt": "2026-07-24T04:39:07.579Z",
+  "ratingConfigVersion": "vlr-elo@1.0.0",
+  "rejectedMatchCount": 0,
+  "rowCount": 432,
+  "sourceDatasetVersion": "a7834ed1d1a6c60e",
+  "targetCount": 4,
+  "testRowCount": 63,
+  "trainRowCount": 291,
+  "validationErrorCount": 0,
+  "validationRowCount": 62,
+  "validationWarningCount": 0,
+  "walkForwardFoldCount": 5
+}

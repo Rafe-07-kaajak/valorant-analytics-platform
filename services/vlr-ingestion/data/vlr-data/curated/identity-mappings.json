@@ -1,0 +1,531 @@
+{
+  "teamAliases": [
+    {
+      "alias": "KRU Esports",
+      "aliasType": "transliteration",
+      "canonicalTeamId": "kru-esports",
+      "notes": "ASCII transliteration of the diacritic 'Ü'."
+    },
+    {
+      "alias": "KRÜ Esports",
+      "aliasType": "display-name",
+      "canonicalTeamId": "kru-esports",
+      "observedAt": "2026-07-18",
+      "sourceUrl": "https://www.vlr.gg/team/2355/kr-esports"
+    }
+  ],
+  "teamMapping": [
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/1001/team-heretics link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/1001/team-heretics"
+        }
+      ],
+      "internalTeamId": "team-heretics",
+      "reason": "Verified via /team/1001/team-heretics link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/1001/team-heretics",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "1001"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/1034/nrg link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/1034/nrg"
+        }
+      ],
+      "internalTeamId": "nrg",
+      "reason": "Verified via /team/1034/nrg link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/1034/nrg",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "1034"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/11058/g2-esports (2026-07-23) — page displays 'G2 Esports' / 'G2'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/11058/g2-esports"
+        }
+      ],
+      "internalTeamId": "g2-esports",
+      "reason": "Verified via live fetch of /team/11058/g2-esports (2026-07-23) — page displays 'G2 Esports' / 'G2'.",
+      "sourceUrl": "https://www.vlr.gg/team/11058/g2-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "11058"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/11060/nongshim-redforce (2026-07-23) — page displays 'Nongshim RedForce' / 'NS'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/11060/nongshim-redforce"
+        }
+      ],
+      "internalTeamId": "nongshim-redforce",
+      "reason": "Verified via live fetch of /team/11060/nongshim-redforce (2026-07-23) — page displays 'Nongshim RedForce' / 'NS'.",
+      "sourceUrl": "https://www.vlr.gg/team/11060/nongshim-redforce",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "11060"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/1119/all-gamers link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/1119/all-gamers"
+        }
+      ],
+      "internalTeamId": "all-gamers",
+      "reason": "Verified via /team/1119/all-gamers link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/1119/all-gamers",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "1119"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/1120/edward-gaming (2026-07-23) — page displays 'EDward Gaming' / 'EDG'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/1120/edward-gaming"
+        }
+      ],
+      "internalTeamId": "edward-gaming",
+      "reason": "Verified via live fetch of /team/1120/edward-gaming (2026-07-23) — page displays 'EDward Gaming' / 'EDG'.",
+      "sourceUrl": "https://www.vlr.gg/team/1120/edward-gaming",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "1120"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/1184/fut-esports (2026-07-23) — page displays 'FUT Esports' / 'FUT'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/1184/fut-esports"
+        }
+      ],
+      "internalTeamId": "fut-esports",
+      "reason": "Verified via live fetch of /team/1184/fut-esports (2026-07-23) — page displays 'FUT Esports' / 'FUT'.",
+      "sourceUrl": "https://www.vlr.gg/team/1184/fut-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "1184"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/11981/dragon-ranger-gaming (2026-07-23) — page displays 'Dragon Ranger Gaming' / 'DRG'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/11981/dragon-ranger-gaming"
+        }
+      ],
+      "internalTeamId": "dragon-ranger-gaming",
+      "reason": "Verified via live fetch of /team/11981/dragon-ranger-gaming (2026-07-23) — page displays 'Dragon Ranger Gaming' / 'DRG'.",
+      "sourceUrl": "https://www.vlr.gg/team/11981/dragon-ranger-gaming",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "11981"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/120/100-thieves link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/120/100-thieves"
+        }
+      ],
+      "internalTeamId": "100-thieves",
+      "reason": "Verified via /team/120/100-thieves link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/120/100-thieves",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "120"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/12685/trace-esports (2026-07-23) — page displays 'Trace Esports' / 'TE'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/12685/trace-esports"
+        }
+      ],
+      "internalTeamId": "trace-esports",
+      "reason": "Verified via live fetch of /team/12685/trace-esports (2026-07-23) — page displays 'Trace Esports' / 'TE'.",
+      "sourceUrl": "https://www.vlr.gg/team/12685/trace-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "12685"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/12694/gentle-mates (2026-07-23) — page displays 'Gentle Mates' / 'M8'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/12694/gentle-mates"
+        }
+      ],
+      "internalTeamId": "gentle-mates",
+      "reason": "Verified via live fetch of /team/12694/gentle-mates (2026-07-23) — page displays 'Gentle Mates' / 'M8'.",
+      "sourceUrl": "https://www.vlr.gg/team/12694/gentle-mates",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "12694"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/13576/jdg-esports (2026-07-23) — page displays 'JDG Esports' / 'JDG'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/13576/jdg-esports"
+        }
+      ],
+      "internalTeamId": "jdg-esports",
+      "reason": "Verified via live fetch of /team/13576/jdg-esports (2026-07-23) — page displays 'JDG Esports' / 'JDG'.",
+      "sourceUrl": "https://www.vlr.gg/team/13576/jdg-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "13576"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/13581/xi-lai-gaming link — the match page's own team A — fetched live (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/13581/xi-lai-gaming"
+        }
+      ],
+      "internalTeamId": "xi-lai-gaming",
+      "reason": "Verified via /team/13581/xi-lai-gaming link — the match page's own team A — fetched live (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/13581/xi-lai-gaming",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "13581"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/14/t1 (2026-07-23) — page displays 'T1' / '@T1'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/14/t1"
+        }
+      ],
+      "internalTeamId": "t1",
+      "reason": "Verified via live fetch of /team/14/t1 (2026-07-23) — page displays 'T1' / '@T1'.",
+      "sourceUrl": "https://www.vlr.gg/team/14/t1",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "14"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/14137/titan-esports-club (2026-07-23) — page displays 'Titan Esports Club' / 'TEC'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/14137/titan-esports-club"
+        }
+      ],
+      "internalTeamId": "titan-esports-club",
+      "reason": "Verified via live fetch of /team/14137/titan-esports-club (2026-07-23) — page displays 'Titan Esports Club' / 'TEC'.",
+      "sourceUrl": "https://www.vlr.gg/team/14137/titan-esports-club",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "14137"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/2059/team-vitality link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/2059/team-vitality"
+        }
+      ],
+      "internalTeamId": "team-vitality",
+      "reason": "Verified via /team/2059/team-vitality link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/2059/team-vitality",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "2059"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/2355/kr-esports link (display name 'KRÜ Esports') on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/2355/kr-esports"
+        }
+      ],
+      "internalTeamId": "kru-esports",
+      "reason": "Verified via /team/2355/kr-esports link (display name 'KRÜ Esports') on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/2355/kr-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "2355"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/2359/leviatan (2026-07-23) — page displays 'LEVIATÁN' / 'LEV'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/2359/leviatan"
+        }
+      ],
+      "internalTeamId": "leviatan",
+      "reason": "Verified via live fetch of /team/2359/leviatan (2026-07-23) — page displays 'LEVIATÁN' / 'LEV'.",
+      "sourceUrl": "https://www.vlr.gg/team/2359/leviatan",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "2359"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/2406/furia (2026-07-23) — page displays 'FURIA' / 'FUR'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/2406/furia"
+        }
+      ],
+      "internalTeamId": "furia",
+      "reason": "Verified via live fetch of /team/2406/furia (2026-07-23) — page displays 'FURIA' / 'FUR'.",
+      "sourceUrl": "https://www.vlr.gg/team/2406/furia",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "2406"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/2593/fnatic (2026-07-23) — page displays 'FNATIC' / 'FNC'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/2593/fnatic"
+        }
+      ],
+      "internalTeamId": "fnatic",
+      "reason": "Verified via live fetch of /team/2593/fnatic (2026-07-23) — page displays 'FNATIC' / 'FNC'.",
+      "sourceUrl": "https://www.vlr.gg/team/2593/fnatic",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "2593"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/278/detonation-focusme (2026-07-23) — page displays 'DetonatioN FocusMe' / 'DFM'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/278/detonation-focusme"
+        }
+      ],
+      "internalTeamId": "detonation-focusme",
+      "reason": "Verified via live fetch of /team/278/detonation-focusme (2026-07-23) — page displays 'DetonatioN FocusMe' / 'DFM'.",
+      "sourceUrl": "https://www.vlr.gg/team/278/detonation-focusme",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "278"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/397/bbl-esports link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/397/bbl-esports"
+        }
+      ],
+      "internalTeamId": "bbl-esports",
+      "reason": "Verified via /team/397/bbl-esports link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/397/bbl-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "397"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/4050/full-sense (2026-07-23) — page displays 'FULL SENSE' / 'FS'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/4050/full-sense"
+        }
+      ],
+      "internalTeamId": "full-sense",
+      "reason": "Verified via live fetch of /team/4050/full-sense (2026-07-23) — page displays 'FULL SENSE' / 'FS'.",
+      "sourceUrl": "https://www.vlr.gg/team/4050/full-sense",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "4050"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/474/team-liquid (2026-07-23) — page displays 'Team Liquid' / 'TL'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/474/team-liquid"
+        }
+      ],
+      "internalTeamId": "team-liquid",
+      "reason": "Verified via live fetch of /team/474/team-liquid (2026-07-23) — page displays 'Team Liquid' / 'TL'.",
+      "sourceUrl": "https://www.vlr.gg/team/474/team-liquid",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "474"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/624/paper-rex link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/624/paper-rex"
+        }
+      ],
+      "internalTeamId": "paper-rex",
+      "reason": "Verified via /team/624/paper-rex link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/624/paper-rex",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "624"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/6392/eternal-fire (2026-07-23) — page displays 'Eternal Fire' / 'EF'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/6392/eternal-fire"
+        }
+      ],
+      "internalTeamId": "eternal-fire",
+      "reason": "Verified via live fetch of /team/6392/eternal-fire (2026-07-23) — page displays 'Eternal Fire' / 'EF'.",
+      "sourceUrl": "https://www.vlr.gg/team/6392/eternal-fire",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "6392"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/6961/loud (2026-07-23) — page displays 'LOUD'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/6961/loud"
+        }
+      ],
+      "internalTeamId": "loud",
+      "reason": "Verified via live fetch of /team/6961/loud (2026-07-23) — page displays 'LOUD'.",
+      "sourceUrl": "https://www.vlr.gg/team/6961/loud",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "6961"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/731/tyloo (2026-07-23) — page displays 'TYLOO' / 'TYL'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/731/tyloo"
+        }
+      ],
+      "internalTeamId": "tyloo",
+      "reason": "Verified via live fetch of /team/731/tyloo (2026-07-23) — page displays 'TYLOO' / 'TYL'.",
+      "sourceUrl": "https://www.vlr.gg/team/731/tyloo",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "731"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/7386/mibr (2026-07-23) — page displays 'MIBR'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/7386/mibr"
+        }
+      ],
+      "internalTeamId": "mibr",
+      "reason": "Verified via live fetch of /team/7386/mibr (2026-07-23) — page displays 'MIBR'.",
+      "sourceUrl": "https://www.vlr.gg/team/7386/mibr",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "7386"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/8185/kiwoom-drx (2026-07-23) — page displays 'KIWOOM DRX' / 'KRX'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/8185/kiwoom-drx"
+        }
+      ],
+      "internalTeamId": "kiwoom-drx",
+      "reason": "Verified via live fetch of /team/8185/kiwoom-drx (2026-07-23) — page displays 'KIWOOM DRX' / 'KRX'.",
+      "sourceUrl": "https://www.vlr.gg/team/8185/kiwoom-drx",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "8185"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via live fetch of /team/878/rex-regum-qeon (2026-07-23) — page displays 'Rex Regum Qeon' / 'RRQ'.",
+          "observedAt": "2026-07-23",
+          "sourceUrl": "https://www.vlr.gg/team/878/rex-regum-qeon"
+        }
+      ],
+      "internalTeamId": "rex-regum-qeon",
+      "reason": "Verified via live fetch of /team/878/rex-regum-qeon (2026-07-23) — page displays 'Rex Regum Qeon' / 'RRQ'.",
+      "sourceUrl": "https://www.vlr.gg/team/878/rex-regum-qeon",
+      "status": "verified",
+      "verifiedAt": "2026-07-23",
+      "vlrTeamId": "878"
+    },
+    {
+      "confidence": "authoritative",
+      "evidence": [
+        {
+          "description": "Verified via /team/918/global-esports link on a live match page (2026-07-18).",
+          "observedAt": "2026-07-18",
+          "sourceUrl": "https://www.vlr.gg/team/918/global-esports"
+        }
+      ],
+      "internalTeamId": "global-esports",
+      "reason": "Verified via /team/918/global-esports link on a live match page (2026-07-18).",
+      "sourceUrl": "https://www.vlr.gg/team/918/global-esports",
+      "status": "verified",
+      "verifiedAt": "2026-07-18",
+      "vlrTeamId": "918"
+    }
+  ]
+}
