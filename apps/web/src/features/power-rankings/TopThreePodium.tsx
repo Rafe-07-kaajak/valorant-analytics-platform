@@ -1,4 +1,4 @@
-import { StaggerGroup, StaggerItem } from "@repo/ui";
+import { StaggerGroup, StaggerItem, cn } from "@repo/ui";
 import type { VctTeamId } from "../../constants/vct";
 import { SealedRankingCard } from "./SealedRankingCard";
 import type { PowerRankingEntry } from "./rankingTypes";
@@ -15,9 +15,13 @@ export interface TopThreePodiumProps {
 }
 
 /**
- * The podium's visual order is #2 (left), #1 (center, elevated), #3 (right) —
- * only the layout position changes; the underlying `entries` array (and thus
- * each card's fixed rank) is never reordered.
+ * Desktop (`sm:` and up) visual order is #2 (left), #1 (center, elevated),
+ * #3 (right) — unchanged from before. Mobile (below `sm:`) visual order is
+ * #1, #2, #3 top-to-bottom. Both are achieved purely with the CSS `order`
+ * property: the underlying `entries` array, DOM order, and each card's fixed
+ * rank are never reordered, so `StaggerGroup`'s stagger sequence (which
+ * follows JSX/render order) is identical to before at every breakpoint —
+ * only the visual box order changes on mobile.
  */
 export function TopThreePodium({
   entries,
@@ -31,19 +35,19 @@ export function TopThreePodium({
   if (!first || !second || !third) return null;
 
   const podiumOrder = [
-    { entry: second, elevated: false },
-    { entry: first, elevated: true },
-    { entry: third, elevated: false },
+    { entry: second, elevated: false, mobileOrder: "order-2 sm:order-none" },
+    { entry: first, elevated: true, mobileOrder: "order-1 sm:order-none" },
+    { entry: third, elevated: false, mobileOrder: "order-3 sm:order-none" },
   ];
 
   return (
     <StaggerGroup className="grid grid-cols-1 items-end gap-md sm:grid-cols-3" stagger={0.1}>
-      {podiumOrder.map(({ entry, elevated }) => {
+      {podiumOrder.map(({ entry, elevated, mobileOrder }) => {
         const primaryRank = useRegionalRank ? entry.regionalRank : entry.globalRank;
         const secondaryRankLabel = useRegionalRank ? `Global #${entry.globalRank}` : undefined;
 
         return (
-          <StaggerItem key={entry.team.id} className={elevated ? "sm:scale-105" : undefined}>
+          <StaggerItem key={entry.team.id} className={cn(mobileOrder, elevated ? "sm:scale-105" : undefined)}>
             <SealedRankingCard
               entry={entry}
               primaryRank={primaryRank}

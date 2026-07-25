@@ -2,7 +2,13 @@ import Link from "next/link";
 import { Radar } from "lucide-react";
 import { Badge, cn, Container, Divider, focusRing, type NavLink } from "@repo/ui";
 
-const IDENTITY_LABELS = ["Product Design", "Frontend Engineering", "Data Systems"] as const;
+const IDENTITY_LABELS = [
+  "Product Design",
+  "Frontend Engineering",
+  "Machine Learning",
+  "Data Engineering",
+  "Platform Engineering",
+] as const;
 
 /**
  * TASK-053 — the footer redesign. Deliberately not built on the generic

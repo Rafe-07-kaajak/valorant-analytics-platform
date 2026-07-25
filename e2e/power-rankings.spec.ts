@@ -142,6 +142,26 @@ test("mobile layout renders without horizontal overflow", async ({ page }) => {
   expect(scrollWidthAfter).toBeLessThanOrEqual(clientWidth + 1);
 });
 
+test("mobile Top 3 podium stacks in #1, #2, #3 order top-to-bottom", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/power-rankings");
+
+  const rank1 = page.getByRole("button", { name: "Reveal Global rank 1 team" });
+  const rank2 = page.getByRole("button", { name: "Reveal Global rank 2 team" });
+  const rank3 = page.getByRole("button", { name: "Reveal Global rank 3 team" });
+  await expect(rank1).toBeVisible();
+  await expect(rank2).toBeVisible();
+  await expect(rank3).toBeVisible();
+
+  const rank1Box = await rank1.boundingBox();
+  const rank2Box = await rank2.boundingBox();
+  const rank3Box = await rank3.boundingBox();
+  if (!rank1Box || !rank2Box || !rank3Box) throw new Error("Expected all three podium cards to have a bounding box.");
+
+  expect(rank1Box.y).toBeLessThan(rank2Box.y);
+  expect(rank2Box.y).toBeLessThan(rank3Box.y);
+});
+
 test("reduced motion: revealing a Top 3 card shows the final content immediately", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/power-rankings");
