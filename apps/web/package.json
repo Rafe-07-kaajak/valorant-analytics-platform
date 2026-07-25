@@ -11,7 +11,8 @@
     "test": "vitest run",
     "release:smoke": "tsx scripts/releaseSmoke.ts",
     "copy-hygiene": "tsx scripts/copyHygieneScan.ts",
-    "motion-audit": "tsx scripts/motionAuditScan.ts"
+    "motion-audit": "tsx scripts/motionAuditScan.ts",
+    "verify:vercel-parity": "tsx scripts/verifyVercelDataParity.ts"
   },
   "dependencies": {
     "@repo/model-inference": "workspace:*",

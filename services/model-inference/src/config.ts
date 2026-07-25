@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 /**
  * Typed configuration for the model inference service — TASK-046
@@ -64,26 +63,48 @@ function readOptionalString(name: string): string | undefined {
 }
 
 /**
- * Default artifact directory: resolved relative to this package's own
- * location on disk (never a hardcoded developer-machine absolute path), so
- * it works out of the box for anyone who has run
- * `pnpm ingest:vlr:model:train` and points at TASK-045's own output
- * location without any configuration.
+ * Default artifact directory: resolved relative to `process.cwd()` (never
+ * this package's own `import.meta.url` location, and never a hardcoded
+ * developer-machine absolute path), so it works out of the box for anyone
+ * who has run `pnpm ingest:vlr:model:train` and points at TASK-045's own
+ * output location without any configuration.
  *
- * Deployment-fix task: prefers the gitignored, freshly-trained
+ * Deployment-fix task (round 2): a prior version derived its base directory
+ * from `dirname(fileURLToPath(import.meta.url))`. Next.js's compiler
+ * statically substitutes `import.meta.url` with the *build machine's*
+ * absolute source path at build time (confirmed by inspecting the compiled
+ * `.next/server` chunks in the consuming `apps/web` app, where this
+ * package's code ends up bundled) — not a value reflecting where the code
+ * actually executes from. That baked-in path only "worked" locally because
+ * build and run shared a filesystem; on Vercel the build machine's absolute
+ * path does not exist at runtime, so this resolved to nothing, producing
+ * the reported "Model failed" / historical dataset unavailable errors in
+ * production. `process.cwd()` is a genuine runtime value (Vercel sets a
+ * Next.js serverless function's working directory to the project root —
+ * `apps/web`, this repo's Vercel Root Directory) that no bundler can
+ * statically inline, and is Next's own documented anchor for use alongside
+ * `outputFileTracingIncludes`. Both `services/model-inference` (this
+ * package's own unit tests) and `apps/web` (where this code actually runs
+ * in production, bundled into the Next.js server) sit exactly two
+ * directories below the monorepo root, so `resolve(process.cwd(), "..", "..")`
+ * reaches the same monorepo root in both contexts.
+ *
+ * Prefers the gitignored, freshly-trained
  * `services/vlr-ingestion/.local/vlr-data/models/selected-model` when
  * present (a local checkout that has run the real training pipeline always
- * wins), falling back to `services/vlr-ingestion/data/vlr-data/models/selected-model`
+ * wins), falling back to `apps/web/server-data/vlr-data/models/selected-model`
  * — a small, deterministic, git-committed copy of only the 5 files
  * `LocalFilesystemArtifactSource`'s `INFERENCE_CRITICAL_FILENAMES` actually
- * reads, so a serverless deployment with no persisted `.local` directory
- * still has a real model to load. See docs/36's "Vercel deployment" section.
+ * reads, committed *inside* the app that actually serves it (not across a
+ * monorepo package boundary), so a serverless deployment with no persisted
+ * `.local` directory still has a real model to load. See docs/36's "Vercel
+ * deployment" section.
  */
 function defaultArtifactDir(): string {
-  const here = dirname(fileURLToPath(import.meta.url));
-  const generated = resolve(here, "..", "..", "vlr-ingestion", ".local", "vlr-data", "models", "selected-model");
+  const monorepoRoot = resolve(process.cwd(), "..", "..");
+  const generated = resolve(monorepoRoot, "services", "vlr-ingestion", ".local", "vlr-data", "models", "selected-model");
   if (existsSync(generated)) return generated;
-  return resolve(here, "..", "..", "vlr-ingestion", "data", "vlr-data", "models", "selected-model");
+  return resolve(monorepoRoot, "apps", "web", "server-data", "vlr-data", "models", "selected-model");
 }
 
 export function loadModelInferenceConfig(): ModelInferenceConfig {

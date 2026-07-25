@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 /**
  * Typed configuration for TASK-047's real-prediction backend integration.
@@ -54,34 +53,47 @@ function readOptionalString(name: string): string | undefined {
 }
 
 /**
- * Default feature dataset directory: resolved relative to this module's own
- * location on disk (never a hardcoded developer-machine absolute path) —
- * same pattern as `@repo/model-inference`'s `defaultArtifactDir()`.
+ * Default feature dataset directory: resolved relative to `process.cwd()`
+ * (never a hardcoded developer-machine absolute path, and never a module's
+ * own `import.meta.url` location) — same pattern as `@repo/model-inference`'s
+ * `defaultArtifactDir()`.
  *
- * Deployment-fix task: prefers a developer's own freshly-generated
+ * Deployment-fix task (round 2): a prior version of this function derived
+ * its base directory from `dirname(fileURLToPath(import.meta.url))`. That
+ * is unsound for a bundled Next.js server: Next's compiler statically
+ * substitutes `import.meta.url` with the *build machine's* absolute source
+ * path at build time (confirmed by inspecting the compiled `.next/server`
+ * chunks), not a value that reflects where the code actually executes from.
+ * Locally this "worked" only because the build and the run happened on the
+ * same machine/filesystem. On Vercel, the build machine's absolute path
+ * does not exist in the deployed runtime, so both the `.local` check and
+ * the fallback below silently resolved to nonexistent paths — this is the
+ * actual root cause of "the curated real match dataset is not available
+ * locally" in production. `process.cwd()` is the documented, Vercel-stable
+ * anchor for `outputFileTracingIncludes` (see Next.js's own docs example),
+ * since Vercel sets a Next.js serverless function's working directory to
+ * the project root (`apps/web`, this repo's Vercel Root Directory) at
+ * runtime — a genuine dynamic value no bundler can statically inline.
+ *
+ * Prefers a developer's own freshly-generated
  * `services/vlr-ingestion/.local/vlr-data` (TASK-044's gitignored output —
  * always wins when present, so running the real ingestion pipeline locally
- * still takes priority) and falls back to
- * `services/vlr-ingestion/data/vlr-data` — a small, deterministic, git-
- * committed snapshot of exactly the files `currentMatchupRepository.ts` and
- * `historicalFeatureRepository.ts`'s local-generated mode read (see
- * docs/36's "Vercel deployment" section for why: a Vercel serverless
- * function has no persisted `.local` directory at all, only what's actually
- * committed to git and traced into the deployed bundle). No env var is
- * required for either environment; `REAL_PREDICTION_FEATURE_DATA_DIR` still
- * overrides both when set.
+ * still takes priority) and falls back to `apps/web/server-data/vlr-data`
+ * — a small, deterministic, git-committed snapshot living *inside* this
+ * app (not across a monorepo package boundary) of exactly the files
+ * `currentMatchupRepository.ts` and `historicalFeatureRepository.ts`'s
+ * local-generated mode read. No env var is required for either
+ * environment; `REAL_PREDICTION_FEATURE_DATA_DIR` still overrides both when set.
  */
 function defaultFeatureDataDir(): string {
-  const here = dirname(fileURLToPath(import.meta.url));
-  const generated = resolve(here, "..", "..", "..", "..", "..", "services", "vlr-ingestion", ".local", "vlr-data");
+  const generated = resolve(process.cwd(), "..", "..", "services", "vlr-ingestion", ".local", "vlr-data");
   if (existsSync(generated)) return generated;
-  return resolve(here, "..", "..", "..", "..", "..", "services", "vlr-ingestion", "data", "vlr-data");
+  return resolve(process.cwd(), "server-data", "vlr-data");
 }
 
-/** Default: `services/model-inference/.local/runtime-package`, resolved relative to this module's own location — same staging directory `pnpm runtime:package:build` writes to by default. */
+/** Default: `services/model-inference/.local/runtime-package`, resolved relative to `process.cwd()` — same staging directory `pnpm runtime:package:build` writes to by default, and the same `process.cwd()` rationale as `defaultFeatureDataDir()` above. */
 function defaultRuntimePackageDir(): string {
-  const here = dirname(fileURLToPath(import.meta.url));
-  return resolve(here, "..", "..", "..", "..", "..", "services", "model-inference", ".local", "runtime-package");
+  return resolve(process.cwd(), "..", "..", "services", "model-inference", ".local", "runtime-package");
 }
 
 function readSourceMode(): RealPredictionSourceMode {

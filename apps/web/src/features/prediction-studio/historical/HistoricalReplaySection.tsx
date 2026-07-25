@@ -79,7 +79,7 @@ export function HistoricalReplaySection() {
 
         {readinessStatus === "success" && readiness && !readiness.realPredictionAvailable ? (
           <div className="flex flex-col gap-2xs">
-            <p className="text-sm text-muted-foreground">{readiness.message} Synthetic Scenario predictions above remain fully available.</p>
+            <p className="text-sm text-muted-foreground">{readiness.message} Real Model 2.0 predictions above remain fully available.</p>
             {readiness.retryable ? (
               <Button size="sm" variant="secondary" onClick={() => void refreshReadiness()}>
                 Retry

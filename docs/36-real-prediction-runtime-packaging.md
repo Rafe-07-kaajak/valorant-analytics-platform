@@ -4,7 +4,9 @@ Version: 1.0 (TASK-048)
 
 Status: Complete. Defines and implements a reproducible way to package the TASK-045 selected model artifact and a label-stripped TASK-044 historical replay export into a gitignored, hash-verified "runtime package," teaches `apps/web` to optionally source real-prediction data from that package instead of the raw generated directories, and documents/validates deployment-target feasibility. **No deployment occurred as part of TASK-048 itself.** The generated runtime package remains gitignored and local. Historical replay still requires either the packaged or the local-generated server-side data — synthetic scenario mode remains fully independent either way.
 
-**Update (production-deployment-fix task)**: a real production Vercel deployment surfaced exactly the gap this status note anticipated — see "Vercel deployment" below for the root cause and fix. Vercel is now a **supported** target via a small, committed, non-secret data snapshot (not the gitignored runtime package, which never covered the current-matchup path's raw curated-data dependency).
+**Update (production-deployment-fix task, round 1)**: a real production Vercel deployment surfaced exactly the gap this status note anticipated — see "Vercel deployment" below for the root cause and fix. Vercel is now a **supported** target via a small, committed, non-secret data snapshot (not the gitignored runtime package, which never covered the current-matchup path's raw curated-data dependency).
+
+**Update (production-deployment-fix task, round 2)**: round 1's fix passed every local check but the actual Vercel deployment still failed with the same two errors. The real root cause was one level deeper than round 1 found — see "Vercel deployment — round 2" below.
 
 ---
 
@@ -56,6 +58,26 @@ Verified directly: after building, `apps/web/.next/server/app/api/internal/predi
 **Verified live**: with both `.local` directories temporarily moved aside (simulating a fresh Vercel checkout) and the app rebuilt/restarted, `/api/internal/prediction/readiness` reported `realPredictionAvailable: true, modelStatus: "ready", historicalDataAvailable: true`; `POST /api/internal/prediction/current` returned a full real prediction with `teamAConfidence`/`teamBConfidence` both `"verified"` (not `"unrated"`); `POST /api/internal/prediction/historical` returned a full real historical replay prediction. Both `.local` directories were restored afterward and confirmed byte-identical to before.
 
 **No deployment-pipeline changes were needed** — no Vercel build command customization, no `vercel.json`, no new environment variables. `pnpm --filter web build` and Vercel's own zero-config Next.js build both pick this up automatically.
+
+## Vercel deployment — round 2 (real root cause)
+
+Round 1's fix passed every local check — `.nft.json` manifests listed every committed file, and a local "fresh checkout" simulation (both `.local` directories moved aside, app rebuilt and restarted) returned real predictions on all four routes. Despite this, the actual Vercel deployment still failed with the identical two errors: "The curated real match dataset is not available locally" (current matchup) and the equivalent historical-dataset error — on **both** routes, not just historical.
+
+**Real root cause**: `defaultFeatureDataDir()` and `defaultArtifactDir()` computed their base directory from `dirname(fileURLToPath(import.meta.url))` — the module's own on-disk location. Inspecting the compiled production output (`apps/web/.next/server/chunks/*.js`) after a local build showed this literal string baked directly into the bundled JavaScript:
+
+```
+(0,fileURLToPath)("file:///D:/Projects/valorant-analytics-platform/services/model-inference/src/config.ts")
+```
+
+Next.js's compiler statically substitutes `import.meta.url` with the **build machine's own absolute source path** at build time — it is not a value that reflects where the bundled chunk actually executes from. Round 1's local verification "passed" only because the build and the run happened on the same machine/filesystem, so the baked-in `D:\Projects\valorant-analytics-platform\...` path coincidentally still existed at runtime. On Vercel, the build machine's absolute checkout path (something like `/vercel/path0/...`) does not exist in the deployed function's runtime filesystem, so **both** the `.local` check and the round-1 committed-snapshot fallback resolved to nonexistent paths — from the *same* broken base — reproducing the exact reported symptom on both the current-matchup and historical routes simultaneously. This is why the bug looked like "the whole committed snapshot is unreachable" rather than a narrower depth-count/`../..` mistake: the root of the path computation itself, not the number of `..` segments, was unsound.
+
+**Fix**: both functions now resolve from `process.cwd()` instead of `import.meta.url`. `process.cwd()` is a genuine runtime value — Vercel sets a Next.js serverless function's working directory to the project root (`apps/web`, this repo's Vercel Root Directory) — and no JavaScript bundler statically inlines it, since a process's working directory is inherently unknowable until it actually runs. This is also Next.js's own documented anchor for use alongside `outputFileTracingIncludes`.
+
+The committed data snapshot also moved from `services/vlr-ingestion/data/vlr-data/` to `apps/web/server-data/vlr-data/` — inside the app that actually serves it, rather than across a monorepo package boundary — removing the fragile "how many `..` segments cross from `apps/web` to `services/vlr-ingestion`" arithmetic entirely. `next.config.ts`'s `outputFileTracingIncludes` now points at `./server-data/vlr-data/**`, and `outputFileTracingRoot` is now explicitly pinned to the monorepo root so the trace root itself can't differ between a local build and Vercel's build.
+
+**Verified after the fix**: rebuilt from clean (`rm -rf apps/web/.next && pnpm --filter web build`); grepped the new compiled chunks and confirmed `process.cwd()` appears as a literal runtime call (no baked-in absolute path) in both fixed functions; confirmed all 12 committed snapshot files are traced in all four routes' `.nft.json` manifests, correctly relative to the route's actual bundle depth; re-ran the "move `.local` aside, rebuild, restart, curl all four routes" simulation and confirmed `readiness.realPredictionAvailable: true`, a real current-matchup prediction (`teamAConfidence`/`teamBConfidence`: `"verified"`, not `"unrated"`), a working historical catalog (432 matches), and a real historical prediction — then restored both `.local` directories. A new script, `pnpm --filter web verify:vercel-parity` (`apps/web/scripts/verifyVercelDataParity.ts`), automates this exact cycle (hide `.local` → build → start → assert all four routes → restore `.local`, restoration guaranteed via `finally`) for future regression checks; it is deliberately not part of `pnpm test` because it renames real local directories and runs a full production build.
+
+**Still not verified**: an actual live Vercel deploy trigger from this session (no deployment credentials/access here) — this fix is verified against the exact mechanism (compiled bundle inspection + a faithful local reproduction of Vercel's build-time/runtime path divergence), not against a live Vercel build log.
 
 ## Packaging architecture
 
@@ -243,7 +265,7 @@ Single-process, single-machine, local development hardware only — consistent w
 
 ## Known limitations
 
-- **No actual deployment (TASK-048 itself)** — TASK-048 packages and validates locally only; nothing was deployed, published, or uploaded anywhere by that task. The production-deployment-fix task (see "Vercel deployment" above) verified the fix against a real production Vercel deployment's reported symptoms and locally simulated the exact fresh-checkout condition (both `.local` directories absent) end to end, including inspecting the actual `.nft.json` trace manifests Vercel's build reads — but did not itself trigger a live Vercel deploy from this session.
+- **No actual deployment (TASK-048 itself)** — TASK-048 packages and validates locally only; nothing was deployed, published, or uploaded anywhere by that task. The production-deployment-fix task (see "Vercel deployment" and "Vercel deployment — round 2" above) verified the fix against a real production Vercel deployment's reported symptoms and locally simulated the exact fresh-checkout condition (both `.local` directories absent, served from the built `.next` output) end to end, including inspecting the actual `.nft.json` trace manifests Vercel's build reads and the compiled JS chunks themselves — but did not itself trigger a live Vercel deploy from this session.
 - **`output: "standalone"` not enabled by default** — a real Windows-symlink-privilege limitation was found and documented rather than silently worked around; a container build sidesteps it (see "Next.js integration").
 - **Serverless remains conditional** — plausible on size/latency grounds, not implemented or proven against any specific provider.
 - **Edge remains unsupported** — enforced by explicit route markers, not by a runtime-detection guard (the reserved `runtime_package_unsupported_target` code is not currently thrown by any code path).
